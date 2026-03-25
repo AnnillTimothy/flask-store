@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} – Flask Store{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('main.products') }}">Products</a></li>
+      {% if product.category %}
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('main.products', category=product.category.slug) }}">
+          {{ product.category.name }}
+        </a>
+      </li>
+      {% endif %}
+      <li class="breadcrumb-item active">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+    <!-- Image -->
+    <div class="col-md-5">
+      <img src="{{ product.image_url }}" class="img-fluid rounded shadow" alt="{{ product.name }}">
+    </div>
+
+    <!-- Details -->
+    <div class="col-md-7">
+      {% if product.category %}
+      <span class="badge bg-secondary mb-2">{{ product.category.name }}</span>
+      {% endif %}
+      <h2 class="fw-bold">{{ product.name }}</h2>
+
+      {% if product.supplier %}
+      <p class="text-muted small mb-1">Supplied by: {{ product.supplier.name }}</p>
+      {% endif %}
+
+      <h3 class="text-primary fw-bold my-3">R{{ '%.2f'|format(product.price) }}</h3>
+
+      <p class="lead">{{ product.description }}</p>
+
+      <div class="mb-3">
+        {% if product.stock > 10 %}
+          <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> In Stock ({{ product.stock }})</span>
+        {% elif product.stock > 0 %}
+          <span class="badge bg-warning text-dark fs-6"><i class="bi bi-exclamation-circle"></i> Low Stock ({{ product.stock }} left)</span>
+        {% else %}
+          <span class="badge bg-danger fs-6"><i class="bi bi-x-circle"></i> Out of Stock</span>
+        {% endif %}
+      </div>
+
+      {% if product.stock > 0 %}
+      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="d-flex gap-3 align-items-end">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="item_type" value="product">
+        <div>
+          <label class="form-label fw-semibold">Quantity</label>
+          <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}"
+                 class="form-control" style="width:90px">
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-cart-plus"></i> Add to Cart
+          </button>
+        </div>
+      </form>
+      {% else %}
+      <button class="btn btn-secondary btn-lg" disabled>Out of Stock</button>
+      {% endif %}
+
+      <hr class="my-4">
+      <a href="{{ url_for('main.products') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Continue Shopping
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

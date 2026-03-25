@@ -1,0 +1,65 @@
+/* ============================================================
+   Flask Store – Custom Styles
+   ============================================================ */
+
+:root {
+  --primary:   #0d6efd;
+  --success:   #198754;
+  --dark:      #212529;
+  --light-bg:  #f8f9fa;
+}
+
+/* Hero Banner */
+.hero-section {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a4cbf 100%);
+  min-height: 340px;
+  display: flex;
+  align-items: center;
+}
+
+/* Product / Bundle Cards */
+.product-card,
+.bundle-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.product-card:hover,
+.bundle-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+.product-img {
+  height: 220px;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* Navbar cart badge */
+.navbar .badge {
+  font-size: 0.65rem;
+}
+
+/* Footer */
+footer a:hover {
+  color: #fff !important;
+  text-decoration: underline !important;
+}
+
+/* Tables */
+.table th {
+  white-space: nowrap;
+}
+
+/* Quantity input – hide spinners in Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Checkout spinner */
+.spinner-border-sm {
+  vertical-align: middle;
+}

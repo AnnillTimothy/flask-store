@@ -1,0 +1,66 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+  <h2>Revenue Report</h2>
+
+  <form method="get" class="row g-2 mb-4">
+    <div class="col-auto">
+      <label class="form-label">From</label>
+      <input type="date" name="start" value="{{ start }}" class="form-control">
+    </div>
+    <div class="col-auto">
+      <label class="form-label">To</label>
+      <input type="date" name="end" value="{{ end }}" class="form-control">
+    </div>
+    <div class="col-auto align-self-end">
+      <button type="submit" class="btn btn-primary">Filter</button>
+      <a href="?" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card border-primary">
+        <div class="card-body">
+          <h5 class="card-title text-primary">Gross Revenue</h5>
+          <h3>R{{ '%.2f'|format(summary.gross_revenue) }}</h3>
+          <p class="text-muted small">{{ summary.order_count }} orders</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-warning">
+        <div class="card-body">
+          <h5 class="card-title text-warning">Supplier Payouts</h5>
+          <h3>R{{ '%.2f'|format(summary.total_supplier_payout) }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-danger">
+        <div class="card-body">
+          <h5 class="card-title text-danger">Expenses</h5>
+          <h3>R{{ '%.2f'|format(summary.total_expenses) }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-info">
+        <div class="card-body">
+          <h5 class="card-title text-info">Shipping Revenue</h5>
+          <h3>R{{ '%.2f'|format(summary.shipping_revenue) }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-success">
+        <div class="card-body">
+          <h5 class="card-title text-success">Net Profit</h5>
+          <h3 class="text-success">R{{ '%.2f'|format(summary.net_profit) }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

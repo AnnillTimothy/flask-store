@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Bundles – Flask Store{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+      <li class="breadcrumb-item active">Bundles</li>
+    </ol>
+  </nav>
+
+  <h2 class="fw-bold mb-4"><i class="bi bi-box-seam"></i> Bundle Deals</h2>
+  <p class="text-muted mb-4">Save more with our specially curated product bundles.</p>
+
+  {% if bundles %}
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for bundle in bundles %}
+    <div class="col">
+      <div class="card h-100 shadow-sm bundle-card position-relative">
+        <span class="badge bg-success position-absolute top-0 end-0 m-2 fs-6">Bundle</span>
+        <a href="{{ url_for('main.bundle_detail', bundle_id=bundle.id) }}">
+          <img src="{{ bundle.image_url }}" class="card-img-top product-img" alt="{{ bundle.name }}">
+        </a>
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">
+            <a href="{{ url_for('main.bundle_detail', bundle_id=bundle.id) }}"
+               class="text-decoration-none text-dark">{{ bundle.name }}</a>
+          </h5>
+          <p class="card-text text-muted small flex-grow-1">
+            {{ bundle.description[:80] ~ '…' if bundle.description and bundle.description|length > 80 else bundle.description }}
+          </p>
+
+          <!-- Items list -->
+          <ul class="list-unstyled small text-muted mb-2">
+            {% for item in bundle.items %}
+            <li><i class="bi bi-check text-success"></i>
+              {{ item.product.name if item.product else 'Unknown' }}
+              {% if item.quantity > 1 %}<span class="badge bg-light text-dark">×{{ item.quantity }}</span>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+
+          {% set orig = bundle.original_price %}
+          {% if orig > bundle.price %}
+          <p class="mb-1 text-muted small">
+            <span class="text-decoration-line-through">R{{ '%.2f'|format(orig) }}</span>
+            <span class="badge bg-danger ms-1">Save R{{ '%.2f'|format(orig - bundle.price) }}</span>
+          </p>
+          {% endif %}
+
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <span class="fw-bold text-success fs-5">R{{ '%.2f'|format(bundle.price) }}</span>
+          </div>
+          <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="mt-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="bundle_id" value="{{ bundle.id }}">
+            <input type="hidden" name="item_type" value="bundle">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="btn btn-success btn-sm w-100">
+              <i class="bi bi-cart-plus"></i> Add Bundle to Cart
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-box-seam display-1 text-muted"></i>
+    <p class="mt-3 text-muted">No bundles available yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

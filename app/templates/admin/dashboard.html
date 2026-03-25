@@ -1,0 +1,85 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+  <h2 class="mb-4"><i class="fa fa-tachometer-alt"></i> Dashboard</h2>
+
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-white bg-primary">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ stats.orders }}</h4>
+              <small>Total Orders</small>
+            </div>
+            <i class="fa fa-shopping-bag fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-white bg-warning">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ stats.pending_orders }}</h4>
+              <small>Pending Orders</small>
+            </div>
+            <i class="fa fa-clock fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-white bg-success">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ stats.paid_orders }}</h4>
+              <small>Paid Orders</small>
+            </div>
+            <i class="fa fa-check-circle fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-white bg-info">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ stats.products }}</h4>
+              <small>Products</small>
+            </div>
+            <i class="fa fa-box fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revenue Summary -->
+  <div class="card">
+    <div class="card-header"><strong>Revenue Summary (All Time)</strong></div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Gross Revenue:</strong> R{{ '%.2f'|format(summary.gross_revenue) }}</p>
+          <p><strong>Shipping Revenue:</strong> R{{ '%.2f'|format(summary.shipping_revenue) }}</p>
+          <p><strong>Product Revenue:</strong> R{{ '%.2f'|format(summary.product_revenue) }}</p>
+        </div>
+        <div class="col-md-4">
+          <p><strong>Supplier Payouts:</strong> R{{ '%.2f'|format(summary.total_supplier_payout) }}</p>
+          <p><strong>Total Expenses:</strong> R{{ '%.2f'|format(summary.total_expenses) }}</p>
+        </div>
+        <div class="col-md-4">
+          <h5 class="text-success"><strong>Net Profit: R{{ '%.2f'|format(summary.net_profit) }}</strong></h5>
+          <p class="text-muted">Based on {{ summary.order_count }} paid orders</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
