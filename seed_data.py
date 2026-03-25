@@ -4,7 +4,7 @@ Seed script – populate the database with demo data.
 Run after:
     flask db init && flask db migrate -m "init" && flask db upgrade
 """
-from datetime import date, timedelta
+from datetime import date
 import random
 
 from app import create_app
@@ -202,11 +202,11 @@ def seed():
         if Expense.query.count() == 0:
             expenses = [
                 Expense(description='Google Ads – March', amount=500.00,
-                        category='marketing', date=date.today() - timedelta(days=10)),
+                        category='marketing', date=date(2024, 3, 15)),
                 Expense(description='Courier bags & packaging', amount=320.00,
-                        category='shipping', date=date.today() - timedelta(days=5)),
+                        category='shipping', date=date(2024, 3, 20)),
                 Expense(description='Domain & hosting renewal', amount=899.00,
-                        category='operations', date=date.today() - timedelta(days=3)),
+                        category='operations', date=date(2024, 3, 22)),
             ]
             db.session.add_all(expenses)
             db.session.commit()

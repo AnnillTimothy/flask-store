@@ -15,7 +15,7 @@ def _build_signature(data, passphrase=''):
     items.sort(key=lambda x: x[0])
     query = urllib.parse.urlencode(items)
     if passphrase:
-        query += f'&passphrase={urllib.parse.quote(passphrase)}'
+        query += f'&passphrase={urllib.parse.quote_plus(passphrase)}'
     return hashlib.md5(query.encode('utf-8')).hexdigest()
 
 
