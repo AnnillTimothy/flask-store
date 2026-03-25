@@ -34,8 +34,8 @@ def get_or_create_cart():
 
 def add_product(product_id, quantity=1):
     product = Product.query.get(product_id)
-    if not product or not product.is_active:
-        return False, 'Product not found or unavailable.'
+    if not product:
+        return False, 'Product not found.'
     if product.stock < quantity:
         return False, 'Insufficient stock.'
 
@@ -57,8 +57,8 @@ def add_product(product_id, quantity=1):
 
 def add_bundle(bundle_id, quantity=1):
     bundle = Bundle.query.get(bundle_id)
-    if not bundle or not bundle.is_active:
-        return False, 'Bundle not found or unavailable.'
+    if not bundle:
+        return False, 'Bundle not found.'
 
     cart = get_or_create_cart()
     item = CartItem.query.filter_by(cart_id=cart.id, bundle_id=bundle_id,

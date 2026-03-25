@@ -19,12 +19,12 @@
     <div class="col">
       <div class="card h-100 shadow-sm bundle-card position-relative">
         <span class="badge bg-success position-absolute top-0 end-0 m-2 fs-6">Bundle</span>
-        <a href="{{ url_for('main.bundle_detail', bundle_id=bundle.id) }}">
-          <img src="{{ bundle.image_url }}" class="card-img-top product-img" alt="{{ bundle.name }}">
+        <a href="{{ url_for("main.bundle_detail", slug=bundle.slug) }}">
+          <img src="{{ bundle.display_image }}" class="card-img-top product-img" alt="{{ bundle.name }}">
         </a>
         <div class="card-body d-flex flex-column">
           <h5 class="card-title">
-            <a href="{{ url_for('main.bundle_detail', bundle_id=bundle.id) }}"
+            <a href="{{ url_for("main.bundle_detail", slug=bundle.slug) }}"
                class="text-decoration-none text-dark">{{ bundle.name }}</a>
           </h5>
           <p class="card-text text-muted small flex-grow-1">
@@ -41,7 +41,7 @@
             {% endfor %}
           </ul>
 
-          {% set orig = bundle.original_price %}
+          {% set orig = bundle.total_price %}
           {% if orig > bundle.price %}
           <p class="mb-1 text-muted small">
             <span class="text-decoration-line-through">R{{ '%.2f'|format(orig) }}</span>

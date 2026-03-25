@@ -25,24 +25,26 @@ def get_payment_url():
     return LIVE_URL
 
 
-def build_payment_data(order, return_url, cancel_url, notify_url):
+def build_payment_data(order, return_url, cancel_url, notify_url,
+                       customer_name='', customer_email=''):
     """Build the dict of POST data to submit to PayFast."""
     merchant_id = current_app.config['PAYFAST_MERCHANT_ID']
     merchant_key = current_app.config['PAYFAST_MERCHANT_KEY']
     passphrase = current_app.config['PAYFAST_PASSPHRASE']
 
+    name_parts = customer_name.split() if customer_name else []
     data = {
         'merchant_id': str(merchant_id),
         'merchant_key': str(merchant_key),
         'return_url': return_url,
         'cancel_url': cancel_url,
         'notify_url': notify_url,
-        'name_first': order.customer_name.split()[0] if order.customer_name else '',
-        'name_last': ' '.join(order.customer_name.split()[1:]) if order.customer_name and len(order.customer_name.split()) > 1 else '',
-        'email_address': order.customer_email or '',
-        'amount': f'{order.total_amount:.2f}',
-        'item_name': f'Order #{order.id}',
-        'item_description': f'Flask Store Order #{order.id}',
+        'name_first': name_parts[0] if name_parts else '',
+        'name_last': ' '.join(name_parts[1:]) if len(name_parts) > 1 else '',
+        'email_address': customer_email or '',
+        'amount': f'{float(order.total_amount):.2f}',
+        'item_name': f'Order #{order.order_number}',
+        'item_description': f'Flask Store Order {order.order_number}',
         'm_payment_id': str(order.id),
     }
 

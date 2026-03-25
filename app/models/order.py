@@ -7,27 +7,28 @@ class Order(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    order_number = db.Column(db.String(32), unique=True, nullable=False)
+    total_amount = db.Column(db.Numeric(10, 2), nullable=False)
+    shipping_cost = db.Column(db.Numeric(10, 2), default=150.00, nullable=False)
     status = db.Column(db.String(30), default='pending', nullable=False)
-    total_amount = db.Column(db.Float, nullable=False)
-    shipping_cost = db.Column(db.Float, default=150.0, nullable=False)
-    payment_id = db.Column(db.String(100))
+    payment_reference = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    shipping_address = db.Column(db.Text)
-    customer_name = db.Column(db.String(200))
-    customer_email = db.Column(db.String(120))
 
-    items = db.relationship('OrderItem', backref='order', lazy='dynamic',
+    items = db.relationship('OrderItem', back_populates='order', lazy='dynamic',
                             cascade='all, delete-orphan')
-    shipping_record = db.relationship('ShippingRecord', backref='order', uselist=False)
+    shipping_record = db.relationship('ShippingRecord', back_populates='order', uselist=False)
 
-    STATUS_CHOICES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
+    STATUS_CHOICES = ['pending', 'paid', 'shipped', 'cancelled']
 
     @property
     def subtotal(self):
-        return self.total_amount - self.shipping_cost
+        return float(self.total_amount) - float(self.shipping_cost)
 
     def __repr__(self):
-        return f'<Order id={self.id} status={self.status}>'
+        return f'<Order {self.order_number} status={self.status}>'
+
+    def __str__(self):
+        return f'Order {self.order_number}'
 
 
 class OrderItem(db.Model):
@@ -38,13 +39,28 @@ class OrderItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     bundle_id = db.Column(db.Integer, db.ForeignKey('bundles.id'), nullable=True)
     quantity = db.Column(db.Integer, nullable=False)
-    unit_price = db.Column(db.Float, nullable=False)
+    price_at_purchase = db.Column(db.Numeric(10, 2), nullable=False)
     item_type = db.Column(db.String(20), nullable=False)  # 'product' or 'bundle'
-    item_name = db.Column(db.String(200), nullable=False)  # name at time of purchase
+
+    order = db.relationship('Order', back_populates='items')
+    product = db.relationship('Product', back_populates='order_items')
+    bundle = db.relationship('Bundle', back_populates='order_items')
+
+    @property
+    def item_name(self):
+        """Derive item name from the related object."""
+        if self.item_type == 'product' and self.product:
+            return self.product.name
+        if self.item_type == 'bundle' and self.bundle:
+            return self.bundle.name
+        return 'Unknown Item'
 
     @property
     def subtotal(self):
-        return self.unit_price * self.quantity
+        return float(self.price_at_purchase) * self.quantity
 
     def __repr__(self):
-        return f'<OrderItem id={self.id} name={self.item_name}>'
+        return f'<OrderItem id={self.id} type={self.item_type}>'
+
+    def __str__(self):
+        return f'{self.item_name} x{self.quantity}'

@@ -10,7 +10,7 @@ class Cart(db.Model):
     session_id = db.Column(db.String(128), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    items = db.relationship('CartItem', backref='cart', lazy='dynamic',
+    items = db.relationship('CartItem', back_populates='cart', lazy='dynamic',
                             cascade='all, delete-orphan')
 
     @property
@@ -19,6 +19,9 @@ class Cart(db.Model):
 
     def __repr__(self):
         return f'<Cart id={self.id}>'
+
+    def __str__(self):
+        return f'Cart #{self.id}'
 
 
 class CartItem(db.Model):
@@ -31,12 +34,16 @@ class CartItem(db.Model):
     quantity = db.Column(db.Integer, default=1, nullable=False)
     item_type = db.Column(db.String(20), nullable=False)  # 'product' or 'bundle'
 
+    cart = db.relationship('Cart', back_populates='items')
+    product = db.relationship('Product', back_populates='cart_items')
+    bundle = db.relationship('Bundle', back_populates='cart_items')
+
     @property
     def unit_price(self):
         if self.item_type == 'product' and self.product:
-            return self.product.price
+            return float(self.product.price)
         if self.item_type == 'bundle' and self.bundle:
-            return self.bundle.price
+            return float(self.bundle.price)
         return 0.0
 
     @property
@@ -54,10 +61,13 @@ class CartItem(db.Model):
     @property
     def image_url(self):
         if self.item_type == 'product' and self.product:
-            return self.product.image_url
+            return self.product.image_url or 'https://placehold.co/400x300?text=Product'
         if self.item_type == 'bundle' and self.bundle:
-            return self.bundle.image_url
+            return self.bundle.image_url or 'https://placehold.co/400x300?text=Bundle'
         return 'https://placehold.co/400x300?text=Item'
 
     def __repr__(self):
         return f'<CartItem id={self.id} type={self.item_type}>'
+
+    def __str__(self):
+        return f'{self.name} x{self.quantity}'

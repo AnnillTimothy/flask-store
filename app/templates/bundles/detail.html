@@ -14,7 +14,7 @@
   <div class="row g-5">
     <!-- Image -->
     <div class="col-md-5">
-      <img src="{{ bundle.image_url }}" class="img-fluid rounded shadow" alt="{{ bundle.name }}">
+      <img src="{{ bundle.display_image }}" class="img-fluid rounded shadow" alt="{{ bundle.name }}">
     </div>
 
     <!-- Details -->
@@ -33,10 +33,10 @@
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
               {% if item.product %}
-              <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}"
+              <img src="{{ item.product.display_image }}" alt="{{ item.product.name }}"
                    class="rounded" style="width:48px;height:48px;object-fit:cover">
               <div>
-                <a href="{{ url_for('main.product_detail', product_id=item.product.id) }}"
+                <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}"
                    class="text-decoration-none text-dark fw-semibold">
                   {{ item.product.name }}
                 </a>
@@ -54,7 +54,7 @@
         </ul>
       </div>
 
-      {% set orig = bundle.original_price %}
+      {% set orig = bundle.total_price %}
       {% if orig > bundle.price %}
       <p class="text-muted">
         Individual total:

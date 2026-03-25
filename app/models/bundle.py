@@ -7,34 +7,35 @@ class Bundle(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
-    price = db.Column(db.Float, nullable=False)
-    image_filename = db.Column(db.String(255))
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    slug = db.Column(db.String(200), unique=True, nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    image_url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    items = db.relationship('BundleItem', backref='bundle', lazy='dynamic',
+    items = db.relationship('BundleItem', back_populates='bundle', lazy='dynamic',
                             cascade='all, delete-orphan')
-    cart_items = db.relationship('CartItem', backref='bundle', lazy='dynamic')
-    order_items = db.relationship('OrderItem', backref='bundle', lazy='dynamic')
+    cart_items = db.relationship('CartItem', back_populates='bundle', lazy='dynamic')
+    order_items = db.relationship('OrderItem', back_populates='bundle', lazy='dynamic')
 
     @property
-    def image_url(self):
-        if self.image_filename:
-            return f'/static/uploads/{self.image_filename}'
-        return 'https://placehold.co/400x300?text=Bundle'
+    def display_image(self):
+        return self.image_url or 'https://placehold.co/400x300?text=Bundle'
 
     @property
-    def original_price(self):
-        """Sum of individual product prices for savings display."""
+    def total_price(self):
+        """Sum of individual product prices (for savings display)."""
         total = 0.0
         for item in self.items:
             if item.product:
-                total += item.product.price * item.quantity
+                total += float(item.product.price) * item.quantity
         return total
 
     def __repr__(self):
         return f'<Bundle {self.name}>'
+
+    def __str__(self):
+        return self.name
 
 
 class BundleItem(db.Model):
@@ -45,8 +46,12 @@ class BundleItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     quantity = db.Column(db.Integer, default=1, nullable=False)
 
-    bundle_rel = db.relationship('Bundle', foreign_keys=[bundle_id], overlaps='items,bundle')
-    product_rel = db.relationship('Product', foreign_keys=[product_id], overlaps='bundle_items,product')
+    bundle = db.relationship('Bundle', back_populates='items', foreign_keys=[bundle_id])
+    product = db.relationship('Product', back_populates='bundle_items', foreign_keys=[product_id])
 
     def __repr__(self):
-        return f'<BundleItem bundle={self.bundle_id} product={self.product_id}>'
+        return f'<BundleItem bundle={self.bundle_id} product={self.product_id} qty={self.quantity}>'
+
+    def __str__(self):
+        product_name = self.product.name if self.product else f'Product #{self.product_id}'
+        return f'{product_name} x{self.quantity}'

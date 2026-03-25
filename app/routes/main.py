@@ -8,10 +8,8 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    featured_products = Product.query.filter_by(is_active=True).order_by(
-        Product.created_at.desc()).limit(6).all()
-    featured_bundles = Bundle.query.filter_by(is_active=True).order_by(
-        Bundle.created_at.desc()).limit(3).all()
+    featured_products = Product.query.order_by(Product.created_at.desc()).limit(6).all()
+    featured_bundles = Bundle.query.order_by(Bundle.created_at.desc()).limit(3).all()
     return render_template('index.html',
                            products=featured_products,
                            bundles=featured_bundles)
@@ -21,7 +19,7 @@ def index():
 def products():
     category_slug = request.args.get('category')
     categories = Category.query.order_by(Category.name).all()
-    query = Product.query.filter_by(is_active=True)
+    query = Product.query
     active_category = None
     if category_slug:
         active_category = Category.query.filter_by(slug=category_slug).first()
@@ -34,19 +32,33 @@ def products():
                            active_category=active_category)
 
 
-@main_bp.route('/products/<int:product_id>')
-def product_detail(product_id):
-    product = Product.query.filter_by(id=product_id, is_active=True).first_or_404()
+@main_bp.route('/products/<slug>')
+def product_detail(slug):
+    product = Product.query.filter_by(slug=slug).first_or_404()
+    return render_template('products/detail.html', product=product)
+
+
+# Keep numeric ID route for backwards compatibility
+@main_bp.route('/products/id/<int:product_id>')
+def product_detail_by_id(product_id):
+    product = Product.query.get_or_404(product_id)
     return render_template('products/detail.html', product=product)
 
 
 @main_bp.route('/bundles')
 def bundles():
-    bundles = Bundle.query.filter_by(is_active=True).order_by(Bundle.name).all()
+    bundles = Bundle.query.order_by(Bundle.name).all()
     return render_template('bundles/list.html', bundles=bundles)
 
 
-@main_bp.route('/bundles/<int:bundle_id>')
-def bundle_detail(bundle_id):
-    bundle = Bundle.query.filter_by(id=bundle_id, is_active=True).first_or_404()
+@main_bp.route('/bundles/<slug>')
+def bundle_detail(slug):
+    bundle = Bundle.query.filter_by(slug=slug).first_or_404()
+    return render_template('bundles/detail.html', bundle=bundle)
+
+
+# Keep numeric ID route for backwards compatibility
+@main_bp.route('/bundles/id/<int:bundle_id>')
+def bundle_detail_by_id(bundle_id):
+    bundle = Bundle.query.get_or_404(bundle_id)
     return render_template('bundles/detail.html', bundle=bundle)

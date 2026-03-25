@@ -1,20 +1,11 @@
 from flask import (Blueprint, render_template, request, redirect, url_for,
                    flash, current_app, session)
-from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SubmitField
-from wtforms.validators import DataRequired, Email
 from app.extensions import db, csrf
 from app.services import cart_service, order_service, payfast
 from app.models.order import Order
+from app.forms import CheckoutForm
 
 checkout_bp = Blueprint('checkout', __name__)
-
-
-class CheckoutForm(FlaskForm):
-    customer_name = StringField('Full Name', validators=[DataRequired()])
-    customer_email = StringField('Email', validators=[DataRequired(), Email()])
-    shipping_address = TextAreaField('Shipping Address', validators=[DataRequired()])
-    submit = SubmitField('Proceed to Payment')
 
 
 @checkout_bp.route('/')
@@ -49,6 +40,11 @@ def pay():
                                items=list(cart.items),
                                subtotal=subtotal, shipping=shipping, total=total)
 
+    # Store customer details in session for PayFast and confirmation page
+    session['checkout_name'] = form.customer_name.data
+    session['checkout_email'] = form.customer_email.data
+    session['checkout_address'] = form.shipping_address.data
+
     shipping_cost = current_app.config['SHIPPING_COST']
     order, error = order_service.create_order_from_cart(
         cart=cart,
@@ -68,7 +64,14 @@ def pay():
     cancel_url = url_for('checkout.payment_cancel', _external=True)
     notify_url = url_for('checkout.payment_notify', _external=True)
 
-    payment_data = payfast.build_payment_data(order, return_url, cancel_url, notify_url)
+    payment_data = payfast.build_payment_data(
+        order,
+        return_url,
+        cancel_url,
+        notify_url,
+        customer_name=form.customer_name.data,
+        customer_email=form.customer_email.data,
+    )
     payment_url = payfast.get_payment_url()
 
     return render_template('checkout/payfast_redirect.html',
@@ -95,7 +98,7 @@ def payment_notify():
         if order:
             if payment_status == 'COMPLETE':
                 order.status = 'paid'
-                order.payment_id = pf_payment_id
+                order.payment_reference = pf_payment_id
             elif payment_status == 'FAILED':
                 order.status = 'cancelled'
             db.session.commit()
@@ -107,12 +110,20 @@ def payment_notify():
 def payment_return():
     order_id = session.pop('pending_order_id', None)
     order = Order.query.get(order_id) if order_id else None
-    return render_template('checkout/success.html', order=order)
+    customer_name = session.pop('checkout_name', '')
+    customer_email = session.pop('checkout_email', '')
+    session.pop('checkout_address', None)
+    return render_template('checkout/success.html', order=order,
+                           customer_name=customer_name,
+                           customer_email=customer_email)
 
 
 @checkout_bp.route('/cancel')
 def payment_cancel():
     order_id = session.pop('pending_order_id', None)
+    session.pop('checkout_name', None)
+    session.pop('checkout_email', None)
+    session.pop('checkout_address', None)
     if order_id:
         order = Order.query.get(order_id)
         if order and order.status == 'pending':

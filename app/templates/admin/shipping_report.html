@@ -38,8 +38,8 @@
     <tbody>
       {% for sr, order in records %}
       <tr>
-        <td>{{ order.id }}</td>
-        <td>{{ order.customer_name }}</td>
+        <td>{{ order.order_number }}</td>
+        <td>{{ order.user.username if order.user else '—' }}</td>
         <td>{{ sr.carrier or '–' }}</td>
         <td>{{ sr.tracking_number or '–' }}</td>
         <td>

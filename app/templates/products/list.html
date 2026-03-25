@@ -46,15 +46,15 @@
         {% for product in products %}
         <div class="col">
           <div class="card h-100 shadow-sm product-card">
-            <a href="{{ url_for('main.product_detail', product_id=product.id) }}">
-              <img src="{{ product.image_url }}" class="card-img-top product-img" alt="{{ product.name }}">
+            <a href="{{ url_for('main.product_detail', slug=product.slug) }}">
+              <img src="{{ product.display_image }}" class="card-img-top product-img" alt="{{ product.name }}">
             </a>
             <div class="card-body d-flex flex-column">
               {% if product.category %}
               <span class="badge bg-secondary mb-1" style="width:fit-content">{{ product.category.name }}</span>
               {% endif %}
               <h6 class="card-title">
-                <a href="{{ url_for('main.product_detail', product_id=product.id) }}"
+                <a href="{{ url_for('main.product_detail', slug=product.slug) }}"
                    class="text-decoration-none text-dark">{{ product.name }}</a>
               </h6>
               <p class="card-text text-muted small flex-grow-1">

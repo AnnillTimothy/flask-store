@@ -60,6 +60,36 @@
     </div>
   </div>
 
+  <!-- Second stats row -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-white bg-danger">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ stats.low_stock }}</h4>
+              <small>Low Stock (&lt;10)</small>
+            </div>
+            <i class="fa fa-exclamation-triangle fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-white bg-secondary">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ stats.suppliers }}</h4>
+              <small>Suppliers</small>
+            </div>
+            <i class="fa fa-truck fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Revenue Summary -->
   <div class="card">
     <div class="card-header"><strong>Revenue Summary (All Time)</strong></div>

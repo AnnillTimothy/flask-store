@@ -3,7 +3,7 @@ from datetime import datetime, date
 from flask import redirect, url_for, request, flash, current_app
 from flask_admin import AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
-from flask_admin.form import ImageUploadField
+from flask_admin.model.form import InlineFormAdmin
 from flask_login import current_user
 from wtforms import SelectField
 from app.extensions import db, admin
@@ -32,7 +32,7 @@ class AdminRequiredMixin:
 
 
 # ---------------------------------------------------------------------------
-# Custom Admin index
+# Custom Admin index with dashboard stats
 # ---------------------------------------------------------------------------
 
 class SecureAdminIndexView(AdminRequiredMixin, AdminIndexView):
@@ -40,20 +40,20 @@ class SecureAdminIndexView(AdminRequiredMixin, AdminIndexView):
     def index(self):
         if not self.is_accessible():
             return self.inaccessible_callback('index')
-        from app.models.order import Order
-        from app.models.product import Product
         stats = {
             'orders': Order.query.count(),
             'products': Product.query.count(),
             'pending_orders': Order.query.filter_by(status='pending').count(),
             'paid_orders': Order.query.filter_by(status='paid').count(),
+            'low_stock': Product.query.filter(Product.stock < 10).count(),
+            'suppliers': Supplier.query.count(),
         }
         summary = get_revenue_summary()
         return self.render('admin/dashboard.html', stats=stats, summary=summary)
 
 
 # ---------------------------------------------------------------------------
-# Base model view
+# Base secure model view
 # ---------------------------------------------------------------------------
 
 class SecureModelView(AdminRequiredMixin, ModelView):
@@ -78,9 +78,11 @@ class UserAdmin(AdminRequiredMixin, ModelView):
 # ---------------------------------------------------------------------------
 
 class SupplierAdmin(SecureModelView):
-    column_list = ('id', 'name', 'email', 'phone', 'revenue_share_percentage', 'created_at')
-    column_searchable_list = ('name', 'email')
-    form_excluded_columns = ('products',)
+    column_list = ('id', 'name', 'website', 'contact_email', 'revenue_share_percentage',
+                   'created_at')
+    column_searchable_list = ('name', 'contact_email')
+    column_filters = ('revenue_share_percentage',)
+    form_excluded_columns = ('products', 'expenses')
 
 
 # ---------------------------------------------------------------------------
@@ -97,48 +99,35 @@ class CategoryAdmin(SecureModelView):
 # Product Admin
 # ---------------------------------------------------------------------------
 
-def _upload_folder():
-    return current_app.config.get('UPLOAD_FOLDER', 'app/static/uploads')
-
-
 class ProductAdmin(SecureModelView):
-    column_list = ('id', 'name', 'price', 'stock', 'is_active', 'category', 'supplier')
-    column_searchable_list = ('name',)
-    column_filters = ('is_active', 'category_id', 'supplier_id')
-    form_excluded_columns = ('bundle_items', 'cart_items', 'order_items', 'created_at')
-
-    form_extra_fields = {
-        'image_filename': ImageUploadField(
-            'Product Image',
-            base_path=lambda: current_app.config['UPLOAD_FOLDER'],
-            url_relative_path='uploads/',
-            allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp'],
-        )
-    }
+    column_list = ('id', 'name', 'slug', 'type', 'quantity', 'flavor', 'price',
+                   'stock', 'category', 'supplier')
+    column_searchable_list = ('name', 'slug', 'type', 'flavor')
+    column_filters = ('category_id', 'supplier_id')
+    form_excluded_columns = ('bundle_items', 'cart_items', 'order_items',
+                             'created_at', 'updated_at')
 
 
 # ---------------------------------------------------------------------------
-# Bundle Admin
+# Bundle Admin  (with inline BundleItem editing)
 # ---------------------------------------------------------------------------
+
+class BundleItemInline(InlineFormAdmin):
+    form_columns = ('id', 'product', 'quantity')
+    form_label = 'Bundle Items'
+
 
 class BundleAdmin(SecureModelView):
-    column_list = ('id', 'name', 'price', 'is_active', 'created_at')
-    column_searchable_list = ('name',)
-    column_filters = ('is_active',)
+    column_list = ('id', 'name', 'slug', 'price', 'created_at')
+    column_searchable_list = ('name', 'slug')
     form_excluded_columns = ('cart_items', 'order_items', 'created_at')
-    form_extra_fields = {
-        'image_filename': ImageUploadField(
-            'Bundle Image',
-            base_path=lambda: current_app.config['UPLOAD_FOLDER'],
-            url_relative_path='uploads/',
-            allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp'],
-        )
-    }
+    inline_models = (BundleItemInline(BundleItem),)
 
 
 class BundleItemAdmin(SecureModelView):
-    column_list = ('id', 'bundle_id', 'product_id', 'quantity')
-    form_columns = ('bundle_id', 'product_id', 'quantity')
+    column_list = ('id', 'bundle', 'product', 'quantity')
+    column_searchable_list = []
+    form_columns = ('bundle', 'product', 'quantity')
 
 
 # ---------------------------------------------------------------------------
@@ -146,14 +135,13 @@ class BundleItemAdmin(SecureModelView):
 # ---------------------------------------------------------------------------
 
 class OrderAdmin(AdminRequiredMixin, ModelView):
-    column_list = ('id', 'customer_name', 'customer_email', 'status',
-                   'total_amount', 'created_at')
-    column_searchable_list = ('customer_name', 'customer_email', 'payment_id')
+    column_list = ('id', 'order_number', 'user', 'status', 'total_amount',
+                   'shipping_cost', 'payment_reference', 'created_at')
+    column_searchable_list = ('order_number', 'payment_reference')
     column_filters = ('status',)
     can_create = False
     can_delete = False
     form_excluded_columns = ('items', 'shipping_record')
-
     form_choices = {
         'status': [(s, s.capitalize()) for s in Order.STATUS_CHOICES]
     }
@@ -178,8 +166,8 @@ class ShippingAdmin(SecureModelView):
 # ---------------------------------------------------------------------------
 
 class ExpenseAdmin(SecureModelView):
-    column_list = ('id', 'description', 'amount', 'category', 'date')
-    column_filters = ('category',)
+    column_list = ('id', 'description', 'amount', 'category', 'date', 'supplier')
+    column_filters = ('category', 'supplier_id')
     column_searchable_list = ('description',)
     form_choices = {
         'category': [(c, c.capitalize()) for c in Expense.CATEGORY_CHOICES]
@@ -259,9 +247,11 @@ def setup_admin(app):
     admin.add_view(CategoryAdmin(Category, db.session, name='Categories', category='Catalogue'))
     admin.add_view(ProductAdmin(Product, db.session, name='Products', category='Catalogue'))
     admin.add_view(BundleAdmin(Bundle, db.session, name='Bundles', category='Catalogue'))
-    admin.add_view(BundleItemAdmin(BundleItem, db.session, name='Bundle Items', category='Catalogue'))
+    admin.add_view(BundleItemAdmin(BundleItem, db.session, name='Bundle Items',
+                                   category='Catalogue'))
     admin.add_view(OrderAdmin(Order, db.session, name='Orders', category='Sales'))
-    admin.add_view(ShippingAdmin(ShippingRecord, db.session, name='Shipping', category='Sales'))
+    admin.add_view(ShippingAdmin(ShippingRecord, db.session, name='Shipping',
+                                 category='Sales'))
     admin.add_view(ExpenseAdmin(Expense, db.session, name='Expenses', category='Finance'))
     admin.add_view(RevenueReportView(name='Revenue Report', endpoint='revenue_report',
                                      category='Finance'))
