@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmed – Flask Store{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="mb-4">
+    <i class="bi bi-check-circle-fill text-success" style="font-size:5rem"></i>
+  </div>
+  <h2 class="fw-bold text-success mb-2">Payment Successful!</h2>
+  <p class="lead text-muted">Thank you for your order. We'll get it shipped to you soon.</p>
+
+  {% if order %}
+  <div class="card mx-auto mt-4 shadow-sm" style="max-width:480px">
+    <div class="card-header fw-bold">Order Confirmation</div>
+    <div class="card-body text-start">
+      <p><strong>Order #:</strong> {{ order.order_number }}</p>
+      {% if customer_name %}<p><strong>Name:</strong> {{ customer_name }}</p>{% endif %}
+      {% if customer_email %}<p><strong>Email:</strong> {{ customer_email }}</p>{% endif %}
+      <p><strong>Status:</strong>
+        <span class="badge bg-{% if order.status == 'paid' %}success{% elif order.status == 'pending' %}warning{% else %}secondary{% endif %}">
+          {{ order.status|capitalize }}
+        </span>
+      </p>
+      <p><strong>Total:</strong> R{{ '%.2f'|format(order.total_amount|float) }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="mt-4 d-flex gap-3 justify-content-center">
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+      <i class="bi bi-house"></i> Back to Home
+    </a>
+    <a href="{{ url_for('main.products') }}" class="btn btn-outline-primary">
+      <i class="bi bi-grid"></i> Continue Shopping
+    </a>
+  </div>
+</div>
+{% endblock %}

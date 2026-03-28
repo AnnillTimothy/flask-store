@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Checkout – Flask Store{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('cart.view_cart') }}">Cart</a></li>
+      <li class="breadcrumb-item active">Checkout</li>
+    </ol>
+  </nav>
+
+  <h2 class="fw-bold mb-4"><i class="bi bi-bag-check"></i> Checkout</h2>
+
+  <div class="row g-4">
+    <!-- Customer Details Form -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">
+          <i class="bi bi-person"></i> Customer Details
+        </div>
+        <div class="card-body">
+          <form action="{{ url_for('checkout.pay') }}" method="post" id="checkoutForm">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+              {{ form.customer_name.label(class="form-label fw-semibold") }}
+              {{ form.customer_name(class="form-control" + (" is-invalid" if form.customer_name.errors else ""),
+                                   placeholder="Your full name") }}
+              {% for error in form.customer_name.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="mb-3">
+              {{ form.customer_email.label(class="form-label fw-semibold") }}
+              {{ form.customer_email(class="form-control" + (" is-invalid" if form.customer_email.errors else ""),
+                                    placeholder="your@email.com") }}
+              {% for error in form.customer_email.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="mb-4">
+              {{ form.shipping_address.label(class="form-label fw-semibold") }}
+              {{ form.shipping_address(class="form-control" + (" is-invalid" if form.shipping_address.errors else ""),
+                                      rows=4,
+                                      placeholder="Street address, City, Province, Postal code") }}
+              {% for error in form.shipping_address.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="alert alert-info small">
+              <i class="bi bi-shield-check"></i>
+              You will be redirected to PayFast to complete your payment securely.
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100" id="payBtn">
+              <i class="bi bi-lock"></i> Pay Now – R{{ '%.2f'|format(total) }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">
+          <i class="bi bi-receipt"></i> Order Summary
+        </div>
+        <div class="card-body">
+          {% for item in items %}
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <span class="fw-semibold">{{ item.name }}</span>
+              <span class="badge {% if item.item_type == 'bundle' %}bg-success{% else %}bg-secondary{% endif %} ms-1">
+                {{ item.item_type|capitalize }}
+              </span>
+              <span class="text-muted small"> × {{ item.quantity }}</span>
+            </div>
+            <span>R{{ '%.2f'|format(item.subtotal) }}</span>
+          </div>
+          {% endfor %}
+          <hr>
+          <div class="d-flex justify-content-between mb-1">
+            <span>Subtotal</span><span>R{{ '%.2f'|format(subtotal) }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span><i class="bi bi-truck"></i> Shipping</span>
+            <span>R{{ '%.2f'|format(shipping) }}</span>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between fw-bold fs-5">
+            <span>Total</span>
+            <span class="text-primary">R{{ '%.2f'|format(total) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment badge -->
+      <div class="card mt-3 border-0 bg-light text-center p-3">
+        <p class="small text-muted mb-1">Secure payment via</p>
+        <strong class="text-success"><i class="bi bi-shield-check"></i> PayFast</strong>
+        <p class="small text-muted mt-1 mb-0">South Africa's trusted payment gateway</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('checkoutForm').addEventListener('submit', function() {
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
+});
+</script>
+{% endblock %}

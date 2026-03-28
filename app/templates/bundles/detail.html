@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ bundle.name }} – Flask Store{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('main.bundles') }}">Bundles</a></li>
+      <li class="breadcrumb-item active">{{ bundle.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+    <!-- Image -->
+    <div class="col-md-5">
+      <img src="{{ bundle.display_image }}" class="img-fluid rounded shadow" alt="{{ bundle.name }}">
+    </div>
+
+    <!-- Details -->
+    <div class="col-md-7">
+      <span class="badge bg-success mb-2 fs-6">Bundle Deal</span>
+      <h2 class="fw-bold">{{ bundle.name }}</h2>
+      <p class="lead text-muted">{{ bundle.description }}</p>
+
+      <!-- Included Products -->
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-box-seam"></i> What's Included
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for item in bundle.items %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+              {% if item.product %}
+              <img src="{{ item.product.display_image }}" alt="{{ item.product.name }}"
+                   class="rounded" style="width:48px;height:48px;object-fit:cover">
+              <div>
+                <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}"
+                   class="text-decoration-none text-dark fw-semibold">
+                  {{ item.product.name }}
+                </a>
+                {% if item.quantity > 1 %}
+                <span class="badge bg-secondary">×{{ item.quantity }}</span>
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+            {% if item.product %}
+            <span class="text-muted small">R{{ '%.2f'|format(item.product.price * item.quantity) }}</span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      {% set orig = bundle.total_price %}
+      {% if orig > bundle.price %}
+      <p class="text-muted">
+        Individual total:
+        <span class="text-decoration-line-through">R{{ '%.2f'|format(orig) }}</span>
+        <span class="badge bg-danger ms-1">You save R{{ '%.2f'|format(orig - bundle.price) }}</span>
+      </p>
+      {% endif %}
+
+      <h3 class="text-success fw-bold mb-4">R{{ '%.2f'|format(bundle.price) }}</h3>
+
+      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="d-flex gap-3 align-items-end">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="bundle_id" value="{{ bundle.id }}">
+        <input type="hidden" name="item_type" value="bundle">
+        <div>
+          <label class="form-label fw-semibold">Quantity</label>
+          <input type="number" name="quantity" value="1" min="1" max="10"
+                 class="form-control" style="width:90px">
+        </div>
+        <div>
+          <button type="submit" class="btn btn-success btn-lg">
+            <i class="bi bi-cart-plus"></i> Add Bundle to Cart
+          </button>
+        </div>
+      </form>
+
+      <hr class="my-4">
+      <a href="{{ url_for('main.bundles') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Bundles
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
