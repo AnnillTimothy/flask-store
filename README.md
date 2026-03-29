@@ -31,47 +31,122 @@ A production-ready Flask ecommerce application with product management, bundles,
 | Payments    | PayFast                          |
 | DB (dev)    | SQLite (configurable via env)    |
 
-## Quick Start
+## Prerequisites
 
-### 1. Clone & install dependencies
+Before you begin you need two things installed on your computer:
+
+1. **Python 3.9 or higher** – Download from <https://www.python.org/downloads/>.
+   During installation on Windows, **tick the box that says "Add Python to PATH"**.
+2. **Git** – Download from <https://git-scm.com/downloads>.
+   The default options during installation are fine.
+
+> **Tip:** After installing, open a terminal (Command Prompt or PowerShell on Windows, Terminal on Mac/Linux) and run `python --version` and `git --version` to check they are installed correctly.
+
+## Quick Start (step-by-step)
+
+Open a terminal and follow each step in order.
+
+### 1. Download the project
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/AnnillTimothy/flask-store.git
 cd flask-store
+```
+
+This downloads a copy of all the code to a folder called `flask-store` on your computer, then moves into that folder.
+
+### 2. Create a virtual environment
+
+A virtual environment keeps this project's packages separate from the rest of your system.
+
+```bash
+# On Windows
+python -m venv venv
+venv\Scripts\activate
+
+# On Mac / Linux
+python3 -m venv venv
+source venv/bin/activate
+```
+
+You should see `(venv)` at the start of your terminal prompt — that means it is active.
+
+### 3. Install the dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure environment
+This installs Flask and all the other libraries the app needs.
+
+### 4. Set up the configuration file
 
 ```bash
+# On Windows (Command Prompt)
+copy .env.example .env
+
+# On Mac / Linux
 cp .env.example .env
-# Edit .env and set SECRET_KEY etc.
 ```
 
-### 3. Initialise the database
+This creates a `.env` file with sensible defaults. You can open it in any text editor to change settings later.
+
+### 5. Create the database
 
 ```bash
-flask db init
-flask db migrate -m "initial migration"
 flask db upgrade
 ```
 
-### 4. Seed demo data
+The database migration files are already included in the project, so this single command builds all the required tables in a local SQLite database.
+
+### 6. Create the admin user
 
 ```bash
 python seed_data.py
 ```
 
-### 5. Run the development server
+This adds a default admin account you can use to log in straight away.
+
+### 7. Run the app
 
 ```bash
 python run.py
 ```
 
-Open [http://localhost:5000](http://localhost:5000) in your browser.
+You should see output like:
 
-Admin panel: [http://localhost:5000/admin](http://localhost:5000/admin)
-Login: `admin@store.com` / `admin123`
+```
+ * Serving Flask app 'app'
+ * Running on http://127.0.0.1:5000
+```
+
+Open your browser and go to **<http://localhost:5000>** — the store homepage will appear.
+
+### 8. Log in to the admin panel
+
+Go to **<http://localhost:5000/admin>** and sign in with:
+
+| Field    | Value               |
+|----------|---------------------|
+| Email    | `admin@store.com`   |
+| Password | `admin123`          |
+
+From the admin panel you can add suppliers, categories, products and bundles.
+
+> **To stop the server**, press `Ctrl + C` in the terminal.  
+> **To start it again later**, open a terminal, `cd` into the project folder, activate the virtual environment (step 2) and run `python run.py`.
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `python` is not recognised | Try `python3` instead, or re-install Python and make sure "Add to PATH" is ticked. |
+| `pip` is not recognised | Try `pip3`, or run `python -m pip install -r requirements.txt`. |
+| `flask` is not recognised | Make sure your virtual environment is activated (you see `(venv)` in the prompt). |
+| Port 5000 already in use | Another app is using that port. Stop it, or run `flask run --port 5001` to use a different port. |
+| Database errors after pulling new changes | Run `flask db upgrade` again to apply any new migrations. |
 
 ---
 
