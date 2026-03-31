@@ -59,7 +59,7 @@
     {% for item in bundle.items %}
     {% if item.product %}
     <div class="bundle-product-row{% if loop.index is even %} reverse{% endif %}">
-      <div class="bundle-product-image{% if loop.index is even %} order-md-2{% endif %}">
+      <div class="bundle-product-image">
         <img src="{{ item.product.display_image }}" alt="{{ item.product.name }}">
       </div>
       <div class="bundle-product-info">
