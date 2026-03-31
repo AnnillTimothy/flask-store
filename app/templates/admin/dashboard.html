@@ -1,115 +1,369 @@
 {% extends 'admin/master.html' %}
 
-{% block body %}
-<div class="container-fluid mt-4">
-  <h2 class="mb-4"><i class="fa fa-tachometer-alt"></i> Dashboard</h2>
-
-  <!-- Stats Cards -->
-  <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-xl-3">
-      <div class="card text-white bg-primary">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ stats.orders }}</h4>
-              <small>Total Orders</small>
-            </div>
-            <i class="fa fa-shopping-bag fa-2x opacity-50"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-      <div class="card text-white bg-warning">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ stats.pending_orders }}</h4>
-              <small>Pending Orders</small>
-            </div>
-            <i class="fa fa-clock fa-2x opacity-50"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-      <div class="card text-white bg-success">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ stats.paid_orders }}</h4>
-              <small>Paid Orders</small>
-            </div>
-            <i class="fa fa-check-circle fa-2x opacity-50"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-      <div class="card text-white bg-info">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ stats.products }}</h4>
-              <small>Products</small>
-            </div>
-            <i class="fa fa-box fa-2x opacity-50"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Second stats row -->
-  <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-xl-3">
-      <div class="card text-white bg-danger">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ stats.low_stock }}</h4>
-              <small>Low Stock (&lt;10)</small>
-            </div>
-            <i class="fa fa-exclamation-triangle fa-2x opacity-50"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-      <div class="card text-white bg-secondary">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ stats.suppliers }}</h4>
-              <small>Suppliers</small>
-            </div>
-            <i class="fa fa-truck fa-2x opacity-50"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Revenue Summary -->
-  <div class="card">
-    <div class="card-header"><strong>Revenue Summary (All Time)</strong></div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-4">
-          <p><strong>Gross Revenue:</strong> R{{ '%.2f'|format(summary.gross_revenue) }}</p>
-          <p><strong>Shipping Revenue:</strong> R{{ '%.2f'|format(summary.shipping_revenue) }}</p>
-          <p><strong>Product Revenue:</strong> R{{ '%.2f'|format(summary.product_revenue) }}</p>
-        </div>
-        <div class="col-md-4">
-          <p><strong>Supplier Payouts:</strong> R{{ '%.2f'|format(summary.total_supplier_payout) }}</p>
-          <p><strong>Total Expenses:</strong> R{{ '%.2f'|format(summary.total_expenses) }}</p>
-        </div>
-        <div class="col-md-4">
-          <h5 class="text-success"><strong>Net Profit: R{{ '%.2f'|format(summary.net_profit) }}</strong></h5>
-          <p class="text-muted">Based on {{ summary.order_count }} paid orders</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+{% block head_css %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
 {% endblock %}
+
+{% block body %}
+<div class="dash-wrapper">
+
+  {# ── Page Header ─────────────────────────────────────────────── #}
+  <div class="dash-header">
+    <h1>
+      Admin <span>Dashboard</span>
+    </h1>
+    <span class="dash-date">
+      <i class="fa fa-calendar" style="margin-right:4px"></i>
+      <span id="dash-date-str"></span>
+    </span>
+  </div>
+
+  {# ── KPI Cards ─────────────────────────────────────────────────── #}
+  <p class="dash-section-title">Key Metrics</p>
+  <div class="row dash-row mb-4">
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card">
+        <div class="kpi-icon blue"><i class="fa fa-shopping-bag"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ stats.orders }}</div>
+          <div class="kpi-label">Total Orders</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card">
+        <div class="kpi-icon yellow"><i class="fa fa-clock"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ stats.pending_orders }}</div>
+          <div class="kpi-label">Pending</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card">
+        <div class="kpi-icon green"><i class="fa fa-check-circle"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ stats.paid_orders }}</div>
+          <div class="kpi-label">Paid Orders</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card">
+        <div class="kpi-icon cyan"><i class="fa fa-cube"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ stats.products }}</div>
+          <div class="kpi-label">Products</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card">
+        <div class="kpi-icon red"><i class="fa fa-exclamation-triangle"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ stats.low_stock }}</div>
+          <div class="kpi-label">Low Stock</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card">
+        <div class="kpi-icon purple"><i class="fa fa-truck"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ stats.suppliers }}</div>
+          <div class="kpi-label">Suppliers</div>
+        </div>
+      </div>
+    </div>
+
+  </div>{# /KPI row #}
+
+  {# ── Revenue Overview ─────────────────────────────────────────── #}
+  <p class="dash-section-title">Revenue Overview (All Time)</p>
+  <div class="row dash-row mb-4">
+
+    {# Gross Revenue #}
+    <div class="col-md-6 col-xl-3">
+      <div class="revenue-card">
+        <div class="rc-label">Gross Revenue</div>
+        <div class="rc-value">R{{ '%.2f'|format(summary.gross_revenue) }}</div>
+        <div class="rc-sub">{{ summary.order_count }} paid order{{ 's' if summary.order_count != 1 else '' }}</div>
+        <div class="rc-bar-track">
+          <div class="rc-bar-fill" style="width:100%; background:var(--dash-blue)"></div>
+        </div>
+      </div>
+    </div>
+
+    {# Expenses #}
+    <div class="col-md-6 col-xl-3">
+      <div class="revenue-card">
+        <div class="rc-label">Total Expenses</div>
+        <div class="rc-value">R{{ '%.2f'|format(summary.total_expenses + summary.total_supplier_payout) }}</div>
+        <div class="rc-sub">
+          Supplier payouts: R{{ '%.2f'|format(summary.total_supplier_payout) }}
+        </div>
+        <div class="rc-bar-track">
+          {% set exp_pct = [(((summary.total_expenses + summary.total_supplier_payout) / summary.gross_revenue * 100) if summary.gross_revenue > 0 else 0), 100] | min %}
+          <div class="rc-bar-fill" style="width:{{ exp_pct }}%; background:var(--dash-red)"></div>
+        </div>
+      </div>
+    </div>
+
+    {# Net Profit #}
+    <div class="col-md-6 col-xl-3">
+      <div class="revenue-card">
+        <div class="rc-label">Net Profit</div>
+        <div class="rc-value {{ 'profit' if summary.net_profit >= 0 else 'loss' }}">
+          R{{ '%.2f'|format(summary.net_profit) }}
+        </div>
+        <div class="rc-sub">
+          After all deductions
+        </div>
+        <div class="rc-bar-track">
+          {% set _raw_pct = (summary.net_profit / summary.gross_revenue * 100) if summary.gross_revenue > 0 else 0 %}
+          {% set profit_pct = [[_raw_pct, 0] | max, 100] | min %}
+          <div class="rc-bar-fill" style="width:{{ profit_pct }}%; background:var(--dash-green)"></div>
+        </div>
+      </div>
+    </div>
+
+    {# Breakdown #}
+    <div class="col-md-6 col-xl-3">
+      <div class="revenue-card">
+        <div class="rc-label">Breakdown</div>
+        <div class="breakdown-row">
+          <span class="br-label">Product Revenue</span>
+          <span class="br-value">R{{ '%.2f'|format(summary.product_revenue) }}</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="br-label">Shipping Revenue</span>
+          <span class="br-value">R{{ '%.2f'|format(summary.shipping_revenue) }}</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="br-label">Supplier Payouts</span>
+          <span class="br-value neg">-R{{ '%.2f'|format(summary.total_supplier_payout) }}</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="br-label">Operating Expenses</span>
+          <span class="br-value neg">-R{{ '%.2f'|format(summary.total_expenses) }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>{# /Revenue row #}
+
+  {# ── Chart + Recent Orders ─────────────────────────────────────── #}
+  <div class="row dash-row mb-4">
+
+    {# Donut Chart #}
+    <div class="col-xl-4">
+      <div class="chart-card">
+        <div class="chart-title"><i class="fa fa-pie-chart" style="margin-right:6px;color:var(--dash-blue)"></i>Revenue Split</div>
+        <canvas id="revenueChart" height="170" style="display:block;width:100%"></canvas>
+        <div id="revLegend" class="rev-legend"></div>
+      </div>
+    </div>
+
+    {# Recent Orders #}
+    <div class="col-xl-8">
+      <div class="orders-card">
+        <div class="orders-header">
+          <h3><i class="fa fa-list" style="margin-right:6px;color:var(--dash-blue)"></i>Recent Orders</h3>
+          <a href="{{ url_for('order.index_view') }}" class="view-all">View All →</a>
+        </div>
+        {% if recent_orders %}
+        <div style="overflow-x:auto">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in recent_orders %}
+              <tr>
+                <td><span style="color:var(--dash-cyan);font-weight:600">#{{ order.order_number }}</span></td>
+                <td class="muted">{{ order.user.username if order.user else '—' }}</td>
+                <td><strong>R{{ '%.2f'|format(order.total_amount) }}</strong></td>
+                <td>
+                  <span class="status-badge {{ order.status }}">{{ order.status | capitalize }}</span>
+                </td>
+                <td class="muted">{{ order.created_at.strftime('%d %b %Y') }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="fa fa-inbox fa-2x" style="display:block;margin-bottom:8px"></i>No orders yet</div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>{# /Chart + Orders #}
+
+  {# ── Quick Actions ─────────────────────────────────────────────── #}
+  <p class="dash-section-title">Quick Actions</p>
+  <div class="row dash-row">
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('product.index_view') }}" class="action-card">
+        <div class="ac-icon" style="background:rgba(67,97,238,.18);color:var(--dash-blue)"><i class="fa fa-cube"></i></div>
+        <div>
+          <div class="ac-label">Products</div>
+          <div class="ac-sub">{{ stats.products }} items</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('order.index_view') }}" class="action-card">
+        <div class="ac-icon" style="background:rgba(10,207,151,.18);color:var(--dash-green)"><i class="fa fa-shopping-bag"></i></div>
+        <div>
+          <div class="ac-label">Orders</div>
+          <div class="ac-sub">{{ stats.orders }} total</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('revenue_report.index') }}" class="action-card">
+        <div class="ac-icon" style="background:rgba(255,188,0,.18);color:var(--dash-yellow)"><i class="fa fa-bar-chart"></i></div>
+        <div>
+          <div class="ac-label">Revenue</div>
+          <div class="ac-sub">Detailed report</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('supplier_payouts.index') }}" class="action-card">
+        <div class="ac-icon" style="background:rgba(124,92,191,.18);color:var(--dash-purple)"><i class="fa fa-handshake-o"></i></div>
+        <div>
+          <div class="ac-label">Payouts</div>
+          <div class="ac-sub">{{ stats.suppliers }} suppliers</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('shipping_report.index') }}" class="action-card">
+        <div class="ac-icon" style="background:rgba(57,175,209,.18);color:var(--dash-cyan)"><i class="fa fa-truck"></i></div>
+        <div>
+          <div class="ac-label">Shipping</div>
+          <div class="ac-sub">Track orders</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('expense.index_view') }}" class="action-card">
+        <div class="ac-icon" style="background:rgba(250,92,124,.18);color:var(--dash-red)"><i class="fa fa-file-text-o"></i></div>
+        <div>
+          <div class="ac-label">Expenses</div>
+          <div class="ac-sub">Manage costs</div>
+        </div>
+      </a>
+    </div>
+
+  </div>{# /Quick Actions #}
+
+</div>{# /dash-wrapper #}
+{% endblock %}
+
+{% block tail %}
+{{ super() }}
+<script>
+(function () {
+  /* Live date */
+  var d = new Date();
+  var opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  var el = document.getElementById('dash-date-str');
+  if (el) el.textContent = d.toLocaleDateString('en-ZA', opts);
+
+  /* ── Vanilla Canvas Donut Chart ───────────────────────────────── */
+  var canvas = document.getElementById('revenueChart');
+  if (!canvas) return;
+
+  var productRev  = {{ summary.product_revenue  | float }};
+  var shippingRev = {{ summary.shipping_revenue | float }};
+  var payouts     = {{ summary.total_supplier_payout | float }};
+  var expenses    = {{ summary.total_expenses   | float }};
+  var netProfit   = Math.max({{ summary.net_profit | float }}, 0);
+
+  var segments = [
+    { label: 'Product Rev',  value: productRev,  color: '#4361ee' },
+    { label: 'Shipping Rev', value: shippingRev, color: '#39afd1' },
+    { label: 'Sup Payouts',  value: payouts,     color: '#7c5cbf' },
+    { label: 'Expenses',     value: expenses,    color: '#fa5c7c' },
+    { label: 'Net Profit',   value: netProfit,   color: '#0acf97' }
+  ];
+
+  var total = segments.reduce(function(s, seg) { return s + seg.value; }, 0);
+
+  var W     = canvas.parentElement.clientWidth || 300;
+  canvas.width  = W;
+  canvas.height = 170;
+
+  var ctx    = canvas.getContext('2d');
+  var cx     = W / 2;
+  var cy     = 82;
+  var radius = 68;
+  var inner  = 40;
+
+  if (total === 0) {
+    /* placeholder ring */
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.arc(cx, cy, inner,  0, Math.PI * 2, true);
+    ctx.fillStyle = '#1a2236';
+    ctx.fill();
+    ctx.fillStyle = '#7b8fa6';
+    ctx.font = '13px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('No data yet', cx, cy);
+  } else {
+    var start = -Math.PI / 2;
+    segments.forEach(function(seg) {
+      if (seg.value <= 0) return;
+      var slice = (seg.value / total) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, radius, start, start + slice);
+      ctx.arc(cx, cy, inner,  start + slice, start, true);
+      ctx.closePath();
+      ctx.fillStyle = seg.color;
+      ctx.fill();
+      ctx.strokeStyle = '#131928';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      start += slice;
+    });
+  }
+
+  /* ── HTML Legend ── */
+  var legEl = document.getElementById('revLegend');
+  if (legEl) {
+    legEl.innerHTML = segments.map(function(seg) {
+      return '<span class="rev-legend-item">'
+        + '<span class="rev-legend-dot" style="background:' + seg.color + '"></span>'
+        + '<span>' + seg.label + '</span>'
+        + '</span>';
+    }).join('');
+  }
+}());
+</script>
+{% endblock %}
+

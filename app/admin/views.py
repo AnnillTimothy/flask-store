@@ -49,7 +49,11 @@ class SecureAdminIndexView(AdminRequiredMixin, AdminIndexView):
             'suppliers': Supplier.query.count(),
         }
         summary = get_revenue_summary()
-        return self.render('admin/dashboard.html', stats=stats, summary=summary)
+        recent_orders = (
+            Order.query.order_by(Order.created_at.desc()).limit(8).all()
+        )
+        return self.render('admin/dashboard.html', stats=stats,
+                           summary=summary, recent_orders=recent_orders)
 
 
 # ---------------------------------------------------------------------------
