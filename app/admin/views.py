@@ -118,9 +118,13 @@ class BundleItemInline(InlineFormAdmin):
 
 
 class BundleAdmin(SecureModelView):
-    column_list = ('id', 'name', 'slug', 'price', 'created_at')
+    column_list = ('id', 'name', 'slug', 'experience_type', 'price', 'created_at')
     column_searchable_list = ('name', 'slug')
+    column_filters = ('experience_type',)
     form_excluded_columns = ('cart_items', 'order_items', 'created_at')
+    form_choices = {
+        'experience_type': [('', '— None —')] + Bundle.EXPERIENCE_TYPES,
+    }
     inline_models = (BundleItemInline(BundleItem),)
 
 

@@ -46,4 +46,8 @@ def create_app(config_class=Config):
             count = 0
         return {'cart_count': count}
 
+    # Inject branding into every template
+    from .context_processors import inject_branding
+    app.context_processor(inject_branding)
+
     return app
