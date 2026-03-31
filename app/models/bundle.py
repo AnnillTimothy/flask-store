@@ -5,12 +5,23 @@ from app.extensions import db
 class Bundle(db.Model):
     __tablename__ = 'bundles'
 
+    EXPERIENCE_TYPES = [
+        ('beach_bliss', 'Beach Bliss'),
+        ('cozy_night', 'Cozy Night'),
+        ('nature_journey', 'Nature Journey'),
+        ('euphoric_dream', 'Euphoric Dream'),
+        ('romantic_escape', 'Romantic Escape'),
+        ('deep_journey', 'Deep Journey'),
+        ('creative_flow', 'Creative Flow'),
+    ]
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     slug = db.Column(db.String(200), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     image_url = db.Column(db.String(500), nullable=True)
+    experience_type = db.Column(db.String(50), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     items = db.relationship('BundleItem', back_populates='bundle', lazy='dynamic',

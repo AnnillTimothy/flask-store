@@ -1,23 +1,686 @@
 /* ============================================================
-   Flask Store – Custom Styles
+   The Bodhi Tree – Custom Styles
+   Dark theme · frosted glass · cinematic scroll
    ============================================================ */
 
+/* ----- Custom properties ----- */
 :root {
-  --primary:   #0d6efd;
-  --success:   #198754;
-  --dark:      #212529;
-  --light-bg:  #f8f9fa;
+  --deep-purple: #1a0a2e;
+  --purple-mid: #2d1b4e;
+  --purple-light: #7c3aed;
+  --gold: #d4a056;
+  --gold-light: #f0d48a;
+  --pastel-pink: #f0a6ca;
+  --pastel-blue: #a6c8ff;
+  --bg-dark: #0a0a0f;
+  --bg-card: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: 20px;
+  --text-primary: #f0eef6;
+  --text-muted: #9a95a8;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
 }
 
-/* Hero Banner */
-.hero-section {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a4cbf 100%);
-  min-height: 340px;
+/* ----- Global resets ----- */
+html {
+  scroll-behavior: auto; /* GSAP handles smooth scroll */
+}
+
+body.bodhi-dark {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* ----- Navbar ----- */
+.bodhi-nav {
+  background: rgba(10, 10, 15, 0.75) !important;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--glass-border);
+  transition: background 0.4s;
+  z-index: 1000;
+}
+
+.bodhi-brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  color: var(--gold) !important;
+}
+
+.bodhi-nav .nav-link {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(240, 238, 246, 0.7) !important;
+  transition: color 0.3s;
+}
+
+.bodhi-nav .nav-link:hover {
+  color: var(--gold) !important;
+}
+
+/* ----- Scene (full-screen section) ----- */
+.scene {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-/* Product / Bundle Cards */
+.scene-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.scene-bg-image {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+}
+
+.scene-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 15, 0.55) 0%,
+    rgba(26, 10, 46, 0.7) 100%
+  );
+}
+
+.scene-content {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  padding: 2rem;
+}
+
+/* ----- Landing Scene – The Bodhi Tree ----- */
+.scene-landing {
+  background: radial-gradient(ellipse at 50% 60%, #1a0a2e 0%, #0a0a0f 80%);
+}
+
+.landing-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-shadow: 0 0 60px rgba(212, 160, 86, 0.3);
+  margin-bottom: 0.5rem;
+}
+
+.landing-subtitle {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 2.5rem;
+}
+
+/* Glowing tree concept */
+.landing-tree-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 240px;
+  height: 360px;
+  pointer-events: none;
+}
+
+.tree-glow {
+  position: absolute;
+  bottom: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 160, 86, 0.15) 0%, transparent 70%);
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+.tree-trunk {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 120px;
+  background: linear-gradient(to top, var(--gold), rgba(212, 160, 86, 0.3));
+  border-radius: 3px;
+}
+
+.tree-canopy {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 160px;
+}
+
+.tree-leaf {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.4), rgba(212, 160, 86, 0.2));
+  filter: blur(12px);
+  animation: leafFloat 6s ease-in-out infinite;
+}
+
+.tree-leaf:nth-child(1) { top: 0; left: 50px; animation-delay: 0s; }
+.tree-leaf:nth-child(2) { top: 30px; left: 10px; animation-delay: 1s; }
+.tree-leaf:nth-child(3) { top: 30px; left: 90px; animation-delay: 2s; }
+.tree-leaf:nth-child(4) { top: 60px; left: 30px; animation-delay: 0.5s; }
+.tree-leaf:nth-child(5) { top: 60px; left: 70px; animation-delay: 1.5s; }
+
+.tree-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  opacity: 0;
+  animation: particleRise 5s ease-in-out infinite;
+}
+
+.particle:nth-child(1) { left: 30%; animation-delay: 0s; }
+.particle:nth-child(2) { left: 50%; animation-delay: 0.8s; }
+.particle:nth-child(3) { left: 70%; animation-delay: 1.6s; }
+.particle:nth-child(4) { left: 40%; animation-delay: 2.4s; }
+.particle:nth-child(5) { left: 60%; animation-delay: 3.2s; }
+.particle:nth-child(6) { left: 35%; animation-delay: 0.4s; }
+.particle:nth-child(7) { left: 55%; animation-delay: 1.2s; }
+.particle:nth-child(8) { left: 65%; animation-delay: 2.0s; }
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.15); }
+}
+
+@keyframes leafFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.05); }
+}
+
+@keyframes particleRise {
+  0% { bottom: 20%; opacity: 0; }
+  30% { opacity: 0.8; }
+  100% { bottom: 100%; opacity: 0; }
+}
+
+/* Scroll indicator */
+.scroll-indicator {
+  margin-top: 1.5rem;
+}
+
+.scroll-text {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.scroll-arrow {
+  animation: bounceDown 2s ease-in-out infinite;
+  color: var(--gold);
+  font-size: 1.2rem;
+}
+
+@keyframes bounceDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* ----- Experience Scene ----- */
+.scene-experience .scene-content {
+  max-width: 700px;
+}
+
+.experience-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.experience-index {
+  font-family: var(--font-display);
+  font-size: 5rem;
+  font-weight: 300;
+  color: rgba(212, 160, 86, 0.15);
+  line-height: 1;
+}
+
+.experience-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 400;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.experience-desc {
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  max-width: 500px;
+  line-height: 1.7;
+}
+
+.experience-price .price-tag {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+/* ----- Buttons ----- */
+.btn-bodhi {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 2rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--bg-dark);
+  background: var(--gold);
+  border: none;
+  border-radius: 50px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.btn-bodhi:hover {
+  background: var(--gold-light);
+  color: var(--bg-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(212, 160, 86, 0.3);
+}
+
+.btn-bodhi-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--bg-dark);
+  background: var(--gold);
+  border: none;
+  border-radius: 50px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.btn-bodhi-sm:hover {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+}
+
+.btn-bodhi-sm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-bodhi-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.8rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid var(--gold);
+  border-radius: 50px;
+  transition: all 0.3s;
+}
+
+.btn-bodhi-outline:hover {
+  background: var(--gold);
+  color: var(--bg-dark);
+}
+
+/* ----- Glass Cards ----- */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(124, 58, 237, 0.15);
+}
+
+.glass-card-img {
+  height: 220px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.glass-card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.glass-card-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.glass-card-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  flex-grow: 1;
+  line-height: 1.6;
+}
+
+.glass-price {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+/* ----- Featured section ----- */
+.section-featured {
+  padding: 6rem 0;
+  position: relative;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  color: var(--text-primary);
+}
+
+.section-header .text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* ----- Bundle Detail – Immersive ----- */
+.bundle-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.bundle-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.bundle-hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bundle-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 15, 0.4) 0%,
+    rgba(10, 10, 15, 0.85) 100%
+  );
+}
+
+.bundle-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  padding: 4rem 2rem;
+}
+
+.bundle-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 300;
+  color: var(--text-primary);
+  line-height: 1.05;
+  margin-bottom: 1rem;
+}
+
+.bundle-hero-desc {
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  max-width: 500px;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.bundle-hero-price {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+}
+
+.bundle-savings {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.bundle-savings .badge {
+  background: linear-gradient(135deg, #ef4444, #f97316) !important;
+  font-size: 0.75rem;
+}
+
+/* Bundle products scroll section */
+.bundle-products-section {
+  padding: 6rem 0;
+  background: var(--bg-dark);
+  position: relative;
+}
+
+.bundle-product-row {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  align-items: center;
+  padding: 3rem 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.bundle-product-row > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.bundle-product-row:last-child {
+  border-bottom: none;
+}
+
+.bundle-product-image img {
+  width: 100%;
+  max-width: 360px;
+  border-radius: 16px;
+  object-fit: cover;
+  aspect-ratio: 1;
+}
+
+.bundle-product-info {
+  padding: 1rem 0;
+}
+
+.bundle-product-slug {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--purple-light);
+  margin-bottom: 0.5rem;
+}
+
+.bundle-product-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-weight: 400;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.bundle-product-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 440px;
+}
+
+.bundle-product-price {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin-top: 1rem;
+}
+
+/* Related / Other Bundles */
+.related-section {
+  padding: 6rem 0;
+  background: linear-gradient(180deg, var(--bg-dark) 0%, var(--deep-purple) 100%);
+}
+
+.related-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  text-align: center;
+  color: var(--text-primary);
+  margin-bottom: 3rem;
+}
+
+.related-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  cursor: pointer;
+  transition: transform 0.4s;
+}
+
+.related-card:hover {
+  transform: scale(1.03);
+}
+
+.related-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.related-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(10, 10, 15, 0.9) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.5rem;
+}
+
+.related-card-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.related-card-price {
+  font-family: var(--font-display);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* ----- Footer ----- */
+.bodhi-footer {
+  background: rgba(10, 10, 15, 0.95);
+  border-top: 1px solid var(--glass-border);
+}
+
+.footer-link:hover {
+  color: var(--gold) !important;
+}
+
+/* ----- Utility ----- */
+.navbar .badge {
+  font-size: 0.65rem;
+}
+
+.table th {
+  white-space: nowrap;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+.spinner-border-sm {
+  vertical-align: middle;
+}
+
+/* Keep existing product card styles for non-home pages */
 .product-card,
 .bundle-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -34,32 +697,43 @@
   width: 100%;
 }
 
-/* Navbar cart badge */
-.navbar .badge {
-  font-size: 0.65rem;
+/* ----- Responsive ----- */
+@media (max-width: 768px) {
+  .bundle-product-row,
+  .bundle-product-row.reverse {
+    flex-direction: column;
+  }
+  .bundle-product-image img {
+    max-width: 100%;
+  }
+  .experience-index {
+    font-size: 3rem;
+  }
+  .landing-tree-wrap {
+    width: 160px;
+    height: 240px;
+  }
 }
 
-/* Footer */
-footer a:hover {
-  color: #fff !important;
-  text-decoration: underline !important;
+/* Reverse for alternating rows */
+.bundle-product-row.reverse {
+  flex-direction: row-reverse;
 }
 
-/* Tables */
-.table th {
-  white-space: nowrap;
+/* Experience tag in bundle detail */
+.experience-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--purple-light);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 20px;
+  padding: 0.3rem 1rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Quantity input – hide spinners in Firefox */
-input[type=number] {
-  -moz-appearance: textfield;
-}
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-  opacity: 1;
-}
-
-/* Checkout spinner */
-.spinner-border-sm {
-  vertical-align: middle;
+/* Nav scrolled state */
+.nav-scrolled {
+  background: rgba(10, 10, 15, 0.95) !important;
 }

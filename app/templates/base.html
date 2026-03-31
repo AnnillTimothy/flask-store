@@ -3,24 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Flask Store{% endblock %}</title>
+  <title>{% block title %}{{ store_name }}{% endblock %}</title>
   <!-- Bootstrap 5 CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
         rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
         rel="stylesheet">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
   <!-- Custom CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="bodhi-dark">
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top bodhi-nav" id="main-nav">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}">
-      <i class="bi bi-shop"></i> Flask Store
+    <a class="navbar-brand fw-bold bodhi-brand" href="{{ url_for('main.index') }}">
+      {{ store_name }}
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarMain">
@@ -35,7 +40,7 @@
           <a class="nav-link" href="{{ url_for('main.products') }}">Products</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('main.bundles') }}">Bundles</a>
+          <a class="nav-link" href="{{ url_for('main.bundles') }}">Experiences</a>
         </li>
       </ul>
       <ul class="navbar-nav ms-auto align-items-center gap-2">
@@ -61,7 +66,7 @@
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
               <i class="bi bi-person-circle"></i> {{ current_user.username }}
             </a>
-            <ul class="dropdown-menu dropdown-menu-end">
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
               <li>
                 <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                   <i class="bi bi-box-arrow-right"></i> Logout
@@ -87,7 +92,7 @@
 </nav>
 
 <!-- Flash messages -->
-<div class="container mt-3">
+<div class="container mt-3" style="position:relative;z-index:100;">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
@@ -101,24 +106,24 @@
 </div>
 
 <!-- Main content -->
-<main class="py-4">
+<main>
   {% block content %}{% endblock %}
 </main>
 
 <!-- Footer -->
-<footer class="bg-dark text-light py-4 mt-5">
+<footer class="bodhi-footer py-4">
   <div class="container">
     <div class="row">
       <div class="col-md-4">
-        <h5><i class="bi bi-shop"></i> Flask Store</h5>
-        <p class="text-muted small">Your one-stop online shop for quality products.</p>
+        <h5 class="bodhi-brand">{{ store_name }}</h5>
+        <p class="text-muted small">{{ tagline }}</p>
       </div>
       <div class="col-md-4">
-        <h6>Quick Links</h6>
+        <h6 class="text-light">Quick Links</h6>
         <ul class="list-unstyled small">
-          <li><a href="{{ url_for('main.products') }}" class="text-muted text-decoration-none">Products</a></li>
-          <li><a href="{{ url_for('main.bundles') }}" class="text-muted text-decoration-none">Bundles</a></li>
-          <li><a href="{{ url_for('cart.view_cart') }}" class="text-muted text-decoration-none">Cart</a></li>
+          <li><a href="{{ url_for('main.products') }}" class="text-muted text-decoration-none footer-link">Products</a></li>
+          <li><a href="{{ url_for('main.bundles') }}" class="text-muted text-decoration-none footer-link">Experiences</a></li>
+          <li><a href="{{ url_for('cart.view_cart') }}" class="text-muted text-decoration-none footer-link">Cart</a></li>
         </ul>
       </div>
       <div class="col-md-4 text-md-end">
@@ -130,13 +135,16 @@
     </div>
     <hr class="border-secondary">
     <p class="text-center text-muted small mb-0">
-      &copy; {{ now.year if now is defined else 2024 }} Flask Store. All rights reserved.
+      &copy; {{ now.year if now is defined else 2024 }} {{ store_name }}. All rights reserved.
     </p>
   </div>
 </footer>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 <!-- Custom JS -->
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block extra_js %}{% endblock %}
