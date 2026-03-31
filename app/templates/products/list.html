@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Products – Flask Store{% endblock %}
+{% block title %}Products — {{ store_name }}{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container page-padded">
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
