@@ -1,125 +1,97 @@
 {% extends "base.html" %}
-{% block title %}{{ store_name }} – {{ tagline }}{% endblock %}
+{% block title %}{{ store_name }} — {{ tagline }}{% endblock %}
+{% block body_class %}page-immersive{% endblock %}
 
 {% block content %}
+
 <!-- ============================================================
-     LANDING SCENE – The Bodhi Tree
+     LANDING SCENE
      ============================================================ -->
 <section class="scene scene-landing" id="scene-landing">
-  <div class="scene-bg">
-    <div class="landing-tree-wrap">
-      <div class="tree-glow"></div>
-      <div class="tree-trunk"></div>
-      <div class="tree-canopy">
-        <div class="tree-leaf" style="--i:0"></div>
-        <div class="tree-leaf" style="--i:1"></div>
-        <div class="tree-leaf" style="--i:2"></div>
-        <div class="tree-leaf" style="--i:3"></div>
-        <div class="tree-leaf" style="--i:4"></div>
-      </div>
-      <div class="tree-particles">
-        <span class="particle" style="--d:0"></span>
-        <span class="particle" style="--d:1"></span>
-        <span class="particle" style="--d:2"></span>
-        <span class="particle" style="--d:3"></span>
-        <span class="particle" style="--d:4"></span>
-        <span class="particle" style="--d:5"></span>
-        <span class="particle" style="--d:6"></span>
-        <span class="particle" style="--d:7"></span>
-      </div>
+  <div class="scene-video">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ url_for('static', filename='videos/landing.mp4') }}" type="video/mp4">
+    </video>
+    <div class="scene-overlay"></div>
+  </div>
+
+  <div class="scene-content">
+    <span class="landing-eyebrow">{{ tagline }}</span>
+    <h1 class="landing-title">{{ store_name }}</h1>
+    <p class="landing-sub">Curated journeys<br>for the senses.</p>
+    <div class="landing-actions">
+      <a href="{{ url_for('main.bundles') }}" class="btn-cinematic">
+        Explore All Experiences&nbsp;<i class="bi bi-arrow-right"></i>
+      </a>
+      <a href="{{ url_for('main.products') }}" class="btn-cinematic-ghost">
+        Shop Products
+      </a>
     </div>
   </div>
-  <div class="scene-overlay"></div>
-  <div class="scene-content text-center">
-    <h1 class="landing-title" id="landing-title">{{ store_name }}</h1>
-    <p class="landing-subtitle" id="landing-subtitle">{{ tagline }}</p>
-    <div class="scroll-indicator" id="scroll-indicator">
-      <span class="scroll-text">Scroll to explore</span>
-      <div class="scroll-arrow"><i class="bi bi-chevron-down"></i></div>
-    </div>
+
+  <!-- Animated scroll cue -->
+  <div class="scroll-cue">
+    <span class="scroll-cue-text">Scroll</span>
+    <div class="scroll-cue-line"></div>
   </div>
 </section>
 
+
 <!-- ============================================================
-     EXPERIENCE SCENES – Scroll-driven
+     EXPERIENCE SCENES — one per experience type
      ============================================================ -->
 {% for exp in experiences %}
-<section class="scene scene-experience" id="scene-{{ exp.key }}"
-         data-experience="{{ exp.key }}">
-  <div class="scene-bg">
-    <div class="scene-bg-image" style="background-image:url('{{ url_for('static', filename='images/experiences/' ~ exp.key ~ '.png') }}')"></div>
+<section class="scene scene-experience"
+         id="scene-{{ exp.key }}"
+         data-experience="{{ exp.key }}"
+         data-audio-src="{{ url_for('static', filename='audio/' ~ exp.key ~ '.mp3') }}">
+
+  <!-- Video background (falls back to CSS gradient) -->
+  <div class="scene-video">
+    <video autoplay muted loop playsinline preload="none"
+           poster="{{ url_for('static', filename='images/experiences/' ~ exp.key ~ '.png') }}">
+      <source src="{{ url_for('static', filename='videos/experiences/' ~ exp.key ~ '.mp4') }}" type="video/mp4">
+    </video>
+    <div class="scene-overlay"></div>
   </div>
-  <div class="scene-overlay"></div>
+
+  <!-- Content -->
   <div class="scene-content">
     <div class="experience-inner">
-      <span class="experience-index">{{ '%02d' | format(loop.index) }}</span>
+      <span class="experience-eyebrow">{{ '%02d'|format(loop.index) }} / {{ '%02d'|format(experiences|length) }}&ensp;—&ensp;{{ exp.key|replace('_',' ')|upper }}</span>
       <h2 class="experience-title scene-text">{{ exp.label }}</h2>
+
       {% if exp.bundle %}
-      <p class="experience-desc scene-text">{{ exp.bundle.description or 'Discover this curated experience.' }}</p>
-      <div class="experience-price scene-text">
-        <span class="price-tag">R{{ '%.2f'|format(exp.bundle.price) }}</span>
+      <p class="experience-desc scene-text">
+        {{ exp.bundle.description[:120] ~ '…' if exp.bundle.description and exp.bundle.description|length > 120 else (exp.bundle.description or 'Discover this curated experience.') }}
+      </p>
+      <div class="experience-price-wrap scene-text">
+        <span class="experience-currency">R</span>
+        <span class="experience-price">{{ '%.2f'|format(exp.bundle.price) }}</span>
       </div>
       <div class="experience-cta scene-text">
-        <a href="{{ url_for('main.bundle_detail', slug=exp.bundle.slug) }}" class="btn-bodhi">
-          <span>Explore Experience</span>
-          <i class="bi bi-arrow-right"></i>
+        <a href="{{ url_for('main.bundle_detail', slug=exp.bundle.slug) }}" class="btn-cinematic">
+          Explore&nbsp;<i class="bi bi-arrow-right"></i>
         </a>
+        <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="bundle_id" value="{{ exp.bundle.id }}">
+          <input type="hidden" name="item_type" value="bundle">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit" class="btn-cinematic-ghost">
+            <i class="bi bi-bag-plus"></i>&nbsp;Add to Cart
+          </button>
+        </form>
       </div>
       {% else %}
-      <p class="experience-desc scene-text">Coming soon…</p>
+      <p class="experience-desc scene-text" style="color:var(--text-ghost);">Coming soon.</p>
       {% endif %}
     </div>
   </div>
+
+  <!-- Large background index number -->
+  <div class="scene-num">{{ '%02d'|format(loop.index) }}</div>
 </section>
 {% endfor %}
 
-<!-- ============================================================
-     FEATURED PRODUCTS – Glass-card Grid
-     ============================================================ -->
-<section class="section-featured" id="section-featured">
-  <div class="container">
-    <div class="section-header text-center mb-5">
-      <h2 class="section-title">Featured Products</h2>
-      <p class="text-muted">Handpicked for your journey</p>
-    </div>
-    {% if products %}
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-      {% for product in products %}
-      <div class="col product-reveal">
-        <div class="glass-card h-100">
-          <img src="{{ product.display_image }}" class="glass-card-img" alt="{{ product.name }}">
-          <div class="glass-card-body">
-            <h5 class="glass-card-title">{{ product.name }}</h5>
-            <p class="glass-card-text">
-              {{ product.description[:100] ~ '…' if product.description and product.description|length > 100 else product.description }}
-            </p>
-            <div class="d-flex justify-content-between align-items-center mt-auto">
-              <span class="glass-price">R{{ '%.2f'|format(product.price) }}</span>
-              <form action="{{ url_for('cart.add_to_cart') }}" method="post">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="product_id" value="{{ product.id }}">
-                <input type="hidden" name="item_type" value="product">
-                <input type="hidden" name="quantity" value="1">
-                <button type="submit" class="btn-bodhi-sm"
-                        {% if product.stock == 0 %}disabled{% endif %}>
-                  {% if product.stock == 0 %}Sold Out{% else %}Add to Cart{% endif %}
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    <div class="text-center mt-4">
-      <a href="{{ url_for('main.products') }}" class="btn-bodhi">
-        <span>View All Products</span>
-        <i class="bi bi-arrow-right"></i>
-      </a>
-    </div>
-    {% else %}
-    <p class="text-muted text-center">No products available yet.</p>
-    {% endif %}
-  </div>
-</section>
 {% endblock %}

@@ -1,56 +1,73 @@
 {% extends "base.html" %}
-{% block title %}{{ bundle.name }} – {{ store_name }}{% endblock %}
+{% block title %}{{ bundle.name }} — {{ store_name }}{% endblock %}
 
 {% block content %}
 <!-- ============================================================
-     BUNDLE HERO – full-screen with background image
+     BUNDLE HERO — full-screen, video bg
      ============================================================ -->
 <section class="bundle-hero">
   <div class="bundle-hero-bg">
+    <!-- Video bg: falls back to image, then to CSS gradient overlay -->
+    <video autoplay muted loop playsinline preload="none"
+           {% if bundle.experience_type %}
+           poster="{{ url_for('static', filename='images/experiences/' ~ bundle.experience_type ~ '.png') }}"
+           {% endif %}
+           style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
+      {% if bundle.experience_type %}
+      <source src="{{ url_for('static', filename='videos/experiences/' ~ bundle.experience_type ~ '.mp4') }}" type="video/mp4">
+      {% endif %}
+    </video>
     {% if bundle.experience_type %}
     <img src="{{ url_for('static', filename='images/experiences/' ~ bundle.experience_type ~ '.png') }}"
-         alt="{{ bundle.name }}">
+         alt="{{ bundle.name }}"
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;">
     {% else %}
-    <img src="{{ bundle.display_image }}" alt="{{ bundle.name }}">
+    <img src="{{ bundle.display_image }}" alt="{{ bundle.name }}"
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;">
     {% endif %}
   </div>
   <div class="bundle-hero-overlay"></div>
+
   <div class="bundle-hero-content container">
     {% if bundle.experience_type %}
-    <span class="experience-tag">{{ bundle.experience_type | replace('_', ' ') | title }} Experience</span>
+    <span class="experience-tag">{{ bundle.experience_type|replace('_',' ')|title }} Experience</span>
     {% endif %}
+
     <h1 class="bundle-hero-title">{{ bundle.name }}</h1>
     <p class="bundle-hero-desc">{{ bundle.description }}</p>
 
     {% set orig = bundle.total_price %}
     {% if orig > bundle.price %}
     <div class="bundle-savings">
-      <span class="text-decoration-line-through">R{{ '%.2f'|format(orig) }}</span>
+      <span class="text-decoration-line-through" style="color:var(--text-ghost);">R{{ '%.2f'|format(orig) }}</span>
       <span class="badge ms-2">Save R{{ '%.2f'|format(orig - bundle.price) }}</span>
     </div>
     {% endif %}
 
     <div class="bundle-hero-price">R{{ '%.2f'|format(bundle.price) }}</div>
 
-    <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="d-flex align-items-center gap-3 flex-wrap">
+    <form action="{{ url_for('cart.add_to_cart') }}" method="post"
+          class="d-flex align-items-center gap-3 flex-wrap">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <input type="hidden" name="bundle_id" value="{{ bundle.id }}">
-      <input type="hidden" name="item_type" value="bundle">
+      <input type="hidden" name="bundle_id"  value="{{ bundle.id }}">
+      <input type="hidden" name="item_type"  value="bundle">
       <div>
         <input type="number" name="quantity" value="1" min="1" max="10"
                class="form-control form-control-sm"
-               style="width:80px;background:rgba(255,255,255,0.08);color:#fff;border-color:rgba(255,255,255,0.15);">
+               style="width:80px;background:rgba(255,255,255,0.07);color:var(--text);border-color:var(--glass-border);">
       </div>
-      <button type="submit" class="btn-bodhi">
-        <i class="bi bi-cart-plus"></i>
-        <span>Add to Cart</span>
+      <button type="submit" class="btn-cinematic">
+        <i class="bi bi-bag-plus"></i>&nbsp;Add to Cart
       </button>
+      <a href="{{ url_for('main.bundles') }}" class="btn-cinematic-ghost">
+        <i class="bi bi-arrow-left"></i>&nbsp;All Experiences
+      </a>
     </form>
   </div>
 </section>
 
 <!-- ============================================================
-     WHAT'S INSIDE – scroll through products
+     WHAT'S INSIDE — scroll through products
      ============================================================ -->
 <section class="bundle-products-section">
   <div class="container">
@@ -70,7 +87,7 @@
             {{ item.product.name }}
           </a>
           {% if item.quantity > 1 %}
-          <span style="font-size:0.6em;color:var(--text-muted);">×{{ item.quantity }}</span>
+          <span style="font-size:0.6em;color:var(--text-ghost);">&nbsp;×{{ item.quantity }}</span>
           {% endif %}
         </h3>
         <p class="bundle-product-desc">{{ item.product.description or '' }}</p>
