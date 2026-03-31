@@ -1,0 +1,361 @@
+/* ================================================================
+   Flask Store – Admin Dashboard Dark Theme
+   Inspired by modern SaaS dark dashboards
+   ================================================================ */
+
+/* ---------- CSS Variables ---------- */
+:root {
+  --dash-bg:         #0b0f19;
+  --dash-surface:    #131928;
+  --dash-surface-2:  #1a2236;
+  --dash-border:     rgba(255, 255, 255, 0.06);
+  --dash-text:       #e1e7ed;
+  --dash-muted:      #7b8fa6;
+
+  --dash-blue:       #4361ee;
+  --dash-cyan:       #39afd1;
+  --dash-green:      #0acf97;
+  --dash-yellow:     #ffbc00;
+  --dash-red:        #fa5c7c;
+  --dash-purple:     #7c5cbf;
+}
+
+/* ---------- Page background override ---------- */
+body.admin-dashboard-page,
+body.admin-dashboard-page .container {
+  background-color: var(--dash-bg) !important;
+  color: var(--dash-text) !important;
+}
+
+/* Override Flask-Admin container background on dashboard page */
+.dash-wrapper {
+  background: var(--dash-bg);
+  min-height: 100vh;
+  padding: 1.5rem;
+  color: var(--dash-text);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ---------- Page header ---------- */
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+}
+.dash-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dash-text);
+  margin: 0;
+}
+.dash-header h1 span {
+  color: var(--dash-blue);
+}
+.dash-header .dash-date {
+  font-size: 0.8rem;
+  color: var(--dash-muted);
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 6px;
+  padding: 6px 14px;
+}
+
+/* ---------- Section title ---------- */
+.dash-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dash-muted);
+  margin-bottom: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+/* ---------- KPI Cards ---------- */
+.kpi-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  height: 100%;
+}
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+.kpi-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.kpi-icon.blue   { background: rgba(67, 97, 238, 0.18); color: var(--dash-blue); }
+.kpi-icon.yellow { background: rgba(255, 188, 0, 0.18);  color: var(--dash-yellow); }
+.kpi-icon.green  { background: rgba(10, 207, 151, 0.18); color: var(--dash-green); }
+.kpi-icon.cyan   { background: rgba(57, 175, 209, 0.18); color: var(--dash-cyan); }
+.kpi-icon.red    { background: rgba(250, 92, 124, 0.18); color: var(--dash-red); }
+.kpi-icon.purple { background: rgba(124, 92, 191, 0.18); color: var(--dash-purple); }
+
+.kpi-body {
+  flex: 1;
+  min-width: 0;
+}
+.kpi-value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--dash-text);
+}
+.kpi-label {
+  font-size: 0.78rem;
+  color: var(--dash-muted);
+  margin-top: 3px;
+}
+
+/* ---------- Revenue / Metric Cards ---------- */
+.revenue-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  padding: 1.4rem 1.5rem;
+  height: 100%;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.revenue-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+.revenue-card .rc-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dash-muted);
+  margin-bottom: 0.5rem;
+}
+.revenue-card .rc-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--dash-text);
+  margin-bottom: 0.3rem;
+}
+.revenue-card .rc-value.profit { color: var(--dash-green); }
+.revenue-card .rc-value.loss   { color: var(--dash-red); }
+.revenue-card .rc-sub {
+  font-size: 0.76rem;
+  color: var(--dash-muted);
+}
+.revenue-card .rc-bar-track {
+  background: var(--dash-surface-2);
+  border-radius: 4px;
+  height: 5px;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+.revenue-card .rc-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* ---------- Breakdown rows inside revenue card ---------- */
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--dash-border);
+  font-size: 0.84rem;
+}
+.breakdown-row:last-child { border-bottom: none; }
+.breakdown-row .br-label { color: var(--dash-muted); }
+.breakdown-row .br-value { font-weight: 600; color: var(--dash-text); }
+.breakdown-row .br-value.neg { color: var(--dash-red); }
+
+/* ---------- Chart card ---------- */
+.chart-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  padding: 1.4rem 1.5rem;
+  height: 100%;
+}
+.chart-card .chart-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--dash-text);
+  margin-bottom: 1.1rem;
+}
+
+/* ---------- Recent Orders Table ---------- */
+.orders-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.orders-card .orders-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--dash-border);
+}
+.orders-card .orders-header h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--dash-text);
+  margin: 0;
+}
+.orders-card .view-all {
+  font-size: 0.75rem;
+  color: var(--dash-blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+.orders-card .view-all:hover { text-decoration: underline; }
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.dash-table thead tr {
+  border-bottom: 1px solid var(--dash-border);
+}
+.dash-table thead th {
+  padding: 0.75rem 1.5rem;
+  color: var(--dash-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: transparent;
+  white-space: nowrap;
+}
+.dash-table tbody tr {
+  border-bottom: 1px solid var(--dash-border);
+  transition: background 0.15s;
+}
+.dash-table tbody tr:last-child { border-bottom: none; }
+.dash-table tbody tr:hover { background: var(--dash-surface-2); }
+.dash-table td {
+  padding: 0.85rem 1.5rem;
+  color: var(--dash-text);
+  vertical-align: middle;
+}
+.dash-table td.muted { color: var(--dash-muted); }
+
+/* ---------- Status badges ---------- */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.status-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status-badge.paid    { color: var(--dash-green);  background: rgba(10, 207, 151, 0.15); }
+.status-badge.pending { color: var(--dash-yellow); background: rgba(255, 188, 0, 0.15); }
+.status-badge.shipped { color: var(--dash-cyan);   background: rgba(57, 175, 209, 0.15); }
+.status-badge.cancelled { color: var(--dash-red);  background: rgba(250, 92, 124, 0.15); }
+
+/* ---------- Quick Actions ---------- */
+.action-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-decoration: none;
+  color: var(--dash-text);
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.action-card:hover {
+  background: var(--dash-surface-2);
+  border-color: var(--dash-blue);
+  color: var(--dash-text);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+.action-card .ac-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.action-card .ac-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.action-card .ac-sub {
+  font-size: 0.7rem;
+  color: var(--dash-muted);
+}
+
+/* ---------- Empty-state text ---------- */
+.empty-state {
+  text-align: center;
+  padding: 2.5rem;
+  color: var(--dash-muted);
+  font-size: 0.85rem;
+}
+
+/* ---------- Bootstrap-compat row gutter ---------- */
+.dash-row {
+  margin-left: -8px;
+  margin-right: -8px;
+}
+.dash-row > [class*="col"] {
+  padding-left: 8px;
+  padding-right: 8px;
+  margin-bottom: 16px;
+}
+
+/* ---------- Revenue chart legend (HTML) ---------- */
+.rev-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 12px;
+}
+.rev-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--dash-muted);
+}
+.rev-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dash-wrapper ::-webkit-scrollbar { width: 5px; height: 5px; }
+.dash-wrapper ::-webkit-scrollbar-track { background: var(--dash-surface); }
+.dash-wrapper ::-webkit-scrollbar-thumb { background: var(--dash-border); border-radius: 3px; }
