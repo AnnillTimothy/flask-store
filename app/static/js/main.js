@@ -5,6 +5,82 @@
 
 'use strict';
 
+// ─── Loading Screen ───────────────────────────────────────────
+function initLoadingScreen() {
+  const screen = document.getElementById('loading-screen');
+  if (!screen) return;
+  // Dismiss after bar animation completes (~2.6s) with a small buffer
+  setTimeout(() => {
+    screen.classList.add('hide');
+  }, 2800);
+  // Remove from DOM after transition
+  setTimeout(() => {
+    if (screen.parentNode) screen.parentNode.removeChild(screen);
+  }, 3500);
+}
+
+// ─── Cookie Consent ───────────────────────────────────────────
+function initCookieConsent() {
+  const banner = document.getElementById('cookie-banner');
+  const accept = document.getElementById('cookie-accept');
+  const decline = document.getElementById('cookie-decline');
+  if (!banner) return;
+
+  // If user already made a choice, don't show
+  if (localStorage.getItem('bodhi_cookies') !== null) return;
+
+  // Show after a short delay so loading screen clears first
+  setTimeout(() => { banner.style.display = ''; }, 3200);
+
+  function dismiss() {
+    banner.style.display = 'none';
+  }
+  if (accept) accept.addEventListener('click', () => {
+    localStorage.setItem('bodhi_cookies', 'accepted');
+    dismiss();
+  });
+  if (decline) decline.addEventListener('click', () => {
+    localStorage.setItem('bodhi_cookies', 'declined');
+    dismiss();
+  });
+}
+
+// ─── Email Signup Popup ───────────────────────────────────────
+function initEmailPopup() {
+  const popup = document.getElementById('email-popup');
+  const close = document.getElementById('email-popup-close');
+  const form  = document.getElementById('email-popup-form');
+  if (!popup) return;
+
+  // Don't show if already seen
+  if (localStorage.getItem('bodhi_email_popup') !== null) return;
+
+  // This will be triggered by the experience reel when the user reaches scene 2
+  window._showEmailPopup = function() {
+    if (localStorage.getItem('bodhi_email_popup') !== null) return;
+    popup.style.display = '';
+  };
+
+  if (close) close.addEventListener('click', () => {
+    popup.style.display = 'none';
+    localStorage.setItem('bodhi_email_popup', 'dismissed');
+  });
+
+  // Close on overlay click
+  popup.addEventListener('click', (e) => {
+    if (e.target === popup) {
+      popup.style.display = 'none';
+      localStorage.setItem('bodhi_email_popup', 'dismissed');
+    }
+  });
+
+  if (form) form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    popup.style.display = 'none';
+    localStorage.setItem('bodhi_email_popup', 'subscribed');
+  });
+}
+
 // ─── Cart badge AJAX ──────────────────────────────────────────
 function refreshCartBadge() {
   fetch('/cart/count')
@@ -80,6 +156,7 @@ function initExperienceReel() {
   let activeIndex  = 0;
   let isScrolling  = false;
   const SCROLL_CD  = 900; // ms cooldown between snaps
+  let emailPopupShown = false;
 
   // ── Build progress dots ──
   if (progressEl) {
@@ -163,6 +240,12 @@ function initExperienceReel() {
           activateScene(scenes[activeIndex]);
           updateDots();
           updateNav(activeIndex);
+
+          // Trigger email popup when reaching the second experience (scene index 2)
+          if (idx >= 2 && !emailPopupShown && typeof window._showEmailPopup === 'function') {
+            emailPopupShown = true;
+            window._showEmailPopup();
+          }
         }
       }
     });
@@ -330,6 +413,7 @@ function initProductReveal() {
 
 // ─── Init ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  initLoadingScreen();
   refreshCartBadge();
   initAlerts();
   initBurger();
@@ -337,4 +421,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initExperienceReel();
   initBundleHero();
   initProductReveal();
+  initCookieConsent();
+  initEmailPopup();
 });
