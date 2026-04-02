@@ -104,6 +104,7 @@ class BundleItemForm(FlaskForm):
 class BundleForm(FlaskForm):
     name = StringField('Bundle Name', validators=[DataRequired(), Length(max=200)])
     slug = StringField('Slug', validators=[DataRequired(), Length(max=200)])
+    tagline = StringField('Tagline', validators=[Optional(), Length(max=255)])
     description = TextAreaField('Description', validators=[Optional()])
     price = DecimalField('Bundle Price (R)', validators=[DataRequired(), NumberRange(min=0)],
                          places=2)

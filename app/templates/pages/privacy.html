@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="page-padded">
+  <div class="container" style="max-width:840px;">
+    <h1 class="section-title text-center mb-2">Privacy Policy</h1>
+    <p class="text-center text-muted mb-5" style="max-width:520px;margin:0 auto;">Last updated: April 2026</p>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">1. Introduction</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        {{ store_name }} ("we", "our", "us") is committed to protecting your personal information and your right to
+        privacy in accordance with the Protection of Personal Information Act (POPIA) of South Africa. This Privacy
+        Policy explains how we collect, use, share, and protect your information when you visit our website and use our
+        services.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">2. Information We Collect</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">We may collect the following personal information:</p>
+      <ul style="color:var(--text-dim);line-height:2.1;">
+        <li><strong>Identity Data:</strong> Your full name and username.</li>
+        <li><strong>Contact Data:</strong> Your email address and shipping address.</li>
+        <li><strong>Transaction Data:</strong> Details of products and bundles you have purchased, order history, and payment references.</li>
+        <li><strong>Technical Data:</strong> Your browser type, IP address, and cookies for session management.</li>
+        <li><strong>Usage Data:</strong> How you interact with our website, including pages visited and time spent.</li>
+      </ul>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">3. How We Use Your Information</h3>
+      <ul style="color:var(--text-dim);line-height:2.1;">
+        <li>To process and fulfil your orders and deliver your purchases.</li>
+        <li>To send transactional communications such as order confirmations and shipping updates.</li>
+        <li>To manage your account and provide customer support.</li>
+        <li>To send promotional emails (only with your consent; you may unsubscribe at any time).</li>
+        <li>To improve our website functionality and user experience.</li>
+        <li>To comply with legal and regulatory obligations under South African law.</li>
+      </ul>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">4. Payment Security</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        All payments are processed securely through PayFast, South Africa's trusted payment gateway. We do not store
+        your credit card details or banking information on our servers. PayFast handles all payment data in compliance
+        with PCI-DSS standards.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">5. Cookies</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        We use essential cookies to maintain your shopping session and cart contents. We may also use analytics cookies
+        to understand how visitors interact with our website. You can manage your cookie preferences through your browser
+        settings or via the cookie consent banner displayed on your first visit.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">6. Data Sharing</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        We do not sell your personal information. We may share your data with trusted third parties only as needed to
+        provide our services: PayFast (payment processing), courier partners (order delivery), and hosting providers
+        (website operation). All third parties are required to protect your data in line with POPIA.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">7. Your Rights</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        Under POPIA, you have the right to: access, correct, or delete your personal information; object to the
+        processing of your data; withdraw consent at any time; and lodge a complaint with the Information Regulator of
+        South Africa. To exercise these rights, please contact us at the details below.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">8. Contact Us</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        If you have questions about this Privacy Policy, please reach out to us at
+        <a href="mailto:hello@thebodhitree.co.za" style="color:var(--sand);">hello@thebodhitree.co.za</a> or visit
+        our <a href="{{ url_for('main.contact') }}" style="color:var(--sand);">Contact page</a>.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -9,7 +9,7 @@
      ============================================================ -->
 <section class="scene scene-landing" id="scene-landing">
   <div class="scene-video">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="auto">
       <source src="{{ url_for('static', filename='videos/landing.mp4') }}" type="video/mp4">
     </video>
     <div class="scene-overlay"></div>
@@ -48,7 +48,7 @@
 
   <!-- Video background (falls back to CSS gradient) -->
   <div class="scene-video">
-    <video autoplay muted loop playsinline preload="none"
+    <video muted loop playsinline preload="auto"
            poster="{{ url_for('static', filename='images/experiences/' ~ exp.key ~ '.png') }}">
       <source src="{{ url_for('static', filename='videos/experiences/' ~ exp.key ~ '.mp4') }}" type="video/mp4">
     </video>
@@ -63,7 +63,7 @@
 
       {% if exp.bundle %}
       <p class="experience-desc scene-text">
-        {{ exp.bundle.description[:120] ~ '…' if exp.bundle.description and exp.bundle.description|length > 120 else (exp.bundle.description or 'Discover this curated experience.') }}
+        {{ exp.bundle.tagline or (exp.bundle.description[:120] ~ '…' if exp.bundle.description and exp.bundle.description|length > 120 else (exp.bundle.description or 'Discover this curated experience.')) }}
       </p>
       <div class="experience-price-wrap scene-text">
         <span class="experience-currency">R</span>

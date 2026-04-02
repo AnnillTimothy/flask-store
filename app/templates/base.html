@@ -18,6 +18,15 @@
 </head>
 <body class="bodhi-dark {% block body_class %}{% endblock %}">
 
+<!-- ── Loading Screen ─────────────────────────────────────────── -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-inner">
+    <div class="loading-brand">{{ store_name }}</div>
+    <div class="loading-tagline">{{ tagline }}</div>
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  </div>
+</div>
+
 <!-- ── Minimal floating nav ──────────────────────────────────── -->
 <nav class="bodhi-nav" id="main-nav">
   <a class="bodhi-brand" href="{{ url_for('main.index') }}">{{ store_name }}</a>
@@ -112,19 +121,28 @@
 <footer class="bodhi-footer">
   <div class="container">
     <div class="row">
-      <div class="col-md-4 mb-3 mb-md-0">
+      <div class="col-md-3 mb-3 mb-md-0">
         <div class="bodhi-brand mb-2">{{ store_name }}</div>
         <p class="text-muted small mb-0">{{ tagline }}</p>
       </div>
-      <div class="col-md-4 mb-3 mb-md-0">
-        <p class="text-ghost mb-2" style="font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-ghost);">Explore</p>
+      <div class="col-md-3 mb-3 mb-md-0">
+        <p class="footer-heading">Explore</p>
         <ul class="list-unstyled small mb-0">
           <li class="mb-1"><a href="{{ url_for('main.products') }}" class="text-muted text-decoration-none footer-link">Products</a></li>
           <li class="mb-1"><a href="{{ url_for('main.bundles') }}" class="text-muted text-decoration-none footer-link">Experiences</a></li>
           <li><a href="{{ url_for('cart.view_cart') }}" class="text-muted text-decoration-none footer-link">Cart</a></li>
         </ul>
       </div>
-      <div class="col-md-4 text-md-end">
+      <div class="col-md-3 mb-3 mb-md-0">
+        <p class="footer-heading">Information</p>
+        <ul class="list-unstyled small mb-0">
+          <li class="mb-1"><a href="{{ url_for('main.about') }}" class="text-muted text-decoration-none footer-link">About Us</a></li>
+          <li class="mb-1"><a href="{{ url_for('main.contact') }}" class="text-muted text-decoration-none footer-link">Contact</a></li>
+          <li class="mb-1"><a href="{{ url_for('main.privacy') }}" class="text-muted text-decoration-none footer-link">Privacy Policy</a></li>
+          <li><a href="{{ url_for('main.terms') }}" class="text-muted text-decoration-none footer-link">Terms &amp; Conditions</a></li>
+        </ul>
+      </div>
+      <div class="col-md-3 text-md-end">
         <p class="text-muted small mb-1">
           <i class="bi bi-shield-check me-1"></i>Secure via PayFast
         </p>
@@ -139,6 +157,39 @@
     </p>
   </div>
 </footer>
+
+<!-- ── Email Signup Popup ─────────────────────────────────────── -->
+<div class="popup-overlay" id="email-popup" style="display:none;">
+  <div class="popup-card">
+    <button class="popup-close" id="email-popup-close" aria-label="Close">&times;</button>
+    <div class="popup-icon"><i class="bi bi-envelope-heart"></i></div>
+    <h3 class="popup-title">Get 10% Off</h3>
+    <p class="popup-text">Join the {{ store_name }} community. Be the first to know about new experiences, exclusive drops and receive <strong>10% off</strong> your first order.</p>
+    <form class="popup-form" id="email-popup-form">
+      <input type="email" class="form-control" placeholder="Enter your email" required>
+      <button type="submit" class="btn-cinematic w-100" style="justify-content:center;margin-top:0.75rem;">
+        Subscribe&nbsp;<i class="bi bi-arrow-right"></i>
+      </button>
+    </form>
+    <p class="popup-disclaimer">No spam. Unsubscribe anytime.</p>
+  </div>
+</div>
+
+<!-- ── Cookie Consent Banner ──────────────────────────────────── -->
+<div class="cookie-banner" id="cookie-banner" style="display:none;">
+  <div class="cookie-banner-inner">
+    <p class="cookie-banner-text">
+      <i class="bi bi-shield-lock me-2"></i>
+      We use cookies to enhance your browsing experience and analyse site traffic. By continuing to use this site, you
+      agree to our use of cookies.
+      <a href="{{ url_for('main.privacy') }}" style="color:var(--sand);">Learn more</a>
+    </p>
+    <div class="cookie-banner-actions">
+      <button class="btn-cinematic" id="cookie-accept" style="padding:0.6rem 1.6rem;">Accept</button>
+      <button class="btn-cinematic-ghost" id="cookie-decline" style="padding:0.56rem 1.4rem;">Decline</button>
+    </div>
+  </div>
+</div>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
