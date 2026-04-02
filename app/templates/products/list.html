@@ -2,96 +2,78 @@
 {% block title %}Products — {{ store_name }}{% endblock %}
 
 {% block content %}
-<div class="container page-padded">
-  <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
-      <li class="breadcrumb-item active">Products</li>
-    </ol>
-  </nav>
-
-  <div class="row">
-    <!-- Sidebar -->
-    <div class="col-lg-3 mb-4">
-      <div class="card">
-        <div class="card-header fw-bold">
-          <i class="bi bi-funnel"></i> Filter by Category
-        </div>
-        <div class="list-group list-group-flush">
-          <a href="{{ url_for('main.products') }}"
-             class="list-group-item list-group-item-action {% if not active_category %}active{% endif %}">
-            All Products
-          </a>
-          {% for cat in categories %}
-          <a href="{{ url_for('main.products', category=cat.slug) }}"
-             class="list-group-item list-group-item-action {% if active_category and active_category.id == cat.id %}active{% endif %}">
-            {{ cat.name }}
-          </a>
-          {% endfor %}
-        </div>
-      </div>
+<div class="page-padded">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title">
+        {% if active_category %}{{ active_category.name }}{% else %}All Products{% endif %}
+      </h2>
+      <p class="text-muted">{{ products|length }} product{{ 's' if products|length != 1 }}</p>
     </div>
 
-    <!-- Products Grid -->
-    <div class="col-lg-9">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">
-          {% if active_category %}{{ active_category.name }}{% else %}All Products{% endif %}
-        </h4>
-        <span class="text-muted small">{{ products|length }} product{{ 's' if products|length != 1 }}</span>
-      </div>
+    <!-- Category filter pills -->
+    {% if categories %}
+    <div class="text-center mb-5">
+      <a href="{{ url_for('main.products') }}"
+         class="btn {% if not active_category %}btn-bodhi-sm{% else %}btn-bodhi-outline{% endif %} me-1 mb-1"
+         style="font-size:0.7rem;">All</a>
+      {% for cat in categories %}
+      <a href="{{ url_for('main.products', category=cat.slug) }}"
+         class="btn {% if active_category and active_category.id == cat.id %}btn-bodhi-sm{% else %}btn-bodhi-outline{% endif %} me-1 mb-1"
+         style="font-size:0.7rem;">{{ cat.name }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-      {% if products %}
-      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
-        {% for product in products %}
-        <div class="col">
-          <div class="card h-100 shadow-sm product-card">
-            <a href="{{ url_for('main.product_detail', slug=product.slug) }}">
-              <img src="{{ product.display_image }}" class="card-img-top product-img" alt="{{ product.name }}">
-            </a>
-            <div class="card-body d-flex flex-column">
-              {% if product.category %}
-              <span class="badge bg-secondary mb-1" style="width:fit-content">{{ product.category.name }}</span>
-              {% endif %}
-              <h6 class="card-title">
-                <a href="{{ url_for('main.product_detail', slug=product.slug) }}"
-                   class="text-decoration-none text-dark">{{ product.name }}</a>
-              </h6>
-              <p class="card-text text-muted small flex-grow-1">
-                {{ product.description[:80] ~ '…' if product.description and product.description|length > 80 else product.description }}
-              </p>
-              <div class="d-flex justify-content-between align-items-center mt-2">
-                <span class="fw-bold text-primary">R{{ '%.2f'|format(product.price) }}</span>
-                {% if product.stock > 0 %}
-                  <span class="badge bg-success">In Stock</span>
-                {% else %}
-                  <span class="badge bg-secondary">Out of Stock</span>
-                {% endif %}
-              </div>
-              <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="mt-2">
+    {% if products %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+      {% for product in products %}
+      <div class="col product-reveal">
+        <div class="glass-card h-100">
+          <a href="{{ url_for('main.product_detail', slug=product.slug) }}">
+            <img src="{{ product.display_image }}" class="glass-card-img" alt="{{ product.name }}">
+          </a>
+          <div class="glass-card-body">
+            {% if product.category %}
+            <span class="experience-tag" style="font-size:0.6rem;padding:0.2rem 0.7rem;margin-bottom:0.5rem;">
+              {{ product.category.name }}
+            </span>
+            {% endif %}
+            <h5 class="glass-card-title">
+              <a href="{{ url_for('main.product_detail', slug=product.slug) }}"
+                 class="text-decoration-none" style="color:inherit;">{{ product.name }}</a>
+            </h5>
+            <p class="glass-card-text">
+              {{ product.description[:80] ~ '…' if product.description and product.description|length > 80 else product.description }}
+            </p>
+            <div class="d-flex justify-content-between align-items-center mt-auto">
+              <span class="glass-price">R{{ '%.2f'|format(product.price) }}</span>
+              {% if product.stock > 0 %}
+              <form action="{{ url_for('cart.add_to_cart') }}" method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="product_id" value="{{ product.id }}">
                 <input type="hidden" name="item_type" value="product">
                 <input type="hidden" name="quantity" value="1">
-                <button type="submit" class="btn btn-primary btn-sm w-100"
-                        {% if product.stock == 0 %}disabled{% endif %}>
-                  <i class="bi bi-cart-plus"></i>
-                  {% if product.stock == 0 %}Out of Stock{% else %}Add to Cart{% endif %}
+                <button type="submit" class="btn-bodhi-sm">
+                  <i class="bi bi-bag-plus"></i>&nbsp;Add
                 </button>
               </form>
+              {% else %}
+              <span style="font-size:0.72rem;color:var(--text-ghost);text-transform:uppercase;letter-spacing:0.1em;">Sold Out</span>
+              {% endif %}
             </div>
           </div>
         </div>
-        {% endfor %}
       </div>
-      {% else %}
-      <div class="text-center py-5">
-        <i class="bi bi-inbox display-1 text-muted"></i>
-        <p class="mt-3 text-muted">No products found in this category.</p>
-        <a href="{{ url_for('main.products') }}" class="btn btn-outline-primary">View All Products</a>
-      </div>
-      {% endif %}
+      {% endfor %}
     </div>
+    {% else %}
+    <div class="text-center py-5">
+      <i class="bi bi-inbox" style="font-size:3rem;color:var(--text-ghost);"></i>
+      <p class="mt-3 text-muted">No products found in this category.</p>
+      <a href="{{ url_for('main.products') }}" class="btn-cinematic-ghost">View All Products</a>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

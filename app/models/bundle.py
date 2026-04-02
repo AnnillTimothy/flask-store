@@ -19,6 +19,7 @@ class Bundle(db.Model):
     name = db.Column(db.String(200), nullable=False)
     slug = db.Column(db.String(200), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
+    tagline = db.Column(db.String(255), nullable=True)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     image_url = db.Column(db.String(500), nullable=True)
     experience_type = db.Column(db.String(50), nullable=True, index=True)

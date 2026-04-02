@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Terms & Conditions — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="page-padded">
+  <div class="container" style="max-width:840px;">
+    <h1 class="section-title text-center mb-2">Terms &amp; Conditions</h1>
+    <p class="text-center text-muted mb-5" style="max-width:520px;margin:0 auto;">Last updated: April 2026</p>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">1. Introduction</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        Welcome to {{ store_name }}. By accessing and using this website, you accept and agree to be bound by these
+        Terms and Conditions. If you do not agree, please do not use our website. These terms are governed by the laws
+        of the Republic of South Africa, including the Consumer Protection Act 68 of 2008 (CPA) and the Electronic
+        Communications and Transactions Act 25 of 2002 (ECT Act).
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">2. Products & Pricing</h3>
+      <ul style="color:var(--text-dim);line-height:2.1;">
+        <li>All prices are displayed in South African Rand (ZAR) and include VAT where applicable.</li>
+        <li>We reserve the right to change prices at any time without prior notice. The price at the time of order placement will apply.</li>
+        <li>Product images are for illustrative purposes; actual products may vary slightly.</li>
+        <li>We take reasonable care to ensure product descriptions are accurate, but do not warrant that they are error-free.</li>
+      </ul>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">3. Orders & Payment</h3>
+      <ul style="color:var(--text-dim);line-height:2.1;">
+        <li>An order constitutes an offer to purchase. We reserve the right to accept or decline any order.</li>
+        <li>Payment is processed securely via PayFast. We do not store your payment card details.</li>
+        <li>Orders are confirmed once payment has been successfully processed and you receive an order confirmation.</li>
+        <li>If a product is out of stock after your order has been placed, we will notify you and offer a refund or alternative.</li>
+      </ul>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">4. Shipping & Delivery</h3>
+      <ul style="color:var(--text-dim);line-height:2.1;">
+        <li>We deliver nationwide within South Africa at a flat rate of R150 per order.</li>
+        <li>Estimated delivery times are 3–7 business days, depending on your location.</li>
+        <li>Risk of loss and damage passes to you upon delivery. Please inspect your order upon receipt.</li>
+        <li>We are not responsible for delays caused by courier services, public holidays, or circumstances beyond our control.</li>
+      </ul>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">5. Returns & Refunds</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        In accordance with the Consumer Protection Act (CPA), you have the right to return goods within 6 months of
+        delivery if they are defective, not as described, or not fit for purpose. To initiate a return, please contact
+        us within 7 days of receiving your order. Items must be unused and in their original packaging. Refunds will
+        be processed within 14 business days of receiving the returned item.
+      </p>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        Please note: A "cooling-off" period of 5 business days applies to direct marketing transactions, during which
+        you may cancel without reason in accordance with Section 16 of the CPA.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">6. Intellectual Property</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        All content on this website — including text, images, logos, videos, and design elements — is the property of
+        {{ store_name }} or its licensors and is protected by South African intellectual property laws. You may not
+        reproduce, distribute, or use any content without our prior written consent.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">7. Limitation of Liability</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        To the maximum extent permitted by law, {{ store_name }} shall not be liable for any indirect, incidental, or
+        consequential damages arising from the use of our website or the purchase of our products. Our total liability
+        shall not exceed the amount you paid for the specific product or order in question.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">8. Governing Law</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        These Terms and Conditions are governed by and construed in accordance with the laws of the Republic of South
+        Africa. Any disputes shall be subject to the exclusive jurisdiction of the South African courts.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">9. Contact</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        If you have any questions about these Terms, please contact us at
+        <a href="mailto:hello@thebodhitree.co.za" style="color:var(--sand);">hello@thebodhitree.co.za</a>.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

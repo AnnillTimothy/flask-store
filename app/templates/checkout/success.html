@@ -1,38 +1,43 @@
 {% extends "base.html" %}
-{% block title %}Order Confirmed – Flask Store{% endblock %}
+{% block title %}Order Confirmed — {{ store_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-5 text-center">
-  <div class="mb-4">
-    <i class="bi bi-check-circle-fill text-success" style="font-size:5rem"></i>
-  </div>
-  <h2 class="fw-bold text-success mb-2">Payment Successful!</h2>
-  <p class="lead text-muted">Thank you for your order. We'll get it shipped to you soon.</p>
+<div class="page-padded">
+  <div class="container text-center">
+    <div class="mb-4">
+      <i class="bi bi-check-circle-fill" style="font-size:4rem;color:#86efac;"></i>
+    </div>
+    <h2 class="section-title mb-2">Payment Successful!</h2>
+    <p style="color:var(--text-dim);font-size:1rem;">Thank you for your order. We'll get it shipped to you soon.</p>
 
-  {% if order %}
-  <div class="card mx-auto mt-4 shadow-sm" style="max-width:480px">
-    <div class="card-header fw-bold">Order Confirmation</div>
-    <div class="card-body text-start">
-      <p><strong>Order #:</strong> {{ order.order_number }}</p>
-      {% if customer_name %}<p><strong>Name:</strong> {{ customer_name }}</p>{% endif %}
-      {% if customer_email %}<p><strong>Email:</strong> {{ customer_email }}</p>{% endif %}
-      <p><strong>Status:</strong>
-        <span class="badge bg-{% if order.status == 'paid' %}success{% elif order.status == 'pending' %}warning{% else %}secondary{% endif %}">
+    {% if order %}
+    <div class="glass-card mx-auto mt-4 p-4" style="max-width:480px;border-radius:12px;text-align:left;">
+      <h5 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">Order Confirmation</h5>
+      <p style="color:var(--text-dim);"><strong style="color:var(--text);">Order #:</strong> {{ order.order_number }}</p>
+      {% if customer_name %}<p style="color:var(--text-dim);"><strong style="color:var(--text);">Name:</strong> {{ customer_name }}</p>{% endif %}
+      {% if customer_email %}<p style="color:var(--text-dim);"><strong style="color:var(--text);">Email:</strong> {{ customer_email }}</p>{% endif %}
+      <p style="color:var(--text-dim);"><strong style="color:var(--text);">Status:</strong>
+        <span class="experience-tag" style="font-size:0.58rem;padding:0.15rem 0.5rem;
+          {% if order.status == 'paid' %}color:#86efac;border-color:rgba(34,197,94,0.3);
+          {% elif order.status == 'pending' %}color:#fde047;border-color:rgba(250,204,21,0.3);
+          {% else %}color:var(--text-ghost);{% endif %}">
           {{ order.status|capitalize }}
         </span>
       </p>
-      <p><strong>Total:</strong> R{{ '%.2f'|format(order.total_amount|float) }}</p>
+      <p style="color:var(--sand);font-family:var(--serif);font-size:1.3rem;font-weight:600;margin-top:1rem;">
+        R{{ '%.2f'|format(order.total_amount|float) }}
+      </p>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  <div class="mt-4 d-flex gap-3 justify-content-center">
-    <a href="{{ url_for('main.index') }}" class="btn btn-primary">
-      <i class="bi bi-house"></i> Back to Home
-    </a>
-    <a href="{{ url_for('main.products') }}" class="btn btn-outline-primary">
-      <i class="bi bi-grid"></i> Continue Shopping
-    </a>
+    <div class="mt-4 d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{{ url_for('main.index') }}" class="btn-cinematic">
+        <i class="bi bi-house"></i>&nbsp;Back to Home
+      </a>
+      <a href="{{ url_for('main.products') }}" class="btn-cinematic-ghost">
+        <i class="bi bi-grid"></i>&nbsp;Continue Shopping
+      </a>
+    </div>
   </div>
 </div>
 {% endblock %}

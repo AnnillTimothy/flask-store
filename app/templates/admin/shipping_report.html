@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="container-fluid mt-4">
-  <h2>Shipping Report</h2>
+  <h2 style="font-family:var(--serif);font-weight:400;">Shipping Report</h2>
 
   <form method="get" class="row g-2 mb-4">
     <div class="col-auto">
@@ -24,7 +24,7 @@
 
   {% if records %}
   <table class="table table-striped table-bordered">
-    <thead class="table-dark">
+    <thead>
       <tr>
         <th>Order #</th>
         <th>Customer</th>
@@ -43,7 +43,11 @@
         <td>{{ sr.carrier or '–' }}</td>
         <td>{{ sr.tracking_number or '–' }}</td>
         <td>
-          <span class="badge bg-{% if sr.status == 'delivered' %}success{% elif sr.status == 'in_transit' %}info{% elif sr.status == 'shipped' %}primary{% else %}secondary{% endif %}">
+          <span class="experience-tag" style="font-size:0.58rem;padding:0.15rem 0.5rem;
+            {% if sr.status == 'delivered' %}color:#86efac;border-color:rgba(34,197,94,0.3);
+            {% elif sr.status == 'in_transit' %}color:#67e8f9;border-color:rgba(6,182,212,0.3);
+            {% elif sr.status == 'shipped' %}color:var(--sand);border-color:var(--sand-dim);
+            {% else %}color:var(--text-ghost);{% endif %}">
             {{ sr.status.replace('_', ' ')|capitalize }}
           </span>
         </td>
@@ -54,7 +58,7 @@
     </tbody>
   </table>
   {% else %}
-  <p class="text-muted">No shipping records found.</p>
+  <p style="color:var(--text-ghost);">No shipping records found.</p>
   {% endif %}
 </div>
 {% endblock %}

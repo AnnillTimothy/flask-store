@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Contact Us — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="page-padded">
+  <div class="container" style="max-width:840px;">
+    <h1 class="section-title text-center mb-2">Contact Us</h1>
+    <p class="text-center text-muted mb-5" style="max-width:520px;margin:0 auto;">We'd love to hear from you.</p>
+
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="glass-card p-4 p-md-5 h-100">
+          <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1.5rem;">Get In Touch</h3>
+
+          <div class="mb-4">
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <i class="bi bi-envelope" style="color:var(--sand);font-size:1.2rem;margin-top:3px;"></i>
+              <div>
+                <p style="color:var(--text);margin-bottom:0.2rem;font-weight:500;">Email</p>
+                <a href="mailto:hello@thebodhitree.co.za" style="color:var(--text-dim);text-decoration:none;">hello@thebodhitree.co.za</a>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <i class="bi bi-geo-alt" style="color:var(--sand);font-size:1.2rem;margin-top:3px;"></i>
+              <div>
+                <p style="color:var(--text);margin-bottom:0.2rem;font-weight:500;">Location</p>
+                <p style="color:var(--text-dim);margin:0;">Cape Town, South Africa</p>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <i class="bi bi-clock" style="color:var(--sand);font-size:1.2rem;margin-top:3px;"></i>
+              <div>
+                <p style="color:var(--text);margin-bottom:0.2rem;font-weight:500;">Business Hours</p>
+                <p style="color:var(--text-dim);margin:0;">Mon – Fri: 09:00 – 17:00 (SAST)</p>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-truck" style="color:var(--sand);font-size:1.2rem;margin-top:3px;"></i>
+              <div>
+                <p style="color:var(--text);margin-bottom:0.2rem;font-weight:500;">Shipping</p>
+                <p style="color:var(--text-dim);margin:0;">Nationwide delivery&nbsp;·&nbsp;Flat rate R150</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="glass-card p-4 p-md-5 h-100">
+          <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1.5rem;">Send a Message</h3>
+          <form>
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control" placeholder="Your name">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" placeholder="your@email.com">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Message</label>
+              <textarea class="form-control" rows="5" placeholder="How can we help?"></textarea>
+            </div>
+            <button type="submit" class="btn-cinematic w-100" style="justify-content:center;">
+              Send Message&nbsp;<i class="bi bi-send"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

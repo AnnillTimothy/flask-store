@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}About Us — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="page-padded">
+  <div class="container" style="max-width:840px;">
+    <h1 class="section-title text-center mb-2">About Us</h1>
+    <p class="text-center text-muted mb-5" style="max-width:520px;margin:0 auto;">The story behind {{ store_name }}.</p>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">Our Story</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        {{ store_name }} was born out of a deep love for intentional living and the belief that everyday rituals deserve
+        the very best. Based in South Africa, we curate premium wellness and lifestyle bundles — each one crafted to
+        transform an ordinary moment into an extraordinary experience.
+      </p>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        From the sandy shores of the coast to the quiet glow of a cozy evening at home, our experiences are designed
+        to awaken your senses and nourish your soul. Every product we feature is ethically sourced, lovingly packaged,
+        and chosen because we believe in it.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">Our Mission</h3>
+      <p style="color:var(--text-dim);line-height:1.85;">
+        To make the extraordinary accessible. We partner with local South African artisans, small-batch producers, and
+        emerging wellness brands to bring you curated bundles that tell a story. We believe in supporting local, reducing
+        waste through thoughtful packaging, and delivering joy right to your doorstep.
+      </p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">Why {{ store_name }}?</h3>
+      <ul style="color:var(--text-dim);line-height:2.2;list-style:none;padding:0;">
+        <li><i class="bi bi-check2-circle text-sand me-2"></i> Curated by passionate creators, for conscious consumers</li>
+        <li><i class="bi bi-check2-circle text-sand me-2"></i> Proudly South African — supporting local brands and artisans</li>
+        <li><i class="bi bi-check2-circle text-sand me-2"></i> Secure payments via PayFast with flat-rate R150 shipping nationwide</li>
+        <li><i class="bi bi-check2-circle text-sand me-2"></i> Beautifully packaged — perfect for gifting or self-care</li>
+        <li><i class="bi bi-check2-circle text-sand me-2"></i> Ethically sourced, environmentally conscious products</li>
+      </ul>
+    </div>
+
+    <div class="text-center mt-5">
+      <a href="{{ url_for('main.bundles') }}" class="btn-cinematic">Explore Our Experiences&nbsp;<i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+</div>
+{% endblock %}

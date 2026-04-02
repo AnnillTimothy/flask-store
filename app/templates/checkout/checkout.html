@@ -1,31 +1,31 @@
 {% extends "base.html" %}
-{% block title %}Checkout – Flask Store{% endblock %}
+{% block title %}Checkout — {{ store_name }}{% endblock %}
 
 {% block content %}
-<div class="container page-padded">
-  <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
-      <li class="breadcrumb-item"><a href="{{ url_for('cart.view_cart') }}">Cart</a></li>
-      <li class="breadcrumb-item active">Checkout</li>
-    </ol>
-  </nav>
+<div class="page-padded">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb" style="font-size:0.78rem;">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" style="color:var(--text-dim);text-decoration:none;">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('cart.view_cart') }}" style="color:var(--text-dim);text-decoration:none;">Cart</a></li>
+        <li class="breadcrumb-item" style="color:var(--text-ghost);">Checkout</li>
+      </ol>
+    </nav>
 
-  <h2 class="fw-bold mb-4"><i class="bi bi-bag-check"></i> Checkout</h2>
+    <h2 class="section-title text-center mb-5"><i class="bi bi-bag-check" style="font-size:0.7em;"></i>&nbsp;Checkout</h2>
 
-  <div class="row g-4">
-    <!-- Customer Details Form -->
-    <div class="col-lg-7">
-      <div class="card shadow-sm">
-        <div class="card-header fw-bold">
-          <i class="bi bi-person"></i> Customer Details
-        </div>
-        <div class="card-body">
+    <div class="row g-4">
+      <!-- Customer Details Form -->
+      <div class="col-lg-7">
+        <div class="glass-card p-4 p-md-5" style="border-radius:12px;">
+          <h5 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1.5rem;">
+            <i class="bi bi-person me-2"></i>Customer Details
+          </h5>
           <form action="{{ url_for('checkout.pay') }}" method="post" id="checkoutForm">
             {{ form.hidden_tag() }}
 
             <div class="mb-3">
-              {{ form.customer_name.label(class="form-label fw-semibold") }}
+              <label class="form-label">Full Name</label>
               {{ form.customer_name(class="form-control" + (" is-invalid" if form.customer_name.errors else ""),
                                    placeholder="Your full name") }}
               {% for error in form.customer_name.errors %}
@@ -34,7 +34,7 @@
             </div>
 
             <div class="mb-3">
-              {{ form.customer_email.label(class="form-label fw-semibold") }}
+              <label class="form-label">Email Address</label>
               {{ form.customer_email(class="form-control" + (" is-invalid" if form.customer_email.errors else ""),
                                     placeholder="your@email.com") }}
               {% for error in form.customer_email.errors %}
@@ -43,7 +43,7 @@
             </div>
 
             <div class="mb-4">
-              {{ form.shipping_address.label(class="form-label fw-semibold") }}
+              <label class="form-label">Shipping Address</label>
               {{ form.shipping_address(class="form-control" + (" is-invalid" if form.shipping_address.errors else ""),
                                       rows=4,
                                       placeholder="Street address, City, Province, Postal code") }}
@@ -52,59 +52,59 @@
               {% endfor %}
             </div>
 
-            <div class="alert alert-info small">
-              <i class="bi bi-shield-check"></i>
-              You will be redirected to PayFast to complete your payment securely.
+            <div class="glass-card p-3 mb-4" style="border-radius:8px;border-color:rgba(200,180,154,0.2);">
+              <p style="color:var(--text-dim);font-size:0.84rem;margin:0;">
+                <i class="bi bi-shield-check me-2" style="color:var(--sand);"></i>
+                You will be redirected to PayFast to complete your payment securely.
+              </p>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg w-100" id="payBtn">
-              <i class="bi bi-lock"></i> Pay Now – R{{ '%.2f'|format(total) }}
+            <button type="submit" class="btn-cinematic w-100" style="justify-content:center;" id="payBtn">
+              <i class="bi bi-lock"></i>&nbsp;Pay Now — R{{ '%.2f'|format(total) }}
             </button>
           </form>
         </div>
       </div>
-    </div>
 
-    <!-- Order Summary -->
-    <div class="col-lg-5">
-      <div class="card shadow-sm">
-        <div class="card-header fw-bold">
-          <i class="bi bi-receipt"></i> Order Summary
-        </div>
-        <div class="card-body">
+      <!-- Order Summary -->
+      <div class="col-lg-5">
+        <div class="glass-card p-4" style="border-radius:12px;">
+          <h5 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1.5rem;">
+            <i class="bi bi-receipt me-2"></i>Order Summary
+          </h5>
           {% for item in items %}
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <span class="fw-semibold">{{ item.name }}</span>
-              <span class="badge {% if item.item_type == 'bundle' %}bg-success{% else %}bg-secondary{% endif %} ms-1">
+              <span style="color:var(--text);font-weight:500;">{{ item.name }}</span>
+              <span class="experience-tag ms-1" style="font-size:0.55rem;padding:0.1rem 0.4rem;">
                 {{ item.item_type|capitalize }}
               </span>
-              <span class="text-muted small"> × {{ item.quantity }}</span>
+              <span style="color:var(--text-ghost);font-size:0.8rem;"> × {{ item.quantity }}</span>
             </div>
-            <span>R{{ '%.2f'|format(item.subtotal) }}</span>
+            <span style="color:var(--text-dim);">R{{ '%.2f'|format(item.subtotal) }}</span>
           </div>
           {% endfor %}
-          <hr>
-          <div class="d-flex justify-content-between mb-1">
+          <hr style="border-color:var(--glass-border);">
+          <div class="d-flex justify-content-between mb-1" style="color:var(--text-dim);font-size:0.9rem;">
             <span>Subtotal</span><span>R{{ '%.2f'|format(subtotal) }}</span>
           </div>
-          <div class="d-flex justify-content-between mb-2">
-            <span><i class="bi bi-truck"></i> Shipping</span>
+          <div class="d-flex justify-content-between mb-2" style="color:var(--text-dim);font-size:0.9rem;">
+            <span><i class="bi bi-truck me-1"></i>Shipping</span>
             <span>R{{ '%.2f'|format(shipping) }}</span>
           </div>
-          <hr>
-          <div class="d-flex justify-content-between fw-bold fs-5">
-            <span>Total</span>
-            <span class="text-primary">R{{ '%.2f'|format(total) }}</span>
+          <hr style="border-color:var(--glass-border);">
+          <div class="d-flex justify-content-between" style="font-size:1.2rem;">
+            <span style="color:var(--text);font-weight:500;">Total</span>
+            <span style="color:var(--sand);font-family:var(--serif);font-weight:600;">R{{ '%.2f'|format(total) }}</span>
           </div>
         </div>
-      </div>
 
-      <!-- Payment badge -->
-      <div class="card mt-3 border-0 bg-light text-center p-3">
-        <p class="small text-muted mb-1">Secure payment via</p>
-        <strong class="text-success"><i class="bi bi-shield-check"></i> PayFast</strong>
-        <p class="small text-muted mt-1 mb-0">South Africa's trusted payment gateway</p>
+        <!-- Payment badge -->
+        <div class="glass-card mt-3 text-center p-3" style="border-radius:10px;">
+          <p style="font-size:0.78rem;color:var(--text-ghost);margin-bottom:0.3rem;">Secure payment via</p>
+          <strong style="color:var(--sand);"><i class="bi bi-shield-check"></i>&nbsp;PayFast</strong>
+          <p style="font-size:0.75rem;color:var(--text-ghost);margin:0.3rem 0 0;">South Africa's trusted payment gateway</p>
+        </div>
       </div>
     </div>
   </div>
