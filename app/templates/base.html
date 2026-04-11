@@ -18,7 +18,9 @@
 </head>
 <body class="bodhi-dark {% block body_class %}{% endblock %}">
 
-<!-- ── Loading Screen ─────────────────────────────────────────── -->
+<!-- ── Loading Screen (only on initial load, not every navigation) ── -->
+{% set show_loading = request.endpoint in ['main.index', 'main.bundles', 'main.bundle_detail', 'admin.index'] %}
+{% if show_loading %}
 <div class="loading-screen" id="loading-screen">
   <div class="loading-inner">
     <div class="loading-brand">{{ store_name }}</div>
@@ -26,6 +28,7 @@
     <div class="loading-bar"><div class="loading-bar-fill"></div></div>
   </div>
 </div>
+{% endif %}
 
 <!-- ── Minimal floating nav ──────────────────────────────────── -->
 <nav class="bodhi-nav" id="main-nav">
@@ -175,6 +178,23 @@
   </div>
 </div>
 
+<!-- ── Age Verification Gate ─────────────────────────────────── -->
+<div class="age-gate-overlay" id="age-gate" style="display:none;">
+  <div class="age-gate-card">
+    <div class="age-gate-icon"><i class="bi bi-shield-exclamation"></i></div>
+    <h3 class="age-gate-title">Age Verification</h3>
+    <p class="age-gate-text">This website sells alcoholic beverages. You must be <strong>18 years or older</strong> to enter.</p>
+    <div class="age-gate-actions">
+      <button class="btn-cinematic" id="age-gate-confirm" style="justify-content:center;padding:0.7rem 2rem;">
+        I am 18 or older
+      </button>
+    </div>
+    <p class="age-gate-deny">
+      <a id="age-gate-deny">I am under 18</a>
+    </p>
+  </div>
+</div>
+
 <!-- ── Cookie Consent Banner ──────────────────────────────────── -->
 <div class="cookie-banner" id="cookie-banner" style="display:none;">
   <div class="cookie-banner-inner">
@@ -193,9 +213,10 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- GSAP + ScrollTrigger -->
+<!-- GSAP + ScrollTrigger + ScrollToPlugin -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollToPlugin.min.js"></script>
 <!-- Custom JS -->
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block extra_js %}{% endblock %}
