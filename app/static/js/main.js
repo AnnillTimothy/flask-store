@@ -70,9 +70,9 @@ function initAgeGate() {
 
   // Calculate delay: show after loading screen finishes
   const loadingScreen = document.getElementById('loading-screen');
-  const delay = loadingScreen ? 3600 : 200;
+  const AGE_GATE_DELAY = loadingScreen ? 3600 : 200;
 
-  setTimeout(() => { gate.style.display = ''; }, delay);
+  setTimeout(() => { gate.style.display = ''; }, AGE_GATE_DELAY);
 
   if (confirm) {
     confirm.addEventListener('click', () => {
@@ -82,7 +82,8 @@ function initAgeGate() {
   }
 
   if (deny) {
-    deny.addEventListener('click', () => {
+    deny.addEventListener('click', (e) => {
+      e.preventDefault();
       // Redirect away — user is underage
       gate.querySelector('.age-gate-text').innerHTML =
         'Sorry, you must be 18 or older to access this site.';
@@ -230,54 +231,54 @@ function initExperienceReel() {
   // ── Update progress dots ──
   function updateDots() {
     if (!progressEl) return;
-    progressEl.querySelectorAll('.scene-dot').forEach(function(d, i) {
+    progressEl.querySelectorAll('.scene-dot').forEach((d, i) => {
       d.classList.toggle('active', i === activeIndex);
     });
   }
 
   // ── Video play management ──
   function activateScene(scene) {
-    var video = scene.querySelector('video');
+    const video = scene.querySelector('video');
     if (video) {
       video.currentTime = 0;
-      video.play().catch(function() {});
+      video.play().catch(() => {});
     }
 
     // Audio
-    var audioSrc = scene.dataset.audioSrc;
+    const audioSrc = scene.dataset.audioSrc;
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
       currentAudio = null;
     }
     if (audioSrc) {
-      var audio = new Audio(audioSrc);
+      const audio = new Audio(audioSrc);
       audio.volume = 0.18;
       audio.loop   = true;
-      audio.play().catch(function() {});
+      audio.play().catch(() => {});
       currentAudio = audio;
     }
   }
 
   function deactivateScene(scene) {
-    var video = scene.querySelector('video');
+    const video = scene.querySelector('video');
     if (video) video.pause();
   }
 
   // ── GSAP ScrollTrigger for each scene ──
   // Animate content in/out as each scene enters/leaves
-  scenes.forEach(function(scene, i) {
-    var content = scene.querySelectorAll('.scene-text, .experience-title, .landing-title, .landing-eyebrow, .landing-sub, .landing-actions, .experience-eyebrow, .experience-inner');
+  scenes.forEach((scene, i) => {
+    const content = scene.querySelectorAll('.scene-text, .experience-title, .landing-title, .landing-eyebrow, .landing-sub, .landing-actions, .experience-eyebrow, .experience-inner');
 
     // Entrance animation per scene
     ScrollTrigger.create({
       trigger: scene,
       start: 'top 60%',
       end: 'bottom 40%',
-      onEnter: function() { onSceneActive(i); },
-      onEnterBack: function() { onSceneActive(i); },
-      onLeave: function() { onSceneInactive(i); },
-      onLeaveBack: function() { onSceneInactive(i); }
+      onEnter: () => { onSceneActive(i); },
+      onEnterBack: () => { onSceneActive(i); },
+      onLeave: () => { onSceneInactive(i); },
+      onLeaveBack: () => { onSceneInactive(i); }
     });
 
     // Animate text elements on each scene
@@ -319,21 +320,23 @@ function initExperienceReel() {
   }
 
   // ── GSAP snap — the core scroll-snap behavior ──
-  ScrollTrigger.create({
-    snap: {
-      snapTo: 1 / (scenes.length - 1),
-      duration: { min: 0.3, max: 0.8 },
-      delay: 0.05,
-      ease: 'power2.inOut'
-    }
-  });
+  if (scenes.length > 1) {
+    ScrollTrigger.create({
+      snap: {
+        snapTo: 1 / (scenes.length - 1),
+        duration: { min: 0.3, max: 0.8 },
+        delay: 0.05,
+        ease: 'power2.inOut'
+      }
+    });
+  }
 
   // Initial activation
   activateScene(scenes[0]);
 
   // Preload experience videos: make them start loading immediately
-  scenes.forEach(function(scene) {
-    var video = scene.querySelector('video');
+  scenes.forEach((scene) => {
+    const video = scene.querySelector('video');
     if (video) {
       video.preload = 'auto';
       video.load();
@@ -341,7 +344,7 @@ function initExperienceReel() {
   });
 
   // ── Keyboard navigation ──
-  document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' || e.key === 'PageDown') {
       e.preventDefault();
       goToScene(activeIndex + 1);
