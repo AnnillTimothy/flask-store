@@ -229,10 +229,7 @@ function initExperienceReel() {
       const dot = document.createElement('button');
       dot.className = 'scene-dot';
       dot.ariaLabel = 'Go to scene ' + (i + 1);
-      dot.addEventListener('click', () => {
-        if (animating || i === activeIndex) return;
-        goToScene(i);
-      });
+      dot.addEventListener('click', () => goToScene(i));
       progressEl.appendChild(dot);
     });
     updateDots();
