@@ -194,16 +194,34 @@ function initExperienceReel() {
   if (!body.classList.contains('page-immersive')) return;
   if (typeof gsap === 'undefined') return;
 
-  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, Observer);
 
   const scenes      = gsap.utils.toArray('.scene');
   const progressEl  = document.getElementById('scene-progress');
-  const nav         = document.getElementById('main-nav');
   if (!scenes.length) return;
 
   let activeIndex      = 0;
+  let animating        = false;
   let emailPopupShown  = false;
   let currentAudio     = null;
+
+  // Lock the page — no native scrolling
+  body.style.overflow = 'hidden';
+  body.style.height   = '100vh';
+
+  // Position all scenes as stacked layers
+  scenes.forEach((scene, i) => {
+    gsap.set(scene, {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100vh',
+      zIndex: i === 0 ? 1 : 0,
+      opacity: i === 0 ? 1 : 0,
+      visibility: i === 0 ? 'visible' : 'hidden'
+    });
+  });
 
   // ── Build progress dots ──
   if (progressEl) {
@@ -211,21 +229,79 @@ function initExperienceReel() {
       const dot = document.createElement('button');
       dot.className = 'scene-dot';
       dot.ariaLabel = 'Go to scene ' + (i + 1);
-      dot.addEventListener('click', () => goToScene(i));
+      dot.addEventListener('click', () => {
+        if (animating || i === activeIndex) return;
+        goToScene(i);
+      });
       progressEl.appendChild(dot);
     });
     updateDots();
   }
 
-  // ── Go to a scene (via dot click or keyboard) ──
+  // ── Go to a specific scene ──
   function goToScene(index) {
-    if (index < 0) index = scenes.length - 1;
-    if (index >= scenes.length) index = 0;
-    gsap.to(window, {
-      scrollTo: { y: scenes[index], autoKill: false },
-      duration: 1,
-      ease: 'power2.inOut'
+    if (index < 0 || index >= scenes.length || index === activeIndex || animating) return;
+    animating = true;
+
+    const prevIndex = activeIndex;
+    activeIndex = index;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        animating = false;
+        deactivateScene(scenes[prevIndex]);
+        // Hide previous scene fully
+        gsap.set(scenes[prevIndex], { visibility: 'hidden', zIndex: 0 });
+      }
     });
+
+    // Bring new scene to front and animate in
+    gsap.set(scenes[index], { visibility: 'visible', zIndex: 1, opacity: 0 });
+    gsap.set(scenes[prevIndex], { zIndex: 0 });
+
+    tl.to(scenes[index], {
+      opacity: 1,
+      duration: 0.8,
+      ease: 'power2.inOut'
+    }, 0);
+
+    tl.to(scenes[prevIndex], {
+      opacity: 0,
+      duration: 0.6,
+      ease: 'power2.in'
+    }, 0);
+
+    // Animate text content of new scene
+    const content = scenes[index].querySelectorAll('.scene-text, .experience-title, .landing-title, .landing-eyebrow, .landing-sub, .landing-actions, .experience-eyebrow, .experience-inner');
+    if (content.length) {
+      tl.fromTo(content,
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, stagger: 0.08, ease: 'power3.out' },
+        0.3
+      );
+    }
+
+    activateScene(scenes[index]);
+    updateDots();
+
+    // Trigger email popup when reaching the second experience
+    if (index >= 2 && !emailPopupShown && typeof window._showEmailPopup === 'function') {
+      emailPopupShown = true;
+      window._showEmailPopup();
+    }
+  }
+
+  // ── Navigate next/prev ──
+  function nextScene() {
+    if (activeIndex < scenes.length - 1) {
+      goToScene(activeIndex + 1);
+    }
+  }
+
+  function prevScene() {
+    if (activeIndex > 0) {
+      goToScene(activeIndex - 1);
+    }
   }
 
   // ── Update progress dots ──
@@ -265,92 +341,36 @@ function initExperienceReel() {
     if (video) video.pause();
   }
 
-  // ── GSAP ScrollTrigger for each scene ──
-  // Animate content in/out as each scene enters/leaves
-  scenes.forEach((scene, i) => {
-    const content = scene.querySelectorAll('.scene-text, .experience-title, .landing-title, .landing-eyebrow, .landing-sub, .landing-actions, .experience-eyebrow, .experience-inner');
-
-    // Entrance animation per scene
-    ScrollTrigger.create({
-      trigger: scene,
-      start: 'top 60%',
-      end: 'bottom 40%',
-      onEnter: () => { onSceneActive(i); },
-      onEnterBack: () => { onSceneActive(i); },
-      onLeave: () => { onSceneInactive(i); },
-      onLeaveBack: () => { onSceneInactive(i); }
-    });
-
-    // Animate text elements on each scene
-    if (content.length) {
-      gsap.fromTo(content,
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          stagger: 0.12,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: scene,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse'
-          }
-        }
-      );
-    }
-  });
-
-  function onSceneActive(idx) {
-    if (idx === activeIndex) return;
-    deactivateScene(scenes[activeIndex]);
-    activeIndex = idx;
-    activateScene(scenes[activeIndex]);
-    updateDots();
-
-    // Trigger email popup when reaching the second experience
-    if (idx >= 2 && !emailPopupShown && typeof window._showEmailPopup === 'function') {
-      emailPopupShown = true;
-      window._showEmailPopup();
-    }
-  }
-
-  function onSceneInactive() {
-    // handled by onSceneActive of the next scene
-  }
-
-  // ── GSAP snap — the core scroll-snap behavior ──
-  if (scenes.length > 1) {
-    ScrollTrigger.create({
-      snap: {
-        snapTo: 1 / (scenes.length - 1),
-        duration: { min: 0.3, max: 0.8 },
-        delay: 0.05,
-        ease: 'power2.inOut'
-      }
-    });
-  }
-
-  // Initial activation
-  activateScene(scenes[0]);
-
-  // Preload experience videos: make them start loading immediately
-  scenes.forEach((scene) => {
-    const video = scene.querySelector('video');
-    if (video) {
-      video.preload = 'auto';
-      video.load();
-    }
+  // ── GSAP Observer — capture wheel, touch, keyboard ──
+  Observer.create({
+    type: 'wheel,touch,pointer',
+    wheelSpeed: -1,
+    onDown: () => prevScene(),
+    onUp: () => nextScene(),
+    tolerance: 50,
+    preventDefault: true,
   });
 
   // ── Keyboard navigation ──
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' || e.key === 'PageDown') {
       e.preventDefault();
-      goToScene(activeIndex + 1);
+      nextScene();
     } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
       e.preventDefault();
-      goToScene(activeIndex - 1);
+      prevScene();
+    }
+  });
+
+  // Initial activation
+  activateScene(scenes[0]);
+
+  // Preload experience videos
+  scenes.forEach((scene) => {
+    const video = scene.querySelector('video');
+    if (video) {
+      video.preload = 'auto';
+      video.load();
     }
   });
 }
