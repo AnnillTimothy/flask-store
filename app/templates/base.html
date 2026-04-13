@@ -19,7 +19,7 @@
 <body class="bodhi-dark {% block body_class %}{% endblock %}">
 
 <!-- ── Loading Screen (only on initial load, not every navigation) ── -->
-{% set show_loading = request.endpoint in ['main.index', 'main.bundles', 'main.bundle_detail', 'admin.index'] %}
+{% set show_loading = request.endpoint in ['main.index', 'main.experiences'] %}
 {% if show_loading %}
 <div class="loading-screen" id="loading-screen">
   <div class="loading-inner">
@@ -40,8 +40,8 @@
        href="{{ url_for('main.index') }}">Home</a>
     <a class="nav-pill-link {% if request.endpoint and 'products' in request.endpoint %}active{% endif %}"
        href="{{ url_for('main.products') }}">Products</a>
-    <a class="nav-pill-link {% if request.endpoint and 'bundle' in request.endpoint %}active{% endif %}"
-       href="{{ url_for('main.bundles') }}">Experiences</a>
+    <a class="nav-pill-link {% if request.endpoint and 'experience' in request.endpoint %}active{% endif %}"
+       href="{{ url_for('main.experiences') }}">Experiences</a>
     {% if current_user.is_authenticated and current_user.is_admin %}
     <a class="nav-pill-link {% if request.endpoint and 'admin' in request.endpoint %}active{% endif %}"
        href="{{ url_for('admin.index') }}">Admin</a>
@@ -85,7 +85,7 @@
 <div class="mobile-menu" id="mobile-menu">
   <a class="mobile-menu-link" href="{{ url_for('main.index') }}">Home</a>
   <a class="mobile-menu-link" href="{{ url_for('main.products') }}">Products</a>
-  <a class="mobile-menu-link" href="{{ url_for('main.bundles') }}">Experiences</a>
+  <a class="mobile-menu-link" href="{{ url_for('main.experiences') }}">Experiences</a>
   <a class="mobile-menu-link" href="{{ url_for('cart.view_cart') }}">Cart</a>
   {% if current_user.is_authenticated %}
   <a class="mobile-menu-link" href="{{ url_for('auth.logout') }}">Logout</a>
@@ -132,7 +132,7 @@
         <p class="footer-heading">Explore</p>
         <ul class="list-unstyled small mb-0">
           <li class="mb-1"><a href="{{ url_for('main.products') }}" class="text-muted text-decoration-none footer-link">Products</a></li>
-          <li class="mb-1"><a href="{{ url_for('main.bundles') }}" class="text-muted text-decoration-none footer-link">Experiences</a></li>
+          <li class="mb-1"><a href="{{ url_for('main.experiences') }}" class="text-muted text-decoration-none footer-link">Experiences</a></li>
           <li><a href="{{ url_for('cart.view_cart') }}" class="text-muted text-decoration-none footer-link">Cart</a></li>
         </ul>
       </div>

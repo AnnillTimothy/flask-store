@@ -35,6 +35,7 @@ def create_order_from_cart(cart, customer_name, customer_email,
             order_id=order.id,
             product_id=cart_item.product_id,
             bundle_id=cart_item.bundle_id,
+            experience_id=cart_item.experience_id,
             quantity=cart_item.quantity,
             price_at_purchase=cart_item.unit_price,
             item_type=cart_item.item_type,
@@ -50,6 +51,13 @@ def create_order_from_cart(cart, customer_name, customer_email,
                 if bundle_item.product:
                     deduct = bundle_item.quantity * cart_item.quantity
                     bundle_item.product.stock = max(0, bundle_item.product.stock - deduct)
+        elif cart_item.item_type == 'experience' and cart_item.experience:
+            # Reduce stock for each product in the experience's bundle
+            if cart_item.experience.bundle:
+                for bundle_item in cart_item.experience.bundle.items:
+                    if bundle_item.product:
+                        deduct = bundle_item.quantity * cart_item.quantity
+                        bundle_item.product.stock = max(0, bundle_item.product.stock - deduct)
 
     cart_service.clear_cart(cart)
     db.session.commit()

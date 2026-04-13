@@ -5,6 +5,7 @@ from app.extensions import db
 from app.models.cart import Cart, CartItem
 from app.models.product import Product
 from app.models.bundle import Bundle
+from app.models.experience import Experience
 
 
 def _get_session_id():
@@ -71,6 +72,24 @@ def add_bundle(bundle_id, quantity=1):
         db.session.add(item)
     db.session.commit()
     return True, 'Bundle added to cart.'
+
+
+def add_experience(experience_id, quantity=1):
+    experience = Experience.query.get(experience_id)
+    if not experience:
+        return False, 'Experience not found.'
+
+    cart = get_or_create_cart()
+    item = CartItem.query.filter_by(cart_id=cart.id, experience_id=experience_id,
+                                    item_type='experience').first()
+    if item:
+        item.quantity += quantity
+    else:
+        item = CartItem(cart_id=cart.id, experience_id=experience_id,
+                        item_type='experience', quantity=quantity)
+        db.session.add(item)
+    db.session.commit()
+    return True, 'Experience added to cart.'
 
 
 def update_item(item_id, quantity):

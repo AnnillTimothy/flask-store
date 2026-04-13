@@ -2,6 +2,7 @@
 WTForms form classes for the Flask Store application.
 """
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import (
     StringField, TextAreaField, DecimalField, IntegerField,
     SelectField, SubmitField, PasswordField, BooleanField, URLField,
@@ -55,10 +56,17 @@ class ProductForm(FlaskForm):
     type = StringField('Type', validators=[Optional(), Length(max=100)])
     quantity = StringField('Quantity / Size', validators=[Optional(), Length(max=100)])
     flavor = StringField('Flavor', validators=[Optional(), Length(max=100)])
+    brand = StringField('Brand', validators=[Optional(), Length(max=200)])
+    ingredients = TextAreaField('Ingredients', validators=[Optional()])
+    size = StringField('Size', validators=[Optional(), Length(max=100)])
+    strength = StringField('Strength', validators=[Optional(), Length(max=100)])
     price = DecimalField('Price (R)', validators=[DataRequired(), NumberRange(min=0)],
                          places=2)
     description = TextAreaField('Description', validators=[Optional()])
-    image_url = StringField('Image URL', validators=[Optional(), Length(max=500)])
+    image_file = FileField('Image Upload', validators=[
+        FileAllowed(['png', 'jpg', 'jpeg', 'gif', 'webp'], 'Images only!')
+    ])
+    image_url = StringField('Image URL (fallback)', validators=[Optional(), Length(max=500)])
     stock = IntegerField('Stock', validators=[DataRequired(), NumberRange(min=0)],
                          default=50)
     category_id = SelectField('Category', coerce=int, validators=[Optional()])
@@ -110,6 +118,34 @@ class BundleForm(FlaskForm):
                          places=2)
     image_url = StringField('Image URL', validators=[Optional(), Length(max=500)])
     submit = SubmitField('Save Bundle')
+
+
+# ---------------------------------------------------------------------------
+# Experience form
+# ---------------------------------------------------------------------------
+
+class ExperienceForm(FlaskForm):
+    name = StringField('Experience Name', validators=[DataRequired(), Length(max=200)])
+    slug = StringField('Slug', validators=[DataRequired(), Length(max=200)])
+    tagline = StringField('Tagline', validators=[Optional(), Length(max=255)])
+    description = TextAreaField('Description', validators=[Optional()])
+    price = DecimalField('Price (R)', validators=[DataRequired(), NumberRange(min=0)],
+                         places=2)
+    video_file = FileField('Video Upload', validators=[
+        FileAllowed(['mp4', 'webm', 'mov'], 'Video files only!')
+    ])
+    image_file = FileField('Image Upload', validators=[
+        FileAllowed(['png', 'jpg', 'jpeg', 'gif', 'webp'], 'Images only!')
+    ])
+    bundle_id = SelectField('Bundle', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Save Experience')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from app.models.bundle import Bundle
+        self.bundle_id.choices = [
+            (b.id, b.name) for b in Bundle.query.order_by(Bundle.name).all()
+        ]
 
 
 # ---------------------------------------------------------------------------

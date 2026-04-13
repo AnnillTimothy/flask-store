@@ -44,6 +44,23 @@
 
         <p style="color:var(--text-dim);line-height:1.85;max-width:520px;margin-bottom:1.5rem;">{{ product.description }}</p>
 
+        {% if product.brand or product.size or product.strength or product.ingredients %}
+        <div class="mb-3" style="font-size:0.85rem;color:var(--text-dim);">
+          {% if product.brand %}
+          <p class="mb-1"><strong style="color:var(--text-ghost);">Brand:</strong> {{ product.brand }}</p>
+          {% endif %}
+          {% if product.size %}
+          <p class="mb-1"><strong style="color:var(--text-ghost);">Size:</strong> {{ product.size }}</p>
+          {% endif %}
+          {% if product.strength %}
+          <p class="mb-1"><strong style="color:var(--text-ghost);">Strength:</strong> {{ product.strength }}</p>
+          {% endif %}
+          {% if product.ingredients %}
+          <p class="mb-1"><strong style="color:var(--text-ghost);">Ingredients:</strong> {{ product.ingredients }}</p>
+          {% endif %}
+        </div>
+        {% endif %}
+
         <div class="mb-4">
           {% if product.stock > 10 %}
             <span class="experience-tag" style="color:#4ade80;border-color:rgba(74,222,128,0.3);font-size:0.62rem;padding:0.25rem 0.8rem;">

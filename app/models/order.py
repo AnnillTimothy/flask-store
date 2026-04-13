@@ -38,13 +38,15 @@ class OrderItem(db.Model):
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     bundle_id = db.Column(db.Integer, db.ForeignKey('bundles.id'), nullable=True)
+    experience_id = db.Column(db.Integer, db.ForeignKey('experiences.id'), nullable=True)
     quantity = db.Column(db.Integer, nullable=False)
     price_at_purchase = db.Column(db.Numeric(10, 2), nullable=False)
-    item_type = db.Column(db.String(20), nullable=False)  # 'product' or 'bundle'
+    item_type = db.Column(db.String(20), nullable=False)  # 'product', 'bundle', or 'experience'
 
     order = db.relationship('Order', back_populates='items')
     product = db.relationship('Product', back_populates='order_items')
     bundle = db.relationship('Bundle', back_populates='order_items')
+    experience = db.relationship('Experience', back_populates='order_items')
 
     @property
     def item_name(self):
@@ -53,6 +55,8 @@ class OrderItem(db.Model):
             return self.product.name
         if self.item_type == 'bundle' and self.bundle:
             return self.bundle.name
+        if self.item_type == 'experience' and self.experience:
+            return self.experience.name
         return 'Unknown Item'
 
     @property

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}{{ experience.name }} — {{ store_name }}{% endblock %}
+
+{% block content %}
+<!-- ============================================================
+     EXPERIENCE HERO — full-screen, video bg
+     ============================================================ -->
+<section class="bundle-hero">
+  <div class="bundle-hero-bg">
+    {% if experience.display_video %}
+    <video autoplay muted loop playsinline preload="none"
+           {% if experience.display_image %}poster="{{ experience.display_image }}"{% endif %}
+           style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
+      <source src="{{ experience.display_video }}" type="video/mp4">
+    </video>
+    {% endif %}
+    {% if experience.display_image %}
+    <img src="{{ experience.display_image }}"
+         alt="{{ experience.name }}"
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;">
+    {% else %}
+    <img src="https://placehold.co/1920x1080?text={{ experience.name }}" alt="{{ experience.name }}"
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;">
+    {% endif %}
+  </div>
+  <div class="bundle-hero-overlay"></div>
+
+  <div class="bundle-hero-content container">
+    <span class="experience-tag">{{ experience.name }} Experience</span>
+
+    <h1 class="bundle-hero-title">{{ experience.name }}</h1>
+    <p class="bundle-hero-desc">{{ experience.description }}</p>
+
+    {% if experience.bundle %}
+    {% set orig = experience.bundle.total_price %}
+    {% if orig > experience.price %}
+    <div class="bundle-savings">
+      <span class="text-decoration-line-through" style="color:var(--text-ghost);">R{{ '%.2f'|format(orig) }}</span>
+      <span class="badge ms-2">Save R{{ '%.2f'|format(orig - experience.price) }}</span>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <div class="bundle-hero-price">R{{ '%.2f'|format(experience.price) }}</div>
+
+    <form action="{{ url_for('cart.add_to_cart') }}" method="post"
+          class="d-flex align-items-center gap-3 flex-wrap">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="experience_id" value="{{ experience.id }}">
+      <input type="hidden" name="item_type" value="experience">
+      <div>
+        <input type="number" name="quantity" value="1" min="1" max="10"
+               class="form-control form-control-sm"
+               style="width:80px;background:rgba(255,255,255,0.07);color:var(--text);border-color:var(--glass-border);">
+      </div>
+      <button type="submit" class="btn-cinematic">
+        <i class="bi bi-bag-plus"></i>&nbsp;Add to Cart
+      </button>
+      <a href="{{ url_for('main.experiences') }}" class="btn-cinematic-ghost">
+        <i class="bi bi-arrow-left"></i>&nbsp;All Experiences
+      </a>
+    </form>
+  </div>
+</section>
+
+<!-- ============================================================
+     WHAT'S INSIDE — scroll through products in the bundle
+     ============================================================ -->
+{% if experience.bundle %}
+<section class="bundle-products-section">
+  <div class="container">
+    <h2 class="section-title text-center mb-5">What's Inside</h2>
+
+    {% for item in experience.bundle.items %}
+    {% if item.product %}
+    <div class="bundle-product-row{% if loop.index is even %} reverse{% endif %}">
+      <div class="bundle-product-image">
+        <img src="{{ item.product.display_image }}" alt="{{ item.product.name }}">
+      </div>
+      <div class="bundle-product-info">
+        <div class="bundle-product-slug">{{ item.product.slug }}</div>
+        <h3 class="bundle-product-name">
+          <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}"
+             class="text-decoration-none" style="color:inherit;">
+            {{ item.product.name }}
+          </a>
+          {% if item.quantity > 1 %}
+          <span style="font-size:0.6em;color:var(--text-ghost);">&nbsp;×{{ item.quantity }}</span>
+          {% endif %}
+        </h3>
+        <p class="bundle-product-desc">{{ item.product.description or '' }}</p>
+        {% if item.product.brand %}
+        <p class="mb-1" style="font-size:0.78rem;color:var(--text-ghost);">Brand: {{ item.product.brand }}</p>
+        {% endif %}
+        {% if item.product.size %}
+        <p class="mb-1" style="font-size:0.78rem;color:var(--text-ghost);">Size: {{ item.product.size }}</p>
+        {% endif %}
+        {% if item.product.strength %}
+        <p class="mb-1" style="font-size:0.78rem;color:var(--text-ghost);">Strength: {{ item.product.strength }}</p>
+        {% endif %}
+        <div class="bundle-product-price">R{{ '%.2f'|format(item.product.price * item.quantity) }}</div>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ============================================================
+     OTHER EXPERIENCES
+     ============================================================ -->
+{% if other_experiences %}
+<section class="related-section">
+  <div class="container">
+    <h2 class="related-title">Other Experiences</h2>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+      {% for oe in other_experiences %}
+      <div class="col">
+        <a href="{{ url_for('main.experience_detail', slug=oe.slug) }}" class="text-decoration-none">
+          <div class="related-card">
+            <img src="{{ oe.display_image }}" alt="{{ oe.name }}">
+            <div class="related-card-overlay">
+              <div class="related-card-title">{{ oe.name }}</div>
+              <div class="related-card-price">R{{ '%.2f'|format(oe.price) }}</div>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -20,7 +20,7 @@
     <h1 class="landing-title">{{ store_name }}</h1>
     <p class="landing-sub">Curated journeys<br>for the senses.</p>
     <div class="landing-actions">
-      <a href="{{ url_for('main.bundles') }}" class="btn-cinematic">
+      <a href="{{ url_for('main.experiences') }}" class="btn-cinematic">
         Explore All Experiences&nbsp;<i class="bi bi-arrow-right"></i>
       </a>
       <a href="{{ url_for('main.products') }}" class="btn-cinematic-ghost">
@@ -38,54 +38,55 @@
 
 
 <!-- ============================================================
-     EXPERIENCE SCENES — one per experience type
+     EXPERIENCE SCENES — one per experience
      ============================================================ -->
 {% for exp in experiences %}
 <section class="scene scene-experience"
-         id="scene-{{ exp.key }}"
-         data-experience="{{ exp.key }}"
-         data-audio-src="{{ url_for('static', filename='audio/' ~ exp.key ~ '.mp3') }}">
+         id="scene-{{ exp.slug }}"
+         data-experience="{{ exp.slug }}"
+         {% if exp.display_video %}data-video-src="{{ exp.display_video }}"{% endif %}>
 
   <!-- Video background (falls back to CSS gradient) -->
   <div class="scene-video">
+    {% if exp.display_video %}
     <video autoplay muted loop playsinline preload="auto"
-           poster="{{ url_for('static', filename='images/experiences/' ~ exp.key ~ '.png') }}">
-      <source src="{{ url_for('static', filename='videos/experiences/' ~ exp.key ~ '.mp4') }}" type="video/mp4">
+           {% if exp.display_image %}poster="{{ exp.display_image }}"{% endif %}>
+      <source src="{{ exp.display_video }}" type="video/mp4">
     </video>
+    {% elif exp.display_image %}
+    <img src="{{ exp.display_image }}" alt="{{ exp.name }}"
+         style="width:100%;height:100%;object-fit:cover;">
+    {% endif %}
     <div class="scene-overlay"></div>
   </div>
 
   <!-- Content -->
   <div class="scene-content">
     <div class="experience-inner">
-      <span class="experience-eyebrow">{{ '%02d'|format(loop.index) }} / {{ '%02d'|format(experiences|length) }}&ensp;—&ensp;{{ exp.key|replace('_',' ')|upper }}</span>
-      <h2 class="experience-title scene-text">{{ exp.label }}</h2>
+      <span class="experience-eyebrow">{{ '%02d'|format(loop.index) }} / {{ '%02d'|format(experiences|length) }}&ensp;—&ensp;{{ exp.name|upper }}</span>
+      <h2 class="experience-title scene-text">{{ exp.name }}</h2>
 
-      {% if exp.bundle %}
       <p class="experience-desc scene-text">
-        {{ exp.bundle.tagline or (exp.bundle.description[:120] ~ '…' if exp.bundle.description and exp.bundle.description|length > 120 else (exp.bundle.description or 'Discover this curated experience.')) }}
+        {{ exp.tagline or (exp.description[:120] ~ '…' if exp.description and exp.description|length > 120 else (exp.description or 'Discover this curated experience.')) }}
       </p>
       <div class="experience-price-wrap scene-text">
         <span class="experience-currency">R</span>
-        <span class="experience-price">{{ '%.2f'|format(exp.bundle.price) }}</span>
+        <span class="experience-price">{{ '%.2f'|format(exp.price) }}</span>
       </div>
       <div class="experience-cta scene-text">
-        <a href="{{ url_for('main.bundle_detail', slug=exp.bundle.slug) }}" class="btn-cinematic">
+        <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}" class="btn-cinematic">
           Explore&nbsp;<i class="bi bi-arrow-right"></i>
         </a>
         <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="d-inline">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="bundle_id" value="{{ exp.bundle.id }}">
-          <input type="hidden" name="item_type" value="bundle">
+          <input type="hidden" name="experience_id" value="{{ exp.id }}">
+          <input type="hidden" name="item_type" value="experience">
           <input type="hidden" name="quantity" value="1">
           <button type="submit" class="btn-cinematic-ghost">
             <i class="bi bi-bag-plus"></i>&nbsp;Add to Cart
           </button>
         </form>
       </div>
-      {% else %}
-      <p class="experience-desc scene-text" style="color:var(--text-ghost);">Coming soon.</p>
-      {% endif %}
     </div>
   </div>
 
