@@ -25,6 +25,9 @@ def add_to_cart():
     if item_type == 'bundle':
         bundle_id = request.form.get('bundle_id', type=int)
         ok, msg = cart_service.add_bundle(bundle_id, quantity)
+    elif item_type == 'experience':
+        experience_id = request.form.get('experience_id', type=int)
+        ok, msg = cart_service.add_experience(experience_id, quantity)
     else:
         product_id = request.form.get('product_id', type=int)
         ok, msg = cart_service.add_product(product_id, quantity)

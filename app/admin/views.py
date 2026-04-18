@@ -4,18 +4,22 @@ from flask import redirect, url_for, request, flash, current_app
 from flask_admin import AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.model.form import InlineFormAdmin
+from flask_admin.form.upload import FileUploadField
 from flask_login import current_user
 from wtforms import SelectField
+from markupsafe import Markup
 from app.extensions import db, admin
 from app.models.user import User
 from app.models.supplier import Supplier
 from app.models.category import Category
 from app.models.product import Product
 from app.models.bundle import Bundle, BundleItem
+from app.models.experience import Experience
 from app.models.order import Order, OrderItem
 from app.models.shipping import ShippingRecord
 from app.models.expense import Expense
 from app.services.order_service import calculate_supplier_payouts, get_revenue_summary
+from app.services.upload_service import delete_uploaded_file
 
 
 # ---------------------------------------------------------------------------
@@ -100,12 +104,35 @@ class CategoryAdmin(SecureModelView):
 # ---------------------------------------------------------------------------
 
 class ProductAdmin(SecureModelView):
-    column_list = ('id', 'name', 'slug', 'type', 'quantity', 'flavor', 'price',
-                   'stock', 'category', 'supplier')
-    column_searchable_list = ('name', 'slug', 'type', 'flavor')
-    column_filters = ('category_id', 'supplier_id')
+    column_list = ('id', 'name', 'slug', 'brand', 'type', 'size', 'strength',
+                   'quantity', 'flavor', 'price', 'stock', 'category', 'supplier')
+    column_searchable_list = ('name', 'slug', 'type', 'flavor', 'brand')
+    column_filters = ('category_id', 'supplier_id', 'brand')
     form_excluded_columns = ('bundle_items', 'cart_items', 'order_items',
                              'created_at', 'updated_at')
+
+    form_extra_fields = {
+        'image_upload': FileUploadField(
+            'Image Upload',
+            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'products'),
+            allowed_extensions=['png', 'jpg', 'jpeg', 'gif', 'webp'],
+        ),
+    }
+
+    def on_model_delete(self, model):
+        """Delete uploaded image when product is deleted."""
+        delete_uploaded_file(model.image_filename, 'products')
+
+    def on_model_change(self, form, model, is_created):
+        """Handle image upload on create/edit."""
+        if hasattr(form, 'image_upload') and form.image_upload.data:
+            from app.services.upload_service import save_uploaded_file
+            # Delete old file if replacing
+            if model.image_filename:
+                delete_uploaded_file(model.image_filename, 'products')
+            filename = save_uploaded_file(form.image_upload.data, 'products')
+            if filename:
+                model.image_filename = filename
 
 
 # ---------------------------------------------------------------------------
@@ -118,13 +145,9 @@ class BundleItemInline(InlineFormAdmin):
 
 
 class BundleAdmin(SecureModelView):
-    column_list = ('id', 'name', 'slug', 'experience_type', 'tagline', 'price', 'created_at')
+    column_list = ('id', 'name', 'slug', 'tagline', 'price', 'created_at')
     column_searchable_list = ('name', 'slug')
-    column_filters = ('experience_type',)
-    form_excluded_columns = ('cart_items', 'order_items', 'created_at')
-    form_choices = {
-        'experience_type': [('', '— None —')] + Bundle.EXPERIENCE_TYPES,
-    }
+    form_excluded_columns = ('cart_items', 'order_items', 'created_at', 'experience')
     inline_models = (BundleItemInline(BundleItem),)
 
 
@@ -132,6 +155,51 @@ class BundleItemAdmin(SecureModelView):
     column_list = ('id', 'bundle', 'product', 'quantity')
     column_searchable_list = []
     form_columns = ('bundle', 'product', 'quantity')
+
+
+# ---------------------------------------------------------------------------
+# Experience Admin (with file upload for video and image)
+# ---------------------------------------------------------------------------
+
+class ExperienceAdmin(SecureModelView):
+    column_list = ('id', 'name', 'slug', 'tagline', 'price', 'bundle', 'created_at')
+    column_searchable_list = ('name', 'slug')
+    form_excluded_columns = ('cart_items', 'order_items', 'created_at')
+
+    form_extra_fields = {
+        'video_upload': FileUploadField(
+            'Video Upload',
+            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'experiences'),
+            allowed_extensions=['mp4', 'webm', 'mov'],
+        ),
+        'image_upload': FileUploadField(
+            'Image Upload',
+            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'experiences'),
+            allowed_extensions=['png', 'jpg', 'jpeg', 'gif', 'webp'],
+        ),
+    }
+
+    def on_model_delete(self, model):
+        """Delete uploaded files when experience is deleted."""
+        delete_uploaded_file(model.video_filename, 'experiences')
+        delete_uploaded_file(model.image_filename, 'experiences')
+
+    def on_model_change(self, form, model, is_created):
+        """Handle file uploads on create/edit."""
+        from app.services.upload_service import save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS
+        if hasattr(form, 'video_upload') and form.video_upload.data:
+            if model.video_filename:
+                delete_uploaded_file(model.video_filename, 'experiences')
+            filename = save_uploaded_file(form.video_upload.data, 'experiences',
+                                         ALLOWED_VIDEO_EXTENSIONS)
+            if filename:
+                model.video_filename = filename
+        if hasattr(form, 'image_upload') and form.image_upload.data:
+            if model.image_filename:
+                delete_uploaded_file(model.image_filename, 'experiences')
+            filename = save_uploaded_file(form.image_upload.data, 'experiences')
+            if filename:
+                model.image_filename = filename
 
 
 # ---------------------------------------------------------------------------
@@ -252,6 +320,8 @@ def setup_admin(app):
     admin.add_view(ProductAdmin(Product, db.session, name='Products', category='Catalogue'))
     admin.add_view(BundleAdmin(Bundle, db.session, name='Bundles', category='Catalogue'))
     admin.add_view(BundleItemAdmin(BundleItem, db.session, name='Bundle Items',
+                                   category='Catalogue'))
+    admin.add_view(ExperienceAdmin(Experience, db.session, name='Experiences',
                                    category='Catalogue'))
     admin.add_view(OrderAdmin(Order, db.session, name='Orders', category='Sales'))
     admin.add_view(ShippingAdmin(ShippingRecord, db.session, name='Shipping',

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Experiences — {{ store_name }}{% endblock %}
+
+{% block content %}
+<section class="section-featured page-padded">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title">Experiences</h2>
+      <p class="text-muted">Curated bundles for every journey.</p>
+    </div>
+
+    {% if experiences %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+      {% for exp in experiences %}
+      <div class="col product-reveal">
+        <div class="glass-card h-100">
+          <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}">
+            <img src="{{ exp.display_image }}" class="glass-card-img" alt="{{ exp.name }}">
+          </a>
+          <div class="glass-card-body">
+            <h5 class="glass-card-title">
+              <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}"
+                 class="text-decoration-none" style="color:inherit;">{{ exp.name }}</a>
+            </h5>
+            <p class="glass-card-text">
+              {{ exp.tagline or (exp.description[:80] ~ '…' if exp.description and exp.description|length > 80 else exp.description) }}
+            </p>
+
+            {% if exp.bundle %}
+            {% set orig = exp.bundle.total_price %}
+            {% if orig > exp.price %}
+            <p class="mb-1" style="font-size:0.8rem;">
+              <span class="text-muted text-decoration-line-through">R{{ '%.2f'|format(orig) }}</span>
+              <span class="badge ms-1" style="background:linear-gradient(135deg,#ef4444,#f97316);font-size:0.7rem;">
+                Save R{{ '%.2f'|format(orig - exp.price) }}
+              </span>
+            </p>
+            {% endif %}
+            {% endif %}
+
+            <div class="d-flex justify-content-between align-items-center mt-auto">
+              <span class="glass-price">R{{ '%.2f'|format(exp.price) }}</span>
+              <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}" class="btn-bodhi-sm">
+                Explore
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <p class="text-muted">No experiences available yet.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

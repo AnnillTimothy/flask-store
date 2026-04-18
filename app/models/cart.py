@@ -31,12 +31,14 @@ class CartItem(db.Model):
     cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     bundle_id = db.Column(db.Integer, db.ForeignKey('bundles.id'), nullable=True)
+    experience_id = db.Column(db.Integer, db.ForeignKey('experiences.id'), nullable=True)
     quantity = db.Column(db.Integer, default=1, nullable=False)
-    item_type = db.Column(db.String(20), nullable=False)  # 'product' or 'bundle'
+    item_type = db.Column(db.String(20), nullable=False)  # 'product', 'bundle', or 'experience'
 
     cart = db.relationship('Cart', back_populates='items')
     product = db.relationship('Product', back_populates='cart_items')
     bundle = db.relationship('Bundle', back_populates='cart_items')
+    experience = db.relationship('Experience', back_populates='cart_items')
 
     @property
     def unit_price(self):
@@ -44,6 +46,8 @@ class CartItem(db.Model):
             return float(self.product.price)
         if self.item_type == 'bundle' and self.bundle:
             return float(self.bundle.price)
+        if self.item_type == 'experience' and self.experience:
+            return float(self.experience.price)
         return 0.0
 
     @property
@@ -56,14 +60,18 @@ class CartItem(db.Model):
             return self.product.name
         if self.item_type == 'bundle' and self.bundle:
             return self.bundle.name
+        if self.item_type == 'experience' and self.experience:
+            return self.experience.name
         return 'Unknown Item'
 
     @property
     def image_url(self):
         if self.item_type == 'product' and self.product:
-            return self.product.image_url or 'https://placehold.co/400x300?text=Product'
+            return self.product.display_image
         if self.item_type == 'bundle' and self.bundle:
-            return self.bundle.image_url or 'https://placehold.co/400x300?text=Bundle'
+            return self.bundle.display_image
+        if self.item_type == 'experience' and self.experience:
+            return self.experience.display_image
         return 'https://placehold.co/400x300?text=Item'
 
     def __repr__(self):

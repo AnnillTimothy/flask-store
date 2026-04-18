@@ -20,3 +20,9 @@ ENV/
 *.swo
 app/static/uploads/*
 !app/static/uploads/.gitkeep
+!app/static/uploads/products/
+!app/static/uploads/experiences/
+app/static/uploads/products/*
+!app/static/uploads/products/.gitkeep
+app/static/uploads/experiences/*
+!app/static/uploads/experiences/.gitkeep

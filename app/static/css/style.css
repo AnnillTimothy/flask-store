@@ -45,9 +45,10 @@ body.bodhi-dark {
   overflow-x: hidden;
 }
 
-/* Immersive homepage — GSAP handles snap via ScrollTrigger */
+/* Immersive homepage — JS locks scroll, scenes are fixed layers */
 body.page-immersive {
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100vh;
 }
 
 /* On immersive pages hide the brand text; only keep glass pill nav + actions */
@@ -75,12 +76,13 @@ body.page-immersive .bodhi-brand {
   transition: background 0.45s ease, border-color 0.45s ease;
 }
 
+/* Nav never gets a full-width dark bar — links float */
 body:not(.page-immersive) .bodhi-nav,
 .bodhi-nav.nav-opaque {
-  background: rgba(4, 4, 4, 0.85) !important;
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  border-bottom-color: var(--glass-border) !important;
+  background: transparent !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom-color: transparent !important;
 }
 
 /* Brand */
@@ -99,12 +101,12 @@ body:not(.page-immersive) .bodhi-nav,
 .nav-pill-group {
   display: flex;
   gap: 0.2rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(4, 4, 4, 0.55);
   border: 1px solid var(--glass-border);
   border-radius: 50px;
   padding: 0.3rem;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .nav-pill-link {
@@ -133,6 +135,12 @@ body:not(.page-immersive) .bodhi-nav,
   align-items: center;
   gap: 1.2rem;
   flex-shrink: 0;
+  background: rgba(4, 4, 4, 0.55);
+  border: 1px solid var(--glass-border);
+  border-radius: 50px;
+  padding: 0.3rem 0.9rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .nav-cart-btn {
@@ -259,13 +267,7 @@ body:not(.page-immersive) .bodhi-nav,
 
 /* Per-experience fallback gradients */
 #scene-landing      .scene-video::before { background: radial-gradient(ellipse at 40% 60%, #0a1020 0%, #040404 75%); }
-#scene-beach_bliss  .scene-video::before { background: linear-gradient(160deg, #091e30 0%, #030c14 100%); }
-#scene-cozy_night   .scene-video::before { background: linear-gradient(160deg, #12081c 0%, #060408 100%); }
-#scene-nature_journey .scene-video::before { background: linear-gradient(160deg, #061410 0%, #030a06 100%); }
-#scene-euphoric_dream .scene-video::before { background: linear-gradient(160deg, #1a0828 0%, #080412 100%); }
-#scene-romantic_escape .scene-video::before { background: linear-gradient(160deg, #200810 0%, #0c0406 100%); }
-#scene-deep_journey .scene-video::before { background: linear-gradient(160deg, #041020 0%, #04060c 100%); }
-#scene-creative_flow .scene-video::before { background: linear-gradient(160deg, #1a1008 0%, #0c0804 100%); }
+.scene-experience   .scene-video::before { background: radial-gradient(ellipse at 50% 60%, #0d0d1a 0%, #040404 80%); }
 
 /* Overlay vignette on top of video */
 .scene-overlay {

@@ -13,9 +13,14 @@ class Product(db.Model):
     type = db.Column(db.String(100), nullable=True)
     quantity = db.Column(db.String(100), nullable=True)   # e.g. "500g", "1kg", "6-pack"
     flavor = db.Column(db.String(100), nullable=True)
+    brand = db.Column(db.String(200), nullable=True)
+    ingredients = db.Column(db.Text, nullable=True)
+    size = db.Column(db.String(100), nullable=True)
+    strength = db.Column(db.String(100), nullable=True)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     description = db.Column(db.Text, nullable=True)
     image_url = db.Column(db.String(500), nullable=True)
+    image_filename = db.Column(db.String(500), nullable=True)
     stock = db.Column(db.Integer, default=50, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
@@ -29,6 +34,8 @@ class Product(db.Model):
 
     @property
     def display_image(self):
+        if self.image_filename:
+            return f'/static/uploads/products/{self.image_filename}'
         return self.image_url or 'https://placehold.co/400x300?text=No+Image'
 
     def __repr__(self):
