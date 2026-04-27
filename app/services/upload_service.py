@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'mov'}
+ALLOWED_AUDIO_EXTENSIONS = {'mp3', 'ogg', 'wav', 'm4a'}
 
 
 def _allowed_file(filename, allowed_extensions):

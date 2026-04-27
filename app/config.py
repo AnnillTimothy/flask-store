@@ -18,3 +18,12 @@ class Config:
     PAYFAST_SANDBOX = os.environ.get('PAYFAST_SANDBOX', 'True') == 'True'
 
     SHIPPING_COST = 150.0
+
+    # Flask-Mail settings
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', '')
+    MAIL_ADMIN = os.environ.get('MAIL_ADMIN', '')

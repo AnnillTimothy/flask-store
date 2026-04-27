@@ -12,6 +12,7 @@ class Experience(db.Model):
     tagline = db.Column(db.String(255), nullable=True)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     video_filename = db.Column(db.String(500), nullable=True)
+    audio_filename = db.Column(db.String(500), nullable=True)
     image_filename = db.Column(db.String(500), nullable=True)
     bundle_id = db.Column(db.Integer, db.ForeignKey('bundles.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -30,6 +31,12 @@ class Experience(db.Model):
     def display_video(self):
         if self.video_filename:
             return f'/static/uploads/experiences/{self.video_filename}'
+        return None
+
+    @property
+    def display_audio(self):
+        if self.audio_filename:
+            return f'/static/uploads/experiences/{self.audio_filename}'
         return None
 
     def __repr__(self):

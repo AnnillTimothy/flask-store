@@ -1,26 +1,30 @@
 {% extends 'admin/master.html' %}
 
-{% block body %}
-<div class="container-fluid mt-4">
-  <h2 style="font-family:var(--serif);font-weight:400;">Shipping Report</h2>
+{% block page_body %}
+<div class="adm-page">
+  <div class="adm-page-header">
+    <h2>Shipping Report</h2>
+  </div>
 
-  <form method="get" class="row g-2 mb-4">
-    <div class="col-auto">
-      <label class="form-label">Status</label>
-      <select name="status" class="form-select">
-        <option value="">All Statuses</option>
-        {% for s in statuses %}
-        <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>
-          {{ s.replace('_', ' ')|capitalize }}
-        </option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-auto align-self-end">
-      <button type="submit" class="btn btn-primary">Filter</button>
-      <a href="?" class="btn btn-secondary">Reset</a>
-    </div>
-  </form>
+  <div class="adm-filter-form">
+    <form method="get" style="display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap;">
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-control" style="min-width:160px;">
+          <option value="">All Statuses</option>
+          {% for s in statuses %}
+          <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>
+            {{ s.replace('_', ' ')|capitalize }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="?" class="btn btn-secondary" style="margin-left:0.5rem;">Reset</a>
+      </div>
+    </form>
+  </div>
 
   {% if records %}
   <table class="table table-striped table-bordered">
@@ -43,10 +47,10 @@
         <td>{{ sr.carrier or '–' }}</td>
         <td>{{ sr.tracking_number or '–' }}</td>
         <td>
-          <span class="experience-tag" style="font-size:0.58rem;padding:0.15rem 0.5rem;
-            {% if sr.status == 'delivered' %}color:#86efac;border-color:rgba(34,197,94,0.3);
-            {% elif sr.status == 'in_transit' %}color:#67e8f9;border-color:rgba(6,182,212,0.3);
-            {% elif sr.status == 'shipped' %}color:var(--sand);border-color:var(--sand-dim);
+          <span style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;
+            {% if sr.status == 'delivered' %}color:#86efac;
+            {% elif sr.status == 'in_transit' %}color:#67e8f9;
+            {% elif sr.status == 'shipped' %}color:var(--sand);
             {% else %}color:var(--text-ghost);{% endif %}">
             {{ sr.status.replace('_', ' ')|capitalize }}
           </span>
