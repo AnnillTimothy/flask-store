@@ -210,7 +210,6 @@ class ExperienceAdmin(SecureModelView):
         if hasattr(form, 'audio_upload') and form.audio_upload.data:
             if model.audio_filename:
                 delete_uploaded_file(model.audio_filename, 'experiences')
-            from app.services.upload_service import ALLOWED_AUDIO_EXTENSIONS
             filename = save_uploaded_file(form.audio_upload.data, 'experiences',
                                          ALLOWED_AUDIO_EXTENSIONS)
             if filename:

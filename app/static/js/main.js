@@ -42,11 +42,16 @@ function initLoadingScreen() {
   // ── Split brand name into letter spans ──
   if (brandEl) {
     const text = brandEl.textContent.trim();
-    brandEl.innerHTML = text.split('').map(ch =>
-      ch === ' '
-        ? '<span class="ll" style="display:inline-block;width:0.28em;">&nbsp;</span>'
-        : `<span class="ll" style="display:inline-block;">${ch}</span>`
-    ).join('');
+    brandEl.textContent = '';
+    text.split('').forEach(ch => {
+      const span = document.createElement('span');
+      span.className = 'll';
+      span.style.cssText = ch === ' '
+        ? 'display:inline-block;width:0.28em;'
+        : 'display:inline-block;';
+      span.textContent = ch === ' ' ? '\u00A0' : ch;
+      brandEl.appendChild(span);
+    });
   }
 
   // ── Initial states ──
@@ -103,11 +108,12 @@ function initLoadingScreen() {
     .to(counter, {
       opacity: 1, duration: 0.3
     }, 2.0)
-    .to(counter, {
+    .to({ val: 0 }, {
+      val: 100,
       duration: 2.0,
       ease: 'power1.inOut',
       onUpdate: function() {
-        if (counter) counter.textContent = Math.round(this.progress() * 100);
+        if (counter) counter.textContent = Math.round(this.targets()[0].val);
       }
     }, 2.0)
 
@@ -557,10 +563,16 @@ function initStorePage() {
   const heroEye   = document.querySelector('.store-hero-eyebrow');
   if (heroTitle) {
     const titleText = heroTitle.textContent.trim();
-    heroTitle.innerHTML = titleText.split('').map(c =>
-      c === ' ' ? '<span class="hl" style="display:inline-block;width:0.2em;">&nbsp;</span>'
-               : `<span class="hl" style="display:inline-block;">${c}</span>`
-    ).join('');
+    heroTitle.textContent = '';
+    titleText.split('').forEach(c => {
+      const span = document.createElement('span');
+      span.className = 'hl';
+      span.style.cssText = c === ' '
+        ? 'display:inline-block;width:0.2em;'
+        : 'display:inline-block;';
+      span.textContent = c === ' ' ? '\u00A0' : c;
+      heroTitle.appendChild(span);
+    });
     gsap.set('.hl', { opacity: 0, y: 40 });
     gsap.to('.hl', {
       opacity: 1, y: 0,

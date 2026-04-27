@@ -54,11 +54,18 @@ def create_app(config_class=Config):
                 )
                 mail.send(msg)
                 # Welcome email to subscriber
+                try:
+                    from app.models.company_setting import CompanySetting
+                    with app.app_context():
+                        name = CompanySetting.get().store_name or 'The Bodhi Tree'
+                except Exception:
+                    name = 'The Bodhi Tree'
                 welcome = Message(
-                    subject=f'Welcome to {app.config.get("STORE_NAME", "The Bodhi Tree")}',
+                    subject=f'Welcome to {name}',
                     recipients=[email],
                     body=(
-                        'Thank you for subscribing! Your 10% discount code is: WELCOME10\n\n'
+                        f'Thank you for subscribing to {name}! '
+                        'Your 10% discount code is: WELCOME10\n\n'
                         'We\'ll keep you posted on new arrivals and exclusive experiences.'
                     ),
                 )
