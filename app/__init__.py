@@ -36,6 +36,14 @@ def create_app(config_class=Config):
     from .admin.views import setup_admin
     setup_admin(app)
 
+    # Exempt all Flask-Admin blueprints from CSRF protection.
+    # Flask-Admin manages its own form security; WTF CSRF tokens are not
+    # included in Flask-Admin forms and would block every create/edit/delete.
+    _app_blueprints = {'main', 'auth', 'cart', 'checkout'}
+    for bp_name, bp in app.blueprints.items():
+        if bp_name not in _app_blueprints:
+            csrf.exempt(bp)
+
     # ── Newsletter subscribe endpoint ─────────────────────────────
     @app.route('/subscribe', methods=['POST'])
     @csrf.exempt
