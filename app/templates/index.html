@@ -7,10 +7,12 @@
 <!-- ============================================================
      LANDING SCENE
      ============================================================ -->
-<section class="scene scene-landing" id="scene-landing">
+<section class="scene scene-landing" id="scene-landing"
+  {% if company and company.display_landing_audio %}data-audio-src="{{ company.display_landing_audio }}"{% endif %}>
   <div class="scene-video">
+    {% set landing_video = company.display_landing_video if company and company.display_landing_video else url_for('static', filename='videos/landing.mp4') %}
     <video autoplay muted loop playsinline preload="auto">
-      <source src="{{ url_for('static', filename='videos/landing.mp4') }}" type="video/mp4">
+      <source src="{{ landing_video }}" type="video/mp4">
     </video>
     <div class="scene-overlay"></div>
   </div>
@@ -23,8 +25,8 @@
       <a href="{{ url_for('main.experiences') }}" class="btn-cinematic">
         Explore All Experiences&nbsp;<i class="bi bi-arrow-right"></i>
       </a>
-      <a href="{{ url_for('main.products') }}" class="btn-cinematic-ghost">
-        Shop Products
+      <a href="{{ url_for('main.store') }}" class="btn-cinematic-ghost">
+        Shop the Store
       </a>
     </div>
   </div>
@@ -44,7 +46,8 @@
 <section class="scene scene-experience"
          id="scene-{{ exp.slug }}"
          data-experience="{{ exp.slug }}"
-         {% if exp.display_video %}data-video-src="{{ exp.display_video }}"{% endif %}>
+         {% if exp.display_video %}data-video-src="{{ exp.display_video }}"{% endif %}
+         {% if exp.display_audio %}data-audio-src="{{ exp.display_audio }}"{% endif %}>
 
   <!-- Video background (falls back to CSS gradient) -->
   <div class="scene-video">

@@ -6,7 +6,7 @@
 'use strict';
 
 // ─── Loading Screen ───────────────────────────────────────────
-// Only shows once per session on qualifying pages (home, experiences, admin).
+// Only shows once per session on qualifying pages (home, experiences).
 // The loading screen element is conditionally rendered by the template.
 function initLoadingScreen() {
   const screen = document.getElementById('loading-screen');
@@ -21,14 +21,105 @@ function initLoadingScreen() {
   // Mark as shown for this session
   sessionStorage.setItem('bodhi_loaded', '1');
 
-  // Dismiss after bar animation completes (~2.6s) with a small buffer
-  setTimeout(() => {
-    screen.classList.add('hide');
-  }, 2800);
-  // Remove from DOM after transition
-  setTimeout(() => {
-    if (screen.parentNode) screen.parentNode.removeChild(screen);
-  }, 3500);
+  const brandEl   = screen.querySelector('.loading-brand');
+  const taglineEl = screen.querySelector('.loading-tagline');
+  const barFill   = screen.querySelector('.loading-bar-fill');
+  const barWrap   = screen.querySelector('.loading-bar');
+  const counter   = document.getElementById('loading-counter');
+
+  // Disable CSS keyframe animations — we'll drive them with GSAP
+  if (barFill)   barFill.style.animation   = 'none';
+  if (brandEl)   brandEl.style.animation   = 'none';
+  if (taglineEl) taglineEl.style.animation = 'none';
+
+  if (typeof gsap === 'undefined') {
+    // Fallback if GSAP somehow not available
+    setTimeout(() => screen.classList.add('hide'), 3200);
+    setTimeout(() => { if (screen.parentNode) screen.parentNode.removeChild(screen); }, 4000);
+    return;
+  }
+
+  // ── Split brand name into letter spans ──
+  if (brandEl) {
+    const text = brandEl.textContent.trim();
+    brandEl.textContent = '';
+    text.split('').forEach(ch => {
+      const span = document.createElement('span');
+      span.className = 'll';
+      span.style.cssText = ch === ' '
+        ? 'display:inline-block;width:0.28em;'
+        : 'display:inline-block;';
+      span.textContent = ch === ' ' ? '\u00A0' : ch;
+      brandEl.appendChild(span);
+    });
+  }
+
+  // ── Initial states ──
+  gsap.set('.ll',      { opacity: 0, y: 28, rotateX: -40 });
+  gsap.set(taglineEl,  { opacity: 0, y: 14 });
+  gsap.set(barWrap,    { opacity: 0, scaleX: 0.6 });
+  gsap.set(barFill,    { width: '0%' });
+  if (counter) gsap.set(counter, { opacity: 0 });
+
+  // ── Timeline ──
+  const tl = gsap.timeline({
+    onComplete: () => {
+      // Exit: fade + scale the whole screen down
+      gsap.to(screen, {
+        opacity: 0,
+        scale: 1.04,
+        duration: 0.9,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          screen.classList.add('hide');
+          if (screen.parentNode) screen.parentNode.removeChild(screen);
+        }
+      });
+    }
+  });
+
+  tl
+    // Brand letters appear one by one
+    .to('.ll', {
+      opacity: 1, y: 0, rotateX: 0,
+      duration: 0.55, stagger: 0.07,
+      ease: 'power3.out',
+      transformOrigin: 'bottom center',
+    }, 0.5)
+
+    // Tagline rises in
+    .to(taglineEl, {
+      opacity: 1, y: 0,
+      duration: 0.7, ease: 'power2.out'
+    }, 1.5)
+
+    // Loading bar appears and fills
+    .to(barWrap, {
+      opacity: 1, scaleX: 1,
+      duration: 0.5, ease: 'power2.out'
+    }, 1.9)
+    .to(barFill, {
+      width: '100%',
+      duration: 2.0,
+      ease: 'power1.inOut'
+    }, 2.0)
+
+    // Counter ticks up to 100
+    .to(counter, {
+      opacity: 1, duration: 0.3
+    }, 2.0)
+    .to({ val: 0 }, {
+      val: 100,
+      duration: 2.0,
+      ease: 'power1.inOut',
+      onUpdate: function() {
+        if (counter) counter.textContent = Math.round(this.targets()[0].val);
+      }
+    }, 2.0)
+
+    // Brief hold at 100
+    .to({}, { duration: 0.55 })
+  ;
 }
 
 // ─── Cookie Consent ───────────────────────────────────────────
@@ -70,7 +161,7 @@ function initAgeGate() {
 
   // Calculate delay: show after loading screen finishes
   const loadingScreen = document.getElementById('loading-screen');
-  const AGE_GATE_DELAY = loadingScreen ? 3600 : 200;
+  const AGE_GATE_DELAY = loadingScreen ? 5200 : 200;
 
   setTimeout(() => { gate.style.display = ''; }, AGE_GATE_DELAY);
 
@@ -84,7 +175,6 @@ function initAgeGate() {
   if (deny) {
     deny.addEventListener('click', (e) => {
       e.preventDefault();
-      // Redirect away — user is underage
       gate.querySelector('.age-gate-text').innerHTML =
         'Sorry, you must be 18 or older to access this site.';
       gate.querySelector('.age-gate-actions').style.display = 'none';
@@ -126,8 +216,21 @@ function initEmailPopup() {
 
   if (form) form.addEventListener('submit', (e) => {
     e.preventDefault();
-    popup.style.display = 'none';
-    localStorage.setItem('bodhi_email_popup', 'subscribed');
+    const emailInput = form.querySelector('input[type="email"], #popup-email-input');
+    const email = emailInput ? emailInput.value.trim() : '';
+    if (!email) return;
+
+    // Submit to subscribe endpoint
+    fetch('/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+      .catch(() => {}) // best-effort
+      .finally(() => {
+        popup.style.display = 'none';
+        localStorage.setItem('bodhi_email_popup', 'subscribed');
+      });
   });
 }
 
@@ -188,6 +291,34 @@ function initNavScroll() {
   onScroll();
 }
 
+// ─── Audio mute toggle ────────────────────────────────────────
+let _audioMuted = true; // Start muted — enable on first user click
+
+function initAudioMuteBtn() {
+  const btn  = document.getElementById('audio-mute-btn');
+  const icon = document.getElementById('audio-icon');
+  if (!btn) return;
+
+  // Only show on immersive pages
+  if (!document.body.classList.contains('page-immersive')) return;
+  btn.style.display = 'flex';
+
+  btn.addEventListener('click', () => {
+    _audioMuted = !_audioMuted;
+    if (icon) {
+      icon.className = _audioMuted ? 'bi bi-volume-mute-fill' : 'bi bi-volume-up-fill';
+    }
+    // Control the currently active audio track
+    if (window._currentAudio) {
+      if (_audioMuted) {
+        window._currentAudio.pause();
+      } else {
+        window._currentAudio.play().catch(() => {});
+      }
+    }
+  });
+}
+
 // ─── Immersive experience reel ────────────────────────────────
 function initExperienceReel() {
   const body = document.body;
@@ -203,7 +334,9 @@ function initExperienceReel() {
   let activeIndex      = 0;
   let animating        = false;
   let emailPopupShown  = false;
-  let currentAudio     = null;
+
+  // Expose global for mute button
+  window._currentAudio = null;
 
   // Lock the page — no native scrolling
   body.style.overflow = 'hidden';
@@ -247,7 +380,6 @@ function initExperienceReel() {
       onComplete: () => {
         animating = false;
         deactivateScene(scenes[prevIndex]);
-        // Hide previous scene fully
         gsap.set(scenes[prevIndex], { visibility: 'hidden', zIndex: 0 });
       }
     });
@@ -290,15 +422,10 @@ function initExperienceReel() {
 
   // ── Navigate next/prev ──
   function nextScene() {
-    if (activeIndex < scenes.length - 1) {
-      goToScene(activeIndex + 1);
-    }
+    if (activeIndex < scenes.length - 1) goToScene(activeIndex + 1);
   }
-
   function prevScene() {
-    if (activeIndex > 0) {
-      goToScene(activeIndex - 1);
-    }
+    if (activeIndex > 0) goToScene(activeIndex - 1);
   }
 
   // ── Update progress dots ──
@@ -319,17 +446,19 @@ function initExperienceReel() {
 
     // Audio
     const audioSrc = scene.dataset.audioSrc;
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      currentAudio = null;
+    if (window._currentAudio) {
+      window._currentAudio.pause();
+      window._currentAudio.currentTime = 0;
+      window._currentAudio = null;
     }
     if (audioSrc) {
       const audio = new Audio(audioSrc);
       audio.volume = 0.18;
       audio.loop   = true;
-      audio.play().catch(() => {});
-      currentAudio = audio;
+      window._currentAudio = audio;
+      if (!_audioMuted) {
+        audio.play().catch(() => {});
+      }
     }
   }
 
@@ -416,10 +545,89 @@ function initProductReveal() {
   gsap.registerPlugin(ScrollTrigger);
   gsap.utils.toArray('.product-reveal').forEach((el, i) => {
     gsap.from(el, {
-      y: 60, opacity: 0, duration: 0.8, ease: 'power3.out', delay: i * 0.08,
+      y: 60, opacity: 0, duration: 0.8, ease: 'power3.out',
       scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' }
     });
   });
+}
+
+// ─── Store page GSAP ──────────────────────────────────────────
+function initStorePage() {
+  if (!document.querySelector('.store-hero')) return;
+  if (typeof gsap === 'undefined') return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Hero entrance
+  const heroTitle = document.querySelector('.store-hero-title');
+  const heroSub   = document.querySelector('.store-hero-sub');
+  const heroEye   = document.querySelector('.store-hero-eyebrow');
+  if (heroTitle) {
+    const titleText = heroTitle.textContent.trim();
+    heroTitle.textContent = '';
+    titleText.split('').forEach(c => {
+      const span = document.createElement('span');
+      span.className = 'hl';
+      span.style.cssText = c === ' '
+        ? 'display:inline-block;width:0.2em;'
+        : 'display:inline-block;';
+      span.textContent = c === ' ' ? '\u00A0' : c;
+      heroTitle.appendChild(span);
+    });
+    gsap.set('.hl', { opacity: 0, y: 40 });
+    gsap.to('.hl', {
+      opacity: 1, y: 0,
+      duration: 0.6, stagger: 0.03,
+      ease: 'power3.out',
+      delay: 0.2,
+    });
+  }
+  if (heroEye) gsap.from(heroEye, { opacity: 0, y: 20, duration: 0.6, delay: 0.1, ease: 'power2.out' });
+  if (heroSub) gsap.from(heroSub, { opacity: 0, y: 20, duration: 0.6, delay: 0.5, ease: 'power2.out' });
+
+  // Store item reveals (already handled by initProductReveal, but add stagger for grids)
+  document.querySelectorAll('.store-grid').forEach(grid => {
+    const items = grid.querySelectorAll('.store-item');
+    gsap.from(items, {
+      y: 50, opacity: 0, duration: 0.7, stagger: 0.08, ease: 'power3.out',
+      scrollTrigger: { trigger: grid, start: 'top 85%', toggleActions: 'play none none none' }
+    });
+  });
+
+  // Wisdom text reveals
+  document.querySelectorAll('.store-wisdom').forEach(el => {
+    const p = el.querySelector('.store-wisdom-text');
+    const lines = el.querySelectorAll('.store-wisdom-line');
+    gsap.from(lines, {
+      scaleX: 0, duration: 0.8, ease: 'power3.out',
+      scrollTrigger: { trigger: el, start: 'top 80%', toggleActions: 'play none none none' }
+    });
+    if (p) {
+      gsap.from(p, {
+        opacity: 0, y: 30, duration: 0.9, ease: 'power3.out',
+        scrollTrigger: { trigger: p, start: 'top 82%', toggleActions: 'play none none none' }
+      });
+    }
+  });
+
+  // Editorial close
+  const editClose = document.querySelector('.store-editorial-text');
+  if (editClose) {
+    gsap.from(editClose, {
+      opacity: 0, y: 40, duration: 1.0, ease: 'power3.out',
+      scrollTrigger: { trigger: editClose, start: 'top 85%', toggleActions: 'play none none none' }
+    });
+  }
+
+  // Sticky filter bar
+  const filterBar = document.getElementById('store-filter-bar');
+  if (filterBar) {
+    ScrollTrigger.create({
+      trigger: filterBar,
+      start: 'top top+=68',
+      onEnter: () => filterBar.classList.add('is-stuck'),
+      onLeaveBack: () => filterBar.classList.remove('is-stuck'),
+    });
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────
@@ -430,9 +638,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initAlerts();
   initBurger();
   initNavScroll();
+  initAudioMuteBtn();
   initExperienceReel();
   initBundleHero();
   initProductReveal();
+  initStorePage();
   initCookieConsent();
   initEmailPopup();
 });

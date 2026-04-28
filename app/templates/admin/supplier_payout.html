@@ -1,23 +1,27 @@
 {% extends 'admin/master.html' %}
 
-{% block body %}
-<div class="container-fluid mt-4">
-  <h2 style="font-family:var(--serif);font-weight:400;">Supplier Payout Report</h2>
+{% block page_body %}
+<div class="adm-page">
+  <div class="adm-page-header">
+    <h2>Supplier Payout Report</h2>
+  </div>
 
-  <form method="get" class="row g-2 mb-4">
-    <div class="col-auto">
-      <label class="form-label">From</label>
-      <input type="date" name="start" value="{{ start }}" class="form-control">
-    </div>
-    <div class="col-auto">
-      <label class="form-label">To</label>
-      <input type="date" name="end" value="{{ end }}" class="form-control">
-    </div>
-    <div class="col-auto align-self-end">
-      <button type="submit" class="btn btn-primary">Filter</button>
-      <a href="?" class="btn btn-secondary">Reset</a>
-    </div>
-  </form>
+  <div class="adm-filter-form">
+    <form method="get" style="display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap;">
+      <div class="form-group">
+        <label class="form-label">From</label>
+        <input type="date" name="start" value="{{ start }}" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label">To</label>
+        <input type="date" name="end" value="{{ end }}" class="form-control">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="?" class="btn btn-secondary" style="margin-left:0.5rem;">Reset</a>
+      </div>
+    </form>
+  </div>
 
   {% if payouts %}
   <table class="table table-striped table-bordered">
@@ -35,7 +39,7 @@
         <td>{{ p.supplier_name }}</td>
         <td>{{ p.revenue_share_pct }}%</td>
         <td>R{{ '%.2f'|format(p.gross_revenue) }}</td>
-        <td style="font-weight:600;">R{{ '%.2f'|format(p.payout) }}</td>
+        <td style="color:#86efac;">R{{ '%.2f'|format(p.payout) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -43,7 +47,7 @@
       <tr style="font-weight:600;">
         <td colspan="2">Total</td>
         <td>R{{ '%.2f'|format(payouts|sum(attribute='gross_revenue')) }}</td>
-        <td>R{{ '%.2f'|format(payouts|sum(attribute='payout')) }}</td>
+        <td style="color:#86efac;">R{{ '%.2f'|format(payouts|sum(attribute='payout')) }}</td>
       </tr>
     </tfoot>
   </table>

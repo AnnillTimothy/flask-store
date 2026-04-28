@@ -19,8 +19,8 @@ def index():
                            experiences=experiences)
 
 
-@main_bp.route('/products')
-def products():
+@main_bp.route('/store')
+def store():
     category_slug = request.args.get('category')
     categories = Category.query.order_by(Category.name).all()
     query = Product.query
@@ -29,11 +29,21 @@ def products():
         active_category = Category.query.filter_by(slug=category_slug).first()
         if active_category:
             query = query.filter_by(category_id=active_category.id)
-    products = query.order_by(Product.name).all()
-    return render_template('products/list.html',
-                           products=products,
+    all_products = query.order_by(Product.name).all()
+    featured = Product.query.order_by(Product.created_at.desc()).limit(4).all()
+    return render_template('store/index.html',
+                           products=all_products,
+                           featured=featured,
                            categories=categories,
                            active_category=active_category)
+
+
+@main_bp.route('/products')
+def products():
+    """Legacy redirect to store."""
+    from flask import redirect
+    args = request.args.to_dict()
+    return redirect(url_for('main.store', **args), code=301)
 
 
 @main_bp.route('/products/<slug>')

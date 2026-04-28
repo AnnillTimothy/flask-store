@@ -6,7 +6,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.model.form import InlineFormAdmin
 from flask_admin.form.upload import FileUploadField
 from flask_login import current_user
-from wtforms import SelectField
+from wtforms import SelectField, TextAreaField
 from markupsafe import Markup
 from app.extensions import db, admin
 from app.models.user import User
@@ -18,6 +18,7 @@ from app.models.experience import Experience
 from app.models.order import Order, OrderItem
 from app.models.shipping import ShippingRecord
 from app.models.expense import Expense
+from app.models.company_setting import CompanySetting
 from app.services.order_service import calculate_supplier_payouts, get_revenue_summary
 from app.services.upload_service import delete_uploaded_file
 
@@ -177,16 +178,22 @@ class ExperienceAdmin(SecureModelView):
             base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'experiences'),
             allowed_extensions=['png', 'jpg', 'jpeg', 'gif', 'webp'],
         ),
+        'audio_upload': FileUploadField(
+            'Background Music Upload',
+            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'experiences'),
+            allowed_extensions=['mp3', 'ogg', 'wav', 'm4a'],
+        ),
     }
 
     def on_model_delete(self, model):
         """Delete uploaded files when experience is deleted."""
         delete_uploaded_file(model.video_filename, 'experiences')
         delete_uploaded_file(model.image_filename, 'experiences')
+        delete_uploaded_file(model.audio_filename, 'experiences')
 
     def on_model_change(self, form, model, is_created):
         """Handle file uploads on create/edit."""
-        from app.services.upload_service import save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS
+        from app.services.upload_service import save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS, ALLOWED_AUDIO_EXTENSIONS
         if hasattr(form, 'video_upload') and form.video_upload.data:
             if model.video_filename:
                 delete_uploaded_file(model.video_filename, 'experiences')
@@ -200,6 +207,57 @@ class ExperienceAdmin(SecureModelView):
             filename = save_uploaded_file(form.image_upload.data, 'experiences')
             if filename:
                 model.image_filename = filename
+        if hasattr(form, 'audio_upload') and form.audio_upload.data:
+            if model.audio_filename:
+                delete_uploaded_file(model.audio_filename, 'experiences')
+            filename = save_uploaded_file(form.audio_upload.data, 'experiences',
+                                         ALLOWED_AUDIO_EXTENSIONS)
+            if filename:
+                model.audio_filename = filename
+
+
+# ---------------------------------------------------------------------------
+# Company Settings Admin
+# ---------------------------------------------------------------------------
+
+class CompanySettingAdmin(AdminRequiredMixin, ModelView):
+    """Single-row settings editor for site-wide company configuration."""
+    can_create = False
+    can_delete = False
+    column_list = ('store_name', 'tagline', 'updated_at')
+    form_excluded_columns = ('updated_at',)
+
+    form_extra_fields = {
+        'landing_video_upload': FileUploadField(
+            'Landing BG Video Upload',
+            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'company'),
+            allowed_extensions=['mp4', 'webm', 'mov'],
+        ),
+        'landing_audio_upload': FileUploadField(
+            'Landing BG Audio Upload',
+            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'company'),
+            allowed_extensions=['mp3', 'ogg', 'wav', 'm4a'],
+        ),
+    }
+
+    def on_model_change(self, form, model, is_created):
+        from app.services.upload_service import save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS, ALLOWED_AUDIO_EXTENSIONS
+        if hasattr(form, 'landing_video_upload') and form.landing_video_upload.data:
+            delete_uploaded_file(model.landing_video_filename, 'company')
+            fn = save_uploaded_file(form.landing_video_upload.data, 'company', ALLOWED_VIDEO_EXTENSIONS)
+            if fn:
+                model.landing_video_filename = fn
+        if hasattr(form, 'landing_audio_upload') and form.landing_audio_upload.data:
+            delete_uploaded_file(model.landing_audio_filename, 'company')
+            from app.services.upload_service import ALLOWED_AUDIO_EXTENSIONS
+            fn = save_uploaded_file(form.landing_audio_upload.data, 'company', ALLOWED_AUDIO_EXTENSIONS)
+            if fn:
+                model.landing_audio_filename = fn
+
+    def get_query(self):
+        # Ensure the single settings row always exists
+        CompanySetting.get()
+        return super().get_query()
 
 
 # ---------------------------------------------------------------------------
@@ -315,6 +373,8 @@ def setup_admin(app):
     admin.init_app(app, index_view=SecureAdminIndexView())
 
     admin.add_view(UserAdmin(User, db.session, name='Users', category='Accounts'))
+    admin.add_view(CompanySettingAdmin(CompanySetting, db.session, name='Company',
+                                      category='Settings'))
     admin.add_view(SupplierAdmin(Supplier, db.session, name='Suppliers', category='Catalogue'))
     admin.add_view(CategoryAdmin(Category, db.session, name='Categories', category='Catalogue'))
     admin.add_view(ProductAdmin(Product, db.session, name='Products', category='Catalogue'))

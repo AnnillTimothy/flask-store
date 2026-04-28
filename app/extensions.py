@@ -3,12 +3,14 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_admin import Admin
 from flask_wtf.csrf import CSRFProtect
+from flask_mail import Mail
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
 admin = Admin(name='Store Admin', template_mode='bootstrap4')
 csrf = CSRFProtect()
+mail = Mail()
 
 login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Please log in to access this page.'

@@ -7,6 +7,11 @@
     <h1 class="section-title text-center mb-2">Privacy Policy</h1>
     <p class="text-center text-muted mb-5" style="max-width:520px;margin:0 auto;">Last updated: April 2026</p>
 
+    {% if company and company.privacy_text %}
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <div style="color:var(--text-dim);line-height:1.85;">{{ company.privacy_text|safe }}</div>
+    </div>
+    {% else %}
     <div class="glass-card p-4 p-md-5 mb-4">
       <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">1. Introduction</h3>
       <p style="color:var(--text-dim);line-height:1.85;">
@@ -85,6 +90,7 @@
         our <a href="{{ url_for('main.contact') }}" style="color:var(--sand);">Contact page</a>.
       </p>
     </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

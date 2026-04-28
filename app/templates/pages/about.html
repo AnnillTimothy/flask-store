@@ -7,6 +7,11 @@
     <h1 class="section-title text-center mb-2">About Us</h1>
     <p class="text-center text-muted mb-5" style="max-width:520px;margin:0 auto;">The story behind {{ store_name }}.</p>
 
+    {% if company and company.about_text %}
+    <div class="glass-card p-4 p-md-5 mb-4">
+      <div style="color:var(--text-dim);line-height:1.85;">{{ company.about_text|safe }}</div>
+    </div>
+    {% else %}
     <div class="glass-card p-4 p-md-5 mb-4">
       <h3 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1rem;">Our Story</h3>
       <p style="color:var(--text-dim);line-height:1.85;">
@@ -40,6 +45,7 @@
         <li><i class="bi bi-check2-circle text-sand me-2"></i> Ethically sourced, environmentally conscious products</li>
       </ul>
     </div>
+    {% endif %}
 
     <div class="text-center mt-5">
       <a href="{{ url_for('main.bundles') }}" class="btn-cinematic">Explore Our Experiences&nbsp;<i class="bi bi-arrow-right"></i></a>

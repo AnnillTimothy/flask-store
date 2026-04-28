@@ -23,9 +23,11 @@
 {% if show_loading %}
 <div class="loading-screen" id="loading-screen">
   <div class="loading-inner">
+    <div class="loading-ornament"></div>
     <div class="loading-brand">{{ store_name }}</div>
     <div class="loading-tagline">{{ tagline }}</div>
     <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+    <div class="loading-counter" id="loading-counter">0</div>
   </div>
 </div>
 {% endif %}
@@ -38,8 +40,8 @@
   <div class="nav-pill-group" id="nav-pill-group">
     <a class="nav-pill-link {% if request.endpoint == 'main.index' %}active{% endif %}"
        href="{{ url_for('main.index') }}">Home</a>
-    <a class="nav-pill-link {% if request.endpoint and 'products' in request.endpoint %}active{% endif %}"
-       href="{{ url_for('main.products') }}">Products</a>
+    <a class="nav-pill-link {% if request.endpoint and ('store' in request.endpoint or 'product' in request.endpoint) %}active{% endif %}"
+       href="{{ url_for('main.store') }}">Store</a>
     <a class="nav-pill-link {% if request.endpoint and 'experience' in request.endpoint %}active{% endif %}"
        href="{{ url_for('main.experiences') }}">Experiences</a>
     {% if current_user.is_authenticated and current_user.is_admin %}
@@ -84,7 +86,7 @@
 <!-- ── Mobile full-screen menu ───────────────────────────────── -->
 <div class="mobile-menu" id="mobile-menu">
   <a class="mobile-menu-link" href="{{ url_for('main.index') }}">Home</a>
-  <a class="mobile-menu-link" href="{{ url_for('main.products') }}">Products</a>
+  <a class="mobile-menu-link" href="{{ url_for('main.store') }}">Store</a>
   <a class="mobile-menu-link" href="{{ url_for('main.experiences') }}">Experiences</a>
   <a class="mobile-menu-link" href="{{ url_for('cart.view_cart') }}">Cart</a>
   {% if current_user.is_authenticated %}
@@ -100,6 +102,11 @@
 
 <!-- ── Scene progress dots (immersive pages only) ────────────── -->
 <div class="scene-progress" id="scene-progress" aria-hidden="true"></div>
+
+<!-- ── Audio mute toggle (immersive pages only) ──────────────── -->
+<button class="audio-mute-btn" id="audio-mute-btn" aria-label="Toggle audio" title="Enable / Disable Background Music">
+  <i class="bi bi-volume-mute-fill" id="audio-icon"></i>
+</button>
 
 <!-- ── Flash messages ────────────────────────────────────────── -->
 <div class="flash-container container mt-3">
@@ -131,7 +138,7 @@
       <div class="col-md-3 mb-3 mb-md-0">
         <p class="footer-heading">Explore</p>
         <ul class="list-unstyled small mb-0">
-          <li class="mb-1"><a href="{{ url_for('main.products') }}" class="text-muted text-decoration-none footer-link">Products</a></li>
+          <li class="mb-1"><a href="{{ url_for('main.store') }}" class="text-muted text-decoration-none footer-link">Store</a></li>
           <li class="mb-1"><a href="{{ url_for('main.experiences') }}" class="text-muted text-decoration-none footer-link">Experiences</a></li>
           <li><a href="{{ url_for('cart.view_cart') }}" class="text-muted text-decoration-none footer-link">Cart</a></li>
         </ul>
@@ -169,7 +176,7 @@
     <h3 class="popup-title">Get 10% Off</h3>
     <p class="popup-text">Join the {{ store_name }} community. Be the first to know about new experiences, exclusive drops and receive <strong>10% off</strong> your first order.</p>
     <form class="popup-form" id="email-popup-form">
-      <input type="email" class="form-control" placeholder="Enter your email" required>
+      <input type="email" class="form-control" id="popup-email-input" placeholder="Enter your email" required>
       <button type="submit" class="btn-cinematic w-100" style="justify-content:center;margin-top:0.75rem;">
         Subscribe&nbsp;<i class="bi bi-arrow-right"></i>
       </button>

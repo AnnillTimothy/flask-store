@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 from .config import Config
-from .extensions import db, login_manager, migrate, csrf
+from .extensions import db, login_manager, migrate, csrf, mail
 
 
 def create_app(config_class=Config):
@@ -12,6 +12,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+    mail.init_app(app)
 
     # User loader for Flask-Login
     from .models.user import User
@@ -34,6 +35,44 @@ def create_app(config_class=Config):
     # Setup Flask-Admin (must happen after blueprints so url_for works)
     from .admin.views import setup_admin
     setup_admin(app)
+
+    # ── Newsletter subscribe endpoint ─────────────────────────────
+    @app.route('/subscribe', methods=['POST'])
+    @csrf.exempt
+    def newsletter_subscribe():
+        email = (request.json or {}).get('email', '').strip()
+        if not email or '@' not in email:
+            return jsonify({'ok': False, 'message': 'Invalid email.'}), 400
+        try:
+            from flask_mail import Message
+            admin_addr = app.config.get('MAIL_ADMIN') or app.config.get('MAIL_DEFAULT_SENDER')
+            if admin_addr and app.config.get('MAIL_USERNAME'):
+                msg = Message(
+                    subject='New Newsletter Subscriber',
+                    recipients=[admin_addr],
+                    body=f'New subscriber: {email}',
+                )
+                mail.send(msg)
+                # Welcome email to subscriber
+                try:
+                    from app.models.company_setting import CompanySetting
+                    with app.app_context():
+                        name = CompanySetting.get().store_name or 'The Bodhi Tree'
+                except Exception:
+                    name = 'The Bodhi Tree'
+                welcome = Message(
+                    subject=f'Welcome to {name}',
+                    recipients=[email],
+                    body=(
+                        f'Thank you for subscribing to {name}! '
+                        'Your 10% discount code is: WELCOME10\n\n'
+                        'We\'ll keep you posted on new arrivals and exclusive experiences.'
+                    ),
+                )
+                mail.send(welcome)
+        except Exception:
+            pass  # Mail is best-effort; don't fail the request
+        return jsonify({'ok': True})
 
     # Inject cart count into every template
     from .services import cart_service

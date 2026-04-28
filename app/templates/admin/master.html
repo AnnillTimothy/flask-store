@@ -5,10 +5,97 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 {% endblock %}
 
-{% block page_body %}
-<script>document.body.classList.add('admin-panel');</script>
-{{ super() }}
+{% block body %}
+<div class="adm-layout" id="adm-layout">
+
+  {# ── Sidebar ─────────────────────────────────────────────── #}
+  <aside class="adm-sidebar">
+    <div class="adm-brand">
+      <a href="{{ url_for('admin.index') }}">{{ admin_view.admin.name }}</a>
+      <span class="adm-brand-sub">Control Panel</span>
+    </div>
+
+    <nav class="adm-nav">
+      {% for item in admin_view.admin.menu() %}
+        {% if item.is_category() %}
+          <div class="adm-category">{{ item.name }}</div>
+          {% for child in item.children %}
+            <a class="adm-nav-item{% if child.is_active(admin_view) %} active{% endif %}"
+               href="{{ child.url }}">{{ child.name }}</a>
+          {% endfor %}
+        {% else %}
+          <a class="adm-nav-item{% if item.is_active(admin_view) %} active{% endif %}"
+             href="{{ item.url }}">{{ item.name }}</a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+
+    <div class="adm-sidebar-foot">
+      <a href="{{ url_for('main.index') }}" class="adm-back-link">← View Site</a>
+    </div>
+  </aside>
+
+  {# ── Main ────────────────────────────────────────────────── #}
+  <div class="adm-main">
+
+    {# Top bar #}
+    <header class="adm-topbar">
+      <div class="adm-topbar-left">
+        <button class="adm-menu-btn" id="adm-menu-btn" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+        <span class="adm-page-title">{{ admin_view.name }}</span>
+      </div>
+      <div class="adm-topbar-right">
+        {% if current_user.is_authenticated %}
+          <span class="adm-username">{{ current_user.username }}</span>
+          <a href="{{ url_for('auth.logout') }}" class="adm-logout">Logout</a>
+        {% endif %}
+      </div>
+    </header>
+
+    {# Flash messages #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="adm-alerts">
+          {% for category, message in messages %}
+            <div class="adm-alert adm-alert-{{ category }}">
+              {{ message }}
+              <button class="adm-alert-close" onclick="this.parentElement.remove()" aria-label="Close">×</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {# Content #}
+    <div class="adm-content">
+      {% block page_body %}{% endblock %}
+    </div>
+
+  </div>{# /adm-main #}
+</div>{# /adm-layout #}
+
+<script>
+(function() {
+  var btn = document.getElementById('adm-menu-btn');
+  var layout = document.getElementById('adm-layout');
+  if (btn && layout) {
+    btn.addEventListener('click', function() {
+      layout.classList.toggle('sidebar-open');
+    });
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      if (window.innerWidth <= 900 &&
+          !e.target.closest('.adm-sidebar') &&
+          !e.target.closest('#adm-menu-btn')) {
+        layout.classList.remove('sidebar-open');
+      }
+    });
+  }
+})();
+</script>
 {% endblock %}
