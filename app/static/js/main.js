@@ -630,6 +630,70 @@ function initStorePage() {
   }
 }
 
+// ─── Store category filter (AJAX — no full-page reload) ──────
+function initStoreCategoryFilter() {
+  const filterBar = document.getElementById('store-filter-bar');
+  const area = document.getElementById('store-products-area');
+  if (!filterBar || !area) return;
+
+  function fetchProducts(url, pushState) {
+    // Add ajax=1 to request a partial response
+    const fetchUrl = url + (url.includes('?') ? '&' : '?') + 'ajax=1';
+
+    // Fade out current content
+    area.style.transition = 'opacity 0.18s ease';
+    area.style.opacity = '0.3';
+
+    fetch(fetchUrl, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(function(r) { return r.text(); })
+      .then(function(html) {
+        area.innerHTML = html;
+        area.style.opacity = '1';
+
+        // Update active pill to match current URL
+        const params = new URLSearchParams(url.split('?')[1] || '');
+        const cat = params.get('category') || '';
+        filterBar.querySelectorAll('.store-filter-pill').forEach(function(p) {
+          const pParams = new URLSearchParams(p.href.split('?')[1] || '');
+          const pCat = pParams.get('category') || '';
+          p.classList.toggle('active', pCat === cat);
+        });
+
+        if (pushState) {
+          history.pushState({ filterUrl: url }, '', url);
+        }
+
+        // Scroll products into view smoothly if needed
+        const filterRect = filterBar.getBoundingClientRect();
+        if (filterRect.bottom > 0) {
+          const scrollTarget = window.scrollY + filterRect.bottom;
+          if (window.scrollY < scrollTarget - 20) {
+            window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+          }
+        }
+      })
+      .catch(function() {
+        // Fallback: navigate normally
+        window.location.href = url;
+      });
+  }
+
+  // Intercept filter pill clicks
+  filterBar.addEventListener('click', function(e) {
+    const pill = e.target.closest('.store-filter-pill');
+    if (!pill) return;
+    e.preventDefault();
+    fetchProducts(pill.href, true);
+  });
+
+  // Handle browser back / forward
+  window.addEventListener('popstate', function(e) {
+    fetchProducts(window.location.href, false);
+  });
+}
+
 // ─── Init ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initLoadingScreen();
@@ -643,6 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initBundleHero();
   initProductReveal();
   initStorePage();
+  initStoreCategoryFilter();
   initCookieConsent();
   initEmailPopup();
 });

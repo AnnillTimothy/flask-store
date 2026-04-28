@@ -31,6 +31,14 @@ def store():
             query = query.filter_by(category_id=active_category.id)
     all_products = query.order_by(Product.name).all()
     featured = Product.query.order_by(Product.created_at.desc()).limit(4).all()
+
+    is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+               or request.args.get('ajax') == '1')
+    if is_ajax:
+        return render_template('store/_products.html',
+                               products=all_products,
+                               featured=featured)
+
     return render_template('store/index.html',
                            products=all_products,
                            featured=featured,

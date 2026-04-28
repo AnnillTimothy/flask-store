@@ -144,9 +144,33 @@ body {
 
 /* Sidebar footer */
 .adm-sidebar-foot {
-  padding: 1.2rem 1.6rem;
+  padding: 1.2rem 1.4rem;
   border-top: 1px solid var(--glass-border);
   flex-shrink: 0;
+}
+.adm-site-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.adm-site-link {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.6rem;
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--text-ghost) !important;
+  text-decoration: none !important;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+.adm-site-link i { font-size: 0.8rem; flex-shrink: 0; }
+.adm-site-link:hover {
+  color: var(--text-dim) !important;
+  background: rgba(255, 255, 255, 0.04);
 }
 .adm-back-link {
   font-family: var(--sans);

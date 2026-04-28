@@ -27,10 +27,11 @@ class Bundle(db.Model):
     @property
     def total_price(self):
         """Sum of individual product prices (for savings display)."""
-        total = 0.0
+        from decimal import Decimal
+        total = Decimal('0')
         for item in self.items:
             if item.product:
-                total += float(item.product.price) * item.quantity
+                total += item.product.price * item.quantity
         return total
 
     def __repr__(self):

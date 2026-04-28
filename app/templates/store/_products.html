@@ -1,0 +1,161 @@
+<!-- ── Products ──────────────────────────────────────────────── -->
+<div class="store-body">
+
+  {% if products %}
+
+  <!-- First block: up to 6 products, editorial grid -->
+  {% set block1 = products[:6] %}
+  {% set block2 = products[6:12] %}
+  {% set block3 = products[12:] %}
+
+  <div class="store-grid" id="store-grid-1">
+    {% for product in block1 %}
+    <div class="store-item {% if loop.index == 1 %}store-item-wide{% endif %} product-reveal">
+      <a href="{{ url_for('main.product_detail', slug=product.slug) }}" class="store-item-link">
+        <div class="store-item-media">
+          <img src="{{ product.display_image }}" alt="{{ product.name }}" class="store-item-img" loading="lazy">
+          <div class="store-item-overlay">
+            <span class="store-item-cta">View →</span>
+          </div>
+        </div>
+        <div class="store-item-meta">
+          <div class="store-item-top">
+            {% if product.category %}
+            <span class="store-item-cat">{{ product.category.name }}</span>
+            {% endif %}
+            <span class="store-item-price">R{{ '%.2f'|format(product.price) }}</span>
+          </div>
+          <h3 class="store-item-name">{{ product.name }}</h3>
+        </div>
+      </a>
+      {% if product.stock > 0 %}
+      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="item_type" value="product">
+        <input type="hidden" name="quantity" value="1">
+        <button type="submit" class="store-add-btn" title="Add to cart">
+          <i class="bi bi-bag-plus"></i>
+        </button>
+      </form>
+      {% else %}
+      <span class="store-sold-out">Sold Out</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Brand moment 1 -->
+  {% if company and company.store_wisdom_1 %}
+  <div class="store-wisdom store-reveal" data-wisdom="1">
+    <div class="store-wisdom-line"></div>
+    <p class="store-wisdom-text">{{ company.store_wisdom_1 }}</p>
+    <div class="store-wisdom-line"></div>
+  </div>
+  {% endif %}
+
+  {% if block2 %}
+  <div class="store-grid store-grid-uniform" id="store-grid-2">
+    {% for product in block2 %}
+    <div class="store-item product-reveal">
+      <a href="{{ url_for('main.product_detail', slug=product.slug) }}" class="store-item-link">
+        <div class="store-item-media">
+          <img src="{{ product.display_image }}" alt="{{ product.name }}" class="store-item-img" loading="lazy">
+          <div class="store-item-overlay">
+            <span class="store-item-cta">View →</span>
+          </div>
+        </div>
+        <div class="store-item-meta">
+          <div class="store-item-top">
+            {% if product.category %}
+            <span class="store-item-cat">{{ product.category.name }}</span>
+            {% endif %}
+            <span class="store-item-price">R{{ '%.2f'|format(product.price) }}</span>
+          </div>
+          <h3 class="store-item-name">{{ product.name }}</h3>
+        </div>
+      </a>
+      {% if product.stock > 0 %}
+      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="item_type" value="product">
+        <input type="hidden" name="quantity" value="1">
+        <button type="submit" class="store-add-btn" title="Add to cart">
+          <i class="bi bi-bag-plus"></i>
+        </button>
+      </form>
+      {% else %}
+      <span class="store-sold-out">Sold Out</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Brand moment 2 -->
+  {% if company and company.store_wisdom_2 %}
+  <div class="store-wisdom store-reveal" data-wisdom="2">
+    <div class="store-wisdom-line"></div>
+    <p class="store-wisdom-text">{{ company.store_wisdom_2 }}</p>
+    <div class="store-wisdom-line"></div>
+  </div>
+  {% endif %}
+
+  {% if block3 %}
+  <div class="store-grid store-grid-uniform" id="store-grid-3">
+    {% for product in block3 %}
+    <div class="store-item product-reveal">
+      <a href="{{ url_for('main.product_detail', slug=product.slug) }}" class="store-item-link">
+        <div class="store-item-media">
+          <img src="{{ product.display_image }}" alt="{{ product.name }}" class="store-item-img" loading="lazy">
+          <div class="store-item-overlay">
+            <span class="store-item-cta">View →</span>
+          </div>
+        </div>
+        <div class="store-item-meta">
+          <div class="store-item-top">
+            {% if product.category %}
+            <span class="store-item-cat">{{ product.category.name }}</span>
+            {% endif %}
+            <span class="store-item-price">R{{ '%.2f'|format(product.price) }}</span>
+          </div>
+          <h3 class="store-item-name">{{ product.name }}</h3>
+        </div>
+      </a>
+      {% if product.stock > 0 %}
+      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="item_type" value="product">
+        <input type="hidden" name="quantity" value="1">
+        <button type="submit" class="store-add-btn" title="Add to cart">
+          <i class="bi bi-bag-plus"></i>
+        </button>
+      </form>
+      {% else %}
+      <span class="store-sold-out">Sold Out</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Empty state -->
+  {% else %}
+  <div class="store-empty">
+    <p>No products in this category yet.</p>
+    <a href="{{ url_for('main.store') }}" class="btn-cinematic-ghost" style="margin-top:1.5rem;">
+      View All
+    </a>
+  </div>
+  {% endif %}
+
+</div>{# /store-body #}
+
+<!-- ── Editorial Close ───────────────────────────────────────── -->
+{% if company and company.store_wisdom_3 %}
+<section class="store-editorial-close">
+  <p class="store-editorial-text store-reveal">{{ company.store_wisdom_3 }}</p>
+</section>
+{% endif %}
