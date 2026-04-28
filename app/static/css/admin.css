@@ -320,12 +320,6 @@ body {
 
 /* ─── Override Bootstrap / Flask-Admin elements ─────────────── */
 
-/* Kill Flask-Admin's top navbar */
-.navbar.navbar-default,
-.navbar-static-top {
-  display: none !important;
-}
-
 /* Kill extra padding Flask-Admin adds */
 body > .wrapper,
 #page-wrapper,
@@ -1025,12 +1019,6 @@ pre {
 /* ─── fa icons (Font Awesome 4 used by Flask-Admin) ────────── */
 .fa { color: inherit; }
 
-/* Hide Flask-Admin's default top nav (belt-and-suspenders) */
-.navbar.navbar-default,
-.navbar-static-top,
-.navbar-expand-lg.bg-dark {
-  display: none !important;
-}
 /* Kill outer container padding Flask-Admin adds */
 .container, .container-fluid {
   padding-left: 0 !important;
