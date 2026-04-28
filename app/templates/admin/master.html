@@ -31,15 +31,15 @@
       {% for item in admin_view.admin.menu() %}
         {% if item.is_category() %}
           <div class="adm-category">{{ item.name }}</div>
-          {% for child in item.children %}
+          {% for child in item.get_children() %}
             <a class="adm-nav-item{% if child.is_active(admin_view) %} active{% endif %}"
-               href="{{ child.url }}">{{ child.name }}</a>
+               href="{{ child.get_url() }}">{{ child.name }}</a>
           {% endfor %}
         {% else %}
           {# Skip the Home item since we added it above #}
           {% if item.name != 'Home' %}
             <a class="adm-nav-item{% if item.is_active(admin_view) %} active{% endif %}"
-               href="{{ item.url }}">{{ item.name }}</a>
+               href="{{ item.get_url() }}">{{ item.name }}</a>
           {% endif %}
         {% endif %}
       {% endfor %}
