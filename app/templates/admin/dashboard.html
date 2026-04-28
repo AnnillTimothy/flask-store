@@ -1,6 +1,6 @@
 {% extends 'admin/master.html' %}
 
-{% block page_body %}
+{% block body %}
 <div class="adm-page">
 
   <div class="adm-page-header">
@@ -67,11 +67,39 @@
 
   {# ── Quick Links ── #}
   <h2 class="adm-section-title" style="margin-top:2rem;">Quick Access</h2>
-  <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-    <a href="{{ url_for('experience.create_view') }}" class="btn btn-secondary">+ New Experience</a>
-    <a href="{{ url_for('product.create_view') }}" class="btn btn-secondary">+ New Product</a>
-    <a href="{{ url_for('order.index_view') }}" class="btn btn-secondary">View Orders</a>
-    <a href="{{ url_for('revenue_report.index') }}" class="btn btn-secondary">Revenue Report</a>
+  <div class="adm-quick-links">
+    <a href="{{ url_for('product.create_view') }}" class="adm-quick-link">
+      <i class="bi bi-plus-circle"></i>
+      <span>New Product</span>
+    </a>
+    <a href="{{ url_for('experience.create_view') }}" class="adm-quick-link">
+      <i class="bi bi-plus-circle"></i>
+      <span>New Experience</span>
+    </a>
+    <a href="{{ url_for('bundle.create_view') }}" class="adm-quick-link">
+      <i class="bi bi-plus-circle"></i>
+      <span>New Bundle</span>
+    </a>
+    <a href="{{ url_for('order.index_view') }}" class="adm-quick-link">
+      <i class="bi bi-receipt"></i>
+      <span>All Orders</span>
+    </a>
+    <a href="{{ url_for('revenue_report.index') }}" class="adm-quick-link">
+      <i class="bi bi-bar-chart-line"></i>
+      <span>Revenue Report</span>
+    </a>
+    <a href="{{ url_for('supplier_payouts.index') }}" class="adm-quick-link">
+      <i class="bi bi-cash-stack"></i>
+      <span>Supplier Payouts</span>
+    </a>
+    <a href="{{ url_for('companysetting.index_view') }}" class="adm-quick-link">
+      <i class="bi bi-gear"></i>
+      <span>Company Settings</span>
+    </a>
+    <a href="{{ url_for('main.store') }}" class="adm-quick-link adm-quick-link--external" target="_blank">
+      <i class="bi bi-box-arrow-up-right"></i>
+      <span>View Store</span>
+    </a>
   </div>
 
 </div>

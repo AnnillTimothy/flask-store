@@ -777,17 +777,22 @@ input[type="file"]:hover { border-color: var(--sand-dim) !important; }
 }
 
 /* ─── Flask-Admin model list overrides ──────────────────────── */
-/* The model list view containers */
-.model-list .actions-nav,
-.navbar-form { margin: 0 !important; padding: 0 !important; }
+/* Kill Flask-Admin's own top navbar */
+.navbar.navbar-default,
+.navbar-static-top {
+  display: none !important;
+}
 
-/* Action bar */
-.col-xs-12.col-sm-6 { /* Flask-Admin action buttons */ }
+/* Kill extra padding Flask-Admin adds */
+body > .wrapper,
+#page-wrapper,
+.content-wrapper {
+  padding-top: 0 !important;
+  margin-left: 0 !important;
+  background: transparent !important;
+}
 
-/* Search bar */
-.navbar-search .form-inline .form-group { margin: 0; }
-
-/* Fix modal dialogs */
+/* ─── Modal dialogs ─────────────────────────────────────────── */
 .modal-content {
   background: var(--lift) !important;
   border: 1px solid var(--glass-border) !important;
@@ -802,6 +807,235 @@ input[type="file"]:hover { border-color: var(--sand-dim) !important; }
   background: transparent !important;
 }
 .modal-title { font-family: var(--serif) !important; color: var(--text) !important; }
+.modal-body { color: var(--text-dim) !important; }
+.btn-close { filter: invert(1) opacity(0.5) !important; }
+
+/* ─── Sidebar footer label ──────────────────────────────────── */
+.adm-site-links-label {
+  font-family: var(--sans);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-ghost);
+  margin-bottom: 0.5rem;
+}
+.adm-logout-link {
+  margin-top: 0.4rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 0.45rem !important;
+}
+.adm-page-cat {
+  color: var(--text-ghost);
+  font-size: 0.7rem;
+}
+
+/* ─── Quick links grid (dashboard) ─────────────────────────── */
+.adm-quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.adm-quick-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 1.2rem 1rem;
+  background: var(--lift);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--text-dim) !important;
+  text-decoration: none !important;
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+.adm-quick-link i {
+  font-size: 1.3rem;
+  color: var(--sand-dim);
+  transition: color 0.2s;
+}
+.adm-quick-link:hover {
+  background: var(--lift-2);
+  border-color: rgba(200,180,154,0.25);
+  color: var(--text) !important;
+}
+.adm-quick-link:hover i { color: var(--sand); }
+.adm-quick-link--external {
+  border-color: rgba(200,180,154,0.18);
+}
+.adm-quick-link--external:hover {
+  background: rgba(200,180,154,0.06);
+}
+
+/* ─── Flask-Admin model list: nav tabs ─────────────────────── */
+.nav-tabs {
+  border-bottom: 1px solid var(--glass-border) !important;
+  margin-bottom: 1.5rem !important;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+.nav-tabs .nav-item { margin-bottom: -1px; }
+.nav-tabs .nav-link {
+  font-family: var(--sans) !important;
+  font-size: 0.74rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: var(--text-ghost) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 4px 4px 0 0 !important;
+  padding: 0.55rem 1rem !important;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.nav-tabs .nav-link:hover {
+  color: var(--text-dim) !important;
+  background: var(--glass-fill) !important;
+  border-color: var(--glass-border) !important;
+}
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+  color: var(--sand) !important;
+  background: rgba(200,180,154,0.07) !important;
+  border-color: var(--glass-border) var(--glass-border) transparent !important;
+  border-bottom-color: var(--ink) !important;
+}
+
+/* Actions/filter area */
+.nav-tabs + .row,
+.nav-tabs + form,
+.nav-tabs ~ .table-responsive {
+  margin-top: 0;
+}
+
+/* Search & filter bar */
+.navbar-form,
+.form-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0 !important;
+}
+.navbar-form .form-control,
+.form-inline .form-control {
+  min-width: 220px;
+}
+
+/* ─── Flask-Admin model list action row ─────────────────────── */
+.col-md-6, .col-sm-6 {
+  /* ensure action dropdowns and search sit nicely */
+}
+.action-bar {
+  background: var(--lift) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 1rem !important;
+  margin-bottom: 1rem !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Select all / row checkbox */
+.action-rowtoggle,
+.action-checkbox {
+  accent-color: var(--sand) !important;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* List buttons (edit/delete icons per row) */
+.list-buttons-column { white-space: nowrap; }
+.list-buttons-column a {
+  display: inline-block;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  transition: background 0.15s;
+  color: var(--text-ghost) !important;
+  text-decoration: none !important;
+}
+.list-buttons-column a:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--text) !important;
+}
+.list-buttons-column .btn-xs,
+.list-buttons-column .btn-sm {
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.68rem !important;
+}
+
+/* ─── Flask-Admin form page ─────────────────────────────────── */
+.model-form .form-group { margin-bottom: 1.4rem; }
+.model-form fieldset {
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 10px !important;
+  padding: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+  background: var(--lift) !important;
+}
+.model-form fieldset legend {
+  font-family: var(--sans) !important;
+  font-size: 0.65rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: var(--text-ghost) !important;
+  padding: 0 0.6rem !important;
+  width: auto !important;
+  float: none !important;
+  margin-left: 0 !important;
+}
+
+/* Inline form table (Bundle Items) */
+.inline-form-field .table,
+.inline-form .table {
+  margin-bottom: 0;
+}
+.inline-form-field { margin-bottom: 1.5rem; }
+
+/* ─── Inline-model add row button ───────────────────────────── */
+.inline-actions { margin-top: 0.75rem; }
+.inline-actions a, .btn-default[data-related-name] {
+  color: var(--sand) !important;
+  font-size: 0.78rem !important;
+}
+
+/* ─── Rediscli / other special pages ───────────────────────── */
+pre {
+  background: var(--lift) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 8px !important;
+  color: var(--text-dim) !important;
+  padding: 1rem !important;
+  font-size: 0.82rem !important;
+}
+
+/* ─── fa icons (Font Awesome 4 used by Flask-Admin) ────────── */
+.fa { color: inherit; }
+
+/* Hide Flask-Admin's default top nav (belt-and-suspenders) */
+.navbar.navbar-default,
+.navbar-static-top,
+.navbar-expand-lg.bg-dark {
+  display: none !important;
+}
+/* Kill outer container padding Flask-Admin adds */
+.container, .container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
 
 /* ─── Media queries ─────────────────────────────────────────── */
 @media (max-width: 900px) {
@@ -811,7 +1045,16 @@ input[type="file"]:hover { border-color: var(--sand-dim) !important; }
   .adm-layout.sidebar-open .adm-sidebar {
     transform: translateX(0);
   }
+  .adm-layout.sidebar-open::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+  }
   .adm-main { margin-left: 0; }
   .adm-menu-btn { display: flex; }
   .adm-content { padding: 1.2rem; }
+  .adm-quick-links { grid-template-columns: repeat(2, 1fr); }
+  .adm-stat-grid { grid-template-columns: repeat(2, 1fr); }
 }
