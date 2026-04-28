@@ -18,7 +18,11 @@ def login():
             login_user(user, remember=form.remember_me.data)
             next_page = request.args.get('next')
             flash('Welcome back!', 'success')
-            return redirect(next_page or url_for('main.index'))
+            if next_page:
+                return redirect(next_page)
+            if user.is_admin:
+                return redirect(url_for('admin.index'))
+            return redirect(url_for('main.index'))
         flash('Invalid email or password.', 'danger')
     return render_template('auth/login.html', form=form)
 

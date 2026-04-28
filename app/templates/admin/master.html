@@ -34,7 +34,17 @@
     </nav>
 
     <div class="adm-sidebar-foot">
-      <a href="{{ url_for('main.index') }}" class="adm-back-link">← View Site</a>
+      <div class="adm-site-links">
+        <a href="{{ url_for('main.index') }}" class="adm-site-link" title="View Homepage">
+          <i class="bi bi-house"></i> Homepage
+        </a>
+        <a href="{{ url_for('main.store') }}" class="adm-site-link" title="View Store">
+          <i class="bi bi-bag"></i> Store
+        </a>
+        <a href="{{ url_for('main.experiences') }}" class="adm-site-link" title="View Experiences">
+          <i class="bi bi-compass"></i> Experiences
+        </a>
+      </div>
     </div>
   </aside>
 
