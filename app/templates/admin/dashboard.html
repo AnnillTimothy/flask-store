@@ -68,9 +68,9 @@
   {# ── Quick Links ── #}
   <h2 class="adm-section-title" style="margin-top:2rem;">Quick Access</h2>
   <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-    <a href="{{ url_for('admin.index') }}/../experiences/create/" class="btn btn-secondary">+ New Experience</a>
-    <a href="{{ url_for('admin.index') }}/../products/create/" class="btn btn-secondary">+ New Product</a>
-    <a href="{{ url_for('admin.index') }}/../orders/" class="btn btn-secondary">View Orders</a>
+    <a href="{{ url_for('experience.create_view') }}" class="btn btn-secondary">+ New Experience</a>
+    <a href="{{ url_for('product.create_view') }}" class="btn btn-secondary">+ New Product</a>
+    <a href="{{ url_for('order.index_view') }}" class="btn btn-secondary">View Orders</a>
     <a href="{{ url_for('revenue_report.index') }}" class="btn btn-secondary">Revenue Report</a>
   </div>
 

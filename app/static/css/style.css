@@ -1525,7 +1525,7 @@ body.admin-panel {
   background: rgba(4,4,4,0.92);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid transparent;
   transition: border-color 0.3s;
 }
 .store-filter-bar.is-stuck {
