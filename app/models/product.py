@@ -22,6 +22,8 @@ class Product(db.Model):
     image_url = db.Column(db.String(500), nullable=True)
     image_filename = db.Column(db.String(500), nullable=True)
     stock = db.Column(db.Integer, default=50, nullable=False)
+    is_featured = db.Column(db.Boolean, default=False, nullable=False)
+    sale_price = db.Column(db.Numeric(10, 2), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
                            onupdate=lambda: datetime.now(timezone.utc))
@@ -31,6 +33,17 @@ class Product(db.Model):
     bundle_items = db.relationship('BundleItem', back_populates='product', lazy='dynamic')
     cart_items = db.relationship('CartItem', back_populates='product', lazy='dynamic')
     order_items = db.relationship('OrderItem', back_populates='product', lazy='dynamic')
+
+    @property
+    def display_price(self):
+        """Return sale_price if active, otherwise regular price."""
+        if self.sale_price is not None and self.sale_price < self.price:
+            return self.sale_price
+        return self.price
+
+    @property
+    def is_on_sale(self):
+        return self.sale_price is not None and self.sale_price < self.price
 
     @property
     def display_image(self):

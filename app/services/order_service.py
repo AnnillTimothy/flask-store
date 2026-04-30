@@ -11,20 +11,28 @@ def _generate_order_number():
 
 
 def create_order_from_cart(cart, customer_name, customer_email,
-                           shipping_address, shipping_cost=150.0):
+                           customer_phone, shipping_address,
+                           shipping_cost=150.0, discount_code=None,
+                           discount_amount=0.0):
     """Create an Order from the contents of a Cart."""
     items = list(cart.items)
     if not items:
         return None, 'Cart is empty.'
 
     subtotal = cart_service.get_cart_total(cart)
-    total = subtotal + shipping_cost
+    total = subtotal - discount_amount + shipping_cost
 
     order = Order(
         user_id=cart.user_id,
         order_number=_generate_order_number(),
         status='pending',
-        total_amount=total,
+        customer_name=customer_name,
+        customer_email=customer_email,
+        customer_phone=customer_phone,
+        shipping_address=shipping_address,
+        discount_code=discount_code,
+        discount_amount=discount_amount,
+        total_amount=max(total, 0),
         shipping_cost=shipping_cost,
     )
     db.session.add(order)

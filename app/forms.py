@@ -155,8 +155,36 @@ class ExperienceForm(FlaskForm):
 class CheckoutForm(FlaskForm):
     customer_name = StringField('Full Name', validators=[DataRequired(), Length(max=200)])
     customer_email = StringField('Email Address', validators=[DataRequired(), Email()])
+    customer_phone = StringField('Phone Number', validators=[DataRequired(), Length(max=30)])
     shipping_address = TextAreaField('Shipping Address', validators=[DataRequired()])
+    discount_code = StringField('Discount Code', validators=[Optional(), Length(max=50)])
     submit = SubmitField('Proceed to Payment')
+
+
+# ---------------------------------------------------------------------------
+# Profile / account update form
+# ---------------------------------------------------------------------------
+
+class ProfileUpdateForm(FlaskForm):
+    username = StringField('Display Name', validators=[DataRequired(), Length(min=2, max=80)])
+    phone = StringField('Phone Number', validators=[Optional(), Length(max=30)])
+    shipping_address = TextAreaField('Default Shipping Address', validators=[Optional()])
+    submit = SubmitField('Save Changes')
+
+
+# ---------------------------------------------------------------------------
+# Discount code form (admin quick create)
+# ---------------------------------------------------------------------------
+
+class DiscountCodeForm(FlaskForm):
+    code = StringField('Code', validators=[DataRequired(), Length(max=50)])
+    description = StringField('Description', validators=[Optional(), Length(max=255)])
+    discount_type = SelectField('Type', choices=[('percent', 'Percentage'), ('fixed', 'Fixed Amount')])
+    discount_value = DecimalField('Value', validators=[DataRequired(), NumberRange(min=0)], places=2)
+    min_order_amount = DecimalField('Min Order Amount', validators=[Optional(), NumberRange(min=0)], places=2)
+    max_uses = IntegerField('Max Uses (blank = unlimited)', validators=[Optional(), NumberRange(min=1)])
+    is_active = BooleanField('Active', default=True)
+    submit = SubmitField('Save')
 
 
 # ---------------------------------------------------------------------------

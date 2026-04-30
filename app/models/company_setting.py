@@ -11,6 +11,17 @@ class CompanySetting(db.Model):
     # ── Brand identity ───────────────────────────────────────────
     store_name = db.Column(db.String(200), nullable=False, default='The Bodhi Tree')
     tagline = db.Column(db.String(500), nullable=True, default='Enter the journey')
+    logo_filename = db.Column(db.String(500), nullable=True)
+
+    # ── Contact & social ─────────────────────────────────────────
+    contact_email = db.Column(db.String(200), nullable=True)
+    contact_phone = db.Column(db.String(30), nullable=True)
+    contact_address = db.Column(db.Text, nullable=True)
+    instagram_url = db.Column(db.String(500), nullable=True)
+    facebook_url = db.Column(db.String(500), nullable=True)
+
+    # ── Shipping cost (overrides config if set) ───────────────────
+    shipping_cost = db.Column(db.Numeric(10, 2), nullable=True)
 
     # ── Long-form text pages ──────────────────────────────────────
     about_text = db.Column(db.Text, nullable=True)
@@ -50,6 +61,12 @@ class CompanySetting(db.Model):
         return obj
 
     # ── Properties ───────────────────────────────────────────────
+
+    @property
+    def display_logo(self):
+        if self.logo_filename:
+            return f'/static/uploads/company/{self.logo_filename}'
+        return None
 
     @property
     def display_landing_video(self):

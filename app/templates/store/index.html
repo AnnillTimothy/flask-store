@@ -17,6 +17,69 @@
   <div class="store-hero-line"></div>
 </section>
 
+<!-- ── Featured Items ────────────────────────────────────────── -->
+{% if featured and not active_category %}
+<section class="store-featured-section" id="store-featured">
+  <div class="container">
+    <div class="store-featured-header store-reveal">
+      <span class="store-featured-eyebrow">Handpicked for you</span>
+      <h2 class="store-featured-title">Featured</h2>
+    </div>
+    <div class="store-featured-grid">
+      {% for product in featured %}
+      <div class="store-featured-item store-reveal" style="transition-delay:{{ loop.index0 * 0.08 }}s;">
+        <a href="{{ url_for('main.product_detail', slug=product.slug) }}" class="store-item-link">
+          <div class="store-featured-media">
+            <img src="{{ product.display_image }}" alt="{{ product.name }}" loading="lazy">
+            {% if product.is_on_sale %}
+            <span class="store-sale-badge">Sale</span>
+            {% endif %}
+          </div>
+          <div class="store-featured-meta">
+            {% if product.category %}<span class="store-item-cat">{{ product.category.name }}</span>{% endif %}
+            <h3 class="store-featured-name">{{ product.name }}</h3>
+            <div class="store-featured-price">
+              {% if product.is_on_sale %}
+              <span class="store-original-price">R{{ '%.2f'|format(product.price) }}</span>
+              <span class="store-sale-price">R{{ '%.2f'|format(product.sale_price) }}</span>
+              {% else %}
+              <span>R{{ '%.2f'|format(product.price) }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+        {% if product.stock > 0 %}
+        <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+          <input type="hidden" name="item_type" value="product">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit" class="store-add-btn" title="Add to cart">
+            <i class="bi bi-bag-plus"></i>
+          </button>
+        </form>
+        {% else %}
+        <span class="store-sold-out">Sold Out</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── GSAP Marquee Tagline ───────────────────────────────────── -->
+{% if company and company.store_wisdom_1 %}
+<div class="store-marquee-wrap" aria-hidden="true">
+  <div class="store-marquee" id="store-marquee">
+    {% for _ in range(4) %}
+    <span class="store-marquee-text">{{ company.store_wisdom_1 }}</span>
+    <span class="store-marquee-sep">✦</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
 <!-- ── Category Filter ───────────────────────────────────────── -->
 {% if categories %}
 <div class="store-filter-bar" id="store-filter-bar">
@@ -40,4 +103,26 @@
   {% include 'store/_products.html' %}
 </div>{# /store-products-area #}
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Marquee GSAP animation
+window.addEventListener('load', function () {
+  const marquee = document.getElementById('store-marquee');
+  if (!marquee || typeof gsap === 'undefined') return;
+  const totalWidth = marquee.scrollWidth / 2;
+  gsap.to(marquee, {
+    x: -totalWidth,
+    duration: 22,
+    ease: 'none',
+    repeat: -1,
+    modifiers: {
+      x: gsap.utils.unitize(function (x) {
+        return parseFloat(x) % totalWidth;
+      })
+    }
+  });
+});
+</script>
 {% endblock %}

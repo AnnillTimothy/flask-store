@@ -15,11 +15,23 @@ class Experience(db.Model):
     audio_filename = db.Column(db.String(500), nullable=True)
     image_filename = db.Column(db.String(500), nullable=True)
     bundle_id = db.Column(db.Integer, db.ForeignKey('bundles.id'), nullable=False)
+    is_featured = db.Column(db.Boolean, default=False, nullable=False)
+    sale_price = db.Column(db.Numeric(10, 2), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     bundle = db.relationship('Bundle', back_populates='experience', foreign_keys=[bundle_id])
     cart_items = db.relationship('CartItem', back_populates='experience', lazy='dynamic')
     order_items = db.relationship('OrderItem', back_populates='experience', lazy='dynamic')
+
+    @property
+    def display_price(self):
+        if self.sale_price is not None and self.sale_price < self.price:
+            return self.sale_price
+        return self.price
+
+    @property
+    def is_on_sale(self):
+        return self.sale_price is not None and self.sale_price < self.price
 
     @property
     def display_image(self):

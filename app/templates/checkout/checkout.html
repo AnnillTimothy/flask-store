@@ -42,6 +42,15 @@
               {% endfor %}
             </div>
 
+            <div class="mb-3">
+              <label class="form-label">Phone Number</label>
+              {{ form.customer_phone(class="form-control" + (" is-invalid" if form.customer_phone.errors else ""),
+                                     placeholder="+27 XX XXX XXXX") }}
+              {% for error in form.customer_phone.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+
             <div class="mb-4">
               <label class="form-label">Shipping Address</label>
               {{ form.shipping_address(class="form-control" + (" is-invalid" if form.shipping_address.errors else ""),
@@ -52,6 +61,22 @@
               {% endfor %}
             </div>
 
+            <!-- Discount Code -->
+            <div class="mb-4">
+              <label class="form-label">Discount Code <span class="text-muted small">(optional)</span></label>
+              <div class="input-group">
+                {{ form.discount_code(class="form-control", placeholder="Enter code",
+                                      id="discount-code-input",
+                                      style="text-transform:uppercase;") }}
+                <button type="button" class="btn-cinematic-ghost" id="apply-discount-btn"
+                        style="border-radius:0 6px 6px 0;padding:0.5rem 1rem;border-left:none;">
+                  Apply
+                </button>
+              </div>
+              <div id="discount-msg" class="mt-1" style="font-size:0.8rem;"></div>
+              <input type="hidden" id="discount-amount-input" name="applied_discount" value="0">
+            </div>
+
             <div class="glass-card p-3 mb-4" style="border-radius:8px;border-color:rgba(200,180,154,0.2);">
               <p style="color:var(--text-dim);font-size:0.84rem;margin:0;">
                 <i class="bi bi-shield-check me-2" style="color:var(--sand);"></i>
@@ -60,7 +85,7 @@
             </div>
 
             <button type="submit" class="btn-cinematic w-100" style="justify-content:center;" id="payBtn">
-              <i class="bi bi-lock"></i>&nbsp;Pay Now — R{{ '%.2f'|format(total) }}
+              <i class="bi bi-lock"></i>&nbsp;Pay Now — R<span id="total-display">{{ '%.2f'|format(total) }}</span>
             </button>
           </form>
         </div>
@@ -92,10 +117,15 @@
             <span><i class="bi bi-truck me-1"></i>Shipping</span>
             <span>R{{ '%.2f'|format(shipping) }}</span>
           </div>
+          <div class="d-flex justify-content-between mb-2" id="discount-row"
+               style="color:var(--sand);font-size:0.9rem;display:none!important;">
+            <span><i class="bi bi-tag me-1"></i>Discount</span>
+            <span id="discount-display">-R0.00</span>
+          </div>
           <hr style="border-color:var(--glass-border);">
           <div class="d-flex justify-content-between" style="font-size:1.2rem;">
             <span style="color:var(--text);font-weight:500;">Total</span>
-            <span style="color:var(--sand);font-family:var(--serif);font-weight:600;">R{{ '%.2f'|format(total) }}</span>
+            <span style="color:var(--sand);font-family:var(--serif);font-weight:600;">R<span id="summary-total">{{ '%.2f'|format(total) }}</span></span>
           </div>
         </div>
 
@@ -113,10 +143,52 @@
 
 {% block extra_js %}
 <script>
-document.getElementById('checkoutForm').addEventListener('submit', function() {
-  const btn = document.getElementById('payBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
-});
+(function () {
+  const subtotal = {{ subtotal }};
+  const shipping = {{ shipping }};
+  let discountAmount = 0;
+
+  function updateTotal() {
+    const total = Math.max(0, subtotal - discountAmount + shipping);
+    document.getElementById('total-display').textContent = total.toFixed(2);
+    document.getElementById('summary-total').textContent = total.toFixed(2);
+    const dr = document.getElementById('discount-row');
+    if (discountAmount > 0) {
+      dr.style.removeProperty('display');
+      document.getElementById('discount-display').textContent = '-R' + discountAmount.toFixed(2);
+    } else {
+      dr.style.display = 'none';
+    }
+    document.getElementById('discount-amount-input').value = discountAmount.toFixed(2);
+  }
+
+  document.getElementById('apply-discount-btn').addEventListener('click', function () {
+    const code = document.getElementById('discount-code-input').value.trim().toUpperCase();
+    const msgEl = document.getElementById('discount-msg');
+    if (!code) { msgEl.innerHTML = ''; return; }
+    fetch('/checkout/validate-discount', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({code})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.valid) {
+        discountAmount = data.discount_amount;
+        msgEl.innerHTML = '<span style="color:var(--sand);">✓ ' + data.message + '</span>';
+      } else {
+        discountAmount = 0;
+        msgEl.innerHTML = '<span style="color:#ef4444;">' + data.message + '</span>';
+      }
+      updateTotal();
+    });
+  });
+
+  document.getElementById('checkoutForm').addEventListener('submit', function () {
+    const btn = document.getElementById('payBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
+  });
+})();
 </script>
 {% endblock %}
