@@ -8,17 +8,29 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     order_number = db.Column(db.String(32), unique=True, nullable=False)
+    # Customer info captured at checkout (available even for guest orders)
+    customer_name = db.Column(db.String(200), nullable=True)
+    customer_email = db.Column(db.String(200), nullable=True)
+    customer_phone = db.Column(db.String(30), nullable=True)
+    shipping_address = db.Column(db.Text, nullable=True)
+    discount_code = db.Column(db.String(50), nullable=True)
+    discount_amount = db.Column(db.Numeric(10, 2), default=0, nullable=False)
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     shipping_cost = db.Column(db.Numeric(10, 2), default=150.00, nullable=False)
     status = db.Column(db.String(30), default='pending', nullable=False)
     payment_reference = db.Column(db.String(100), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     items = db.relationship('OrderItem', back_populates='order', lazy='dynamic',
                             cascade='all, delete-orphan')
     shipping_record = db.relationship('ShippingRecord', back_populates='order', uselist=False)
 
-    STATUS_CHOICES = ['pending', 'paid', 'shipped', 'cancelled']
+    STATUS_CHOICES = [
+        'pending', 'paid', 'processing', 'waiting_supplier',
+        'in_progress', 'packed', 'shipped', 'item_with_courier',
+        'delivered', 'cancelled', 'refunded',
+    ]
 
     @property
     def subtotal(self):

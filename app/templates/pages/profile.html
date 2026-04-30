@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}My Account — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="page-padded">
+  <div class="container" style="max-width:900px;">
+    <h2 class="section-title text-center mb-2"><i class="bi bi-person-circle" style="font-size:0.7em;"></i>&nbsp;My Account</h2>
+    <p class="text-center text-muted mb-5 small">Manage your details and track your orders.</p>
+
+    <div class="row g-4">
+      <!-- Profile details -->
+      <div class="col-lg-4">
+        <div class="glass-card p-4" style="border-radius:12px;">
+          <h5 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1.5rem;">
+            <i class="bi bi-person me-2"></i>Profile
+          </h5>
+          <form method="post">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+              <label class="form-label small">Display Name</label>
+              {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
+              {% for e in form.username.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Email</label>
+              <input type="email" class="form-control" value="{{ current_user.email }}" disabled>
+              <div class="form-text" style="color:var(--text-ghost);font-size:0.72rem;">Email cannot be changed.</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Phone Number</label>
+              {{ form.phone(class="form-control", placeholder="+27 XX XXX XXXX") }}
+            </div>
+            <div class="mb-4">
+              <label class="form-label small">Default Shipping Address</label>
+              {{ form.shipping_address(class="form-control", rows=3,
+                                      placeholder="Street, City, Province, Postal code") }}
+            </div>
+            <button type="submit" class="btn-cinematic w-100" style="justify-content:center;">
+              <i class="bi bi-floppy me-1"></i>Save Changes
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Order history -->
+      <div class="col-lg-8">
+        <div class="glass-card p-4" style="border-radius:12px;">
+          <h5 style="font-family:var(--serif);font-weight:400;color:var(--text);margin-bottom:1.5rem;">
+            <i class="bi bi-receipt me-2"></i>Order History
+          </h5>
+
+          {% if orders %}
+          <div class="table-responsive">
+            <table class="table" style="color:var(--text-dim);font-size:0.85rem;">
+              <thead>
+                <tr style="border-color:var(--glass-border);">
+                  <th style="color:var(--text-ghost);font-weight:500;">Order #</th>
+                  <th style="color:var(--text-ghost);font-weight:500;">Date</th>
+                  <th style="color:var(--text-ghost);font-weight:500;">Total</th>
+                  <th style="color:var(--text-ghost);font-weight:500;">Status</th>
+                  <th style="color:var(--text-ghost);font-weight:500;">Items</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in orders %}
+                <tr style="border-color:var(--glass-border);">
+                  <td><strong style="color:var(--text);">{{ order.order_number }}</strong></td>
+                  <td>{{ order.created_at.strftime('%d %b %Y') }}</td>
+                  <td style="color:var(--sand);font-family:var(--serif);">R{{ '%.2f'|format(order.total_amount) }}</td>
+                  <td>
+                    <span class="order-status order-status--{{ order.status }}">
+                      {{ order.status.replace('_', ' ').capitalize() }}
+                    </span>
+                  </td>
+                  <td>
+                    {% for item in order.items %}
+                    <div style="font-size:0.78rem;">{{ item.item_name }} ×{{ item.quantity }}</div>
+                    {% endfor %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-bag-x" style="font-size:2.5rem;color:var(--text-ghost);"></i>
+            <p class="mt-3" style="color:var(--text-dim);">You haven't placed any orders yet.</p>
+            <a href="{{ url_for('main.store') }}" class="btn-cinematic" style="margin-top:0.5rem;">
+              Start Shopping <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

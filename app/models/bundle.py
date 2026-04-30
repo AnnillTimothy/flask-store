@@ -12,6 +12,8 @@ class Bundle(db.Model):
     tagline = db.Column(db.String(255), nullable=True)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     image_url = db.Column(db.String(500), nullable=True)
+    is_featured = db.Column(db.Boolean, default=False, nullable=False)
+    sale_price = db.Column(db.Numeric(10, 2), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     items = db.relationship('BundleItem', back_populates='bundle', lazy='dynamic',
@@ -19,6 +21,16 @@ class Bundle(db.Model):
     experience = db.relationship('Experience', back_populates='bundle', uselist=False)
     cart_items = db.relationship('CartItem', back_populates='bundle', lazy='dynamic')
     order_items = db.relationship('OrderItem', back_populates='bundle', lazy='dynamic')
+
+    @property
+    def display_price(self):
+        if self.sale_price is not None and self.sale_price < self.price:
+            return self.sale_price
+        return self.price
+
+    @property
+    def is_on_sale(self):
+        return self.sale_price is not None and self.sale_price < self.price
 
     @property
     def display_image(self):

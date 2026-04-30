@@ -16,11 +16,19 @@
     </div>
     <div class="adm-stat yellow">
       <span class="adm-stat-value">{{ stats.pending_orders }}</span>
-      <span class="adm-stat-label">Pending Orders</span>
+      <span class="adm-stat-label">Pending (unpaid)</span>
     </div>
     <div class="adm-stat green">
       <span class="adm-stat-value">{{ stats.paid_orders }}</span>
-      <span class="adm-stat-label">Paid Orders</span>
+      <span class="adm-stat-label">Paid / To Fulfil</span>
+    </div>
+    <div class="adm-stat yellow">
+      <span class="adm-stat-value">{{ stats.processing_orders }}</span>
+      <span class="adm-stat-label">Processing / In Progress</span>
+    </div>
+    <div class="adm-stat green">
+      <span class="adm-stat-value">{{ stats.shipped_orders }}</span>
+      <span class="adm-stat-label">Shipped / With Courier</span>
     </div>
     <div class="adm-stat">
       <span class="adm-stat-value">{{ stats.products }}</span>
@@ -36,8 +44,51 @@
     </div>
   </div>
 
+  {# ── Outstanding Orders ── #}
+  {% if outstanding %}
+  <h2 class="adm-section-title" style="margin-top:2rem;">Outstanding Orders — Needs Attention</h2>
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in outstanding %}
+        <tr>
+          <td><strong>{{ order.order_number }}</strong></td>
+          <td>
+            <div>{{ order.customer_name or '—' }}</div>
+            <div style="font-size:0.75rem;color:#888;">{{ order.customer_email or '' }}</div>
+          </td>
+          <td>{{ order.customer_phone or '—' }}</td>
+          <td>
+            <span class="adm-status adm-status--{{ order.status }}">
+              {{ order.status.replace('_',' ').capitalize() }}
+            </span>
+          </td>
+          <td>R{{ '%.2f'|format(order.total_amount) }}</td>
+          <td style="font-size:0.78rem;color:#888;">{{ order.created_at.strftime('%d %b %Y') }}</td>
+          <td>
+            <a href="{{ url_for('order.edit_view', id=order.id) }}"
+               class="adm-btn-sm">Update</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
   {# ── Revenue Summary ── #}
-  <h2 class="adm-section-title">Revenue — All Time</h2>
+  <h2 class="adm-section-title" style="margin-top:2rem;">Revenue — All Time</h2>
   <div class="adm-revenue-grid">
     <div class="adm-revenue-item">
       <div class="adm-revenue-label">Gross Revenue</div>
@@ -79,6 +130,10 @@
     <a href="{{ url_for('bundle.create_view') }}" class="adm-quick-link">
       <i class="bi bi-plus-circle"></i>
       <span>New Bundle</span>
+    </a>
+    <a href="{{ url_for('discount_codes.create_view') }}" class="adm-quick-link">
+      <i class="bi bi-tag"></i>
+      <span>New Discount Code</span>
     </a>
     <a href="{{ url_for('order.index_view') }}" class="adm-quick-link">
       <i class="bi bi-receipt"></i>

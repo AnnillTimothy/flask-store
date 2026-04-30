@@ -710,4 +710,102 @@ document.addEventListener('DOMContentLoaded', () => {
   initStoreCategoryFilter();
   initCookieConsent();
   initEmailPopup();
+  initAiOrb();
 });
+
+// ── AI Magic Orb & Chat ─────────────────────────────────────────
+function initAiOrb() {
+  const orbBtn = document.getElementById('ai-orb-btn');
+  const chatPopup = document.getElementById('ai-chat-popup');
+  const closeBtn = document.getElementById('ai-chat-close');
+  const input = document.getElementById('ai-chat-input');
+  const sendBtn = document.getElementById('ai-chat-send');
+  const messagesEl = document.getElementById('ai-chat-messages');
+
+  if (!orbBtn || !chatPopup) return;
+
+  // GSAP floating animation
+  if (typeof gsap !== 'undefined') {
+    gsap.to(orbBtn, {
+      y: -8,
+      duration: 2.4,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
+    });
+  }
+
+  let history = [];
+  let isOpen = false;
+
+  function openChat() {
+    chatPopup.style.display = 'block';
+    if (typeof gsap !== 'undefined') {
+      gsap.from(chatPopup, { opacity: 0, y: 16, duration: 0.3, ease: 'power2.out' });
+    }
+    isOpen = true;
+    input.focus();
+  }
+
+  function closeChat() {
+    if (typeof gsap !== 'undefined') {
+      gsap.to(chatPopup, {
+        opacity: 0, y: 16, duration: 0.2, ease: 'power2.in',
+        onComplete: () => { chatPopup.style.display = 'none'; chatPopup.style.opacity = 1; }
+      });
+    } else {
+      chatPopup.style.display = 'none';
+    }
+    isOpen = false;
+  }
+
+  orbBtn.addEventListener('click', () => isOpen ? closeChat() : openChat());
+  closeBtn.addEventListener('click', closeChat);
+
+  function appendMsg(text, role) {
+    const div = document.createElement('div');
+    div.className = 'ai-chat-msg ai-chat-msg--' + (role === 'user' ? 'user' : 'bot');
+    div.innerHTML = '<p>' + text.replace(/\n/g, '<br>') + '</p>';
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text || sendBtn.disabled) return;
+    input.value = '';
+    sendBtn.disabled = true;
+
+    appendMsg(text, 'user');
+    history.push({ role: 'user', content: text });
+
+    const typing = appendMsg('…', 'bot');
+    typing.classList.add('ai-chat-msg--typing');
+
+    try {
+      const res = await fetch('/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history }),
+      });
+      const data = await res.json();
+      typing.remove();
+      const reply = data.reply || 'Something went wrong. Please try again.';
+      appendMsg(reply, 'bot');
+      history.push({ role: 'assistant', content: reply });
+      if (history.length > 20) history = history.slice(-16);
+    } catch {
+      typing.remove();
+      appendMsg('A moment of stillness… please try again shortly. 🌿', 'bot');
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+}
