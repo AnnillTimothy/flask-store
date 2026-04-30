@@ -765,7 +765,16 @@ function initAiOrb() {
   function appendMsg(text, role) {
     const div = document.createElement('div');
     div.className = 'ai-chat-msg ai-chat-msg--' + (role === 'user' ? 'user' : 'bot');
-    div.innerHTML = '<p>' + text.replace(/\n/g, '<br>') + '</p>';
+    // Safely escape text then convert newlines to <br>
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/\n/g, '<br>');
+    const p = document.createElement('p');
+    p.innerHTML = escaped;
+    div.appendChild(p);
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
     return div;

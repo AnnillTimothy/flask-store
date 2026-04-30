@@ -212,12 +212,29 @@ def ai_chat():
         from app.models.experience import Experience
         from app.models.category import Category
         from app.models.company_setting import CompanySetting
+        from app.models.discount_code import DiscountCode
 
         cs = CompanySetting.get()
         store_name = cs.store_name or 'The Bodhi Tree'
         products = Product.query.filter(Product.stock > 0).order_by(Product.name).all()
         experiences = Experience.query.order_by(Experience.name).all()
         categories = Category.query.order_by(Category.name).all()
+
+        # Active, unexpired discount codes the AI can mention
+        from datetime import datetime, timezone
+        active_codes = DiscountCode.query.filter_by(is_active=True).all()
+        valid_codes = [
+            dc for dc in active_codes
+            if dc.expires_at is None or dc.expires_at > datetime.now(timezone.utc)
+        ]
+        if valid_codes:
+            code_lines = '\n'.join(
+                f"- {dc.code}: {dc}" + (f" (min R{dc.min_order_amount:.0f})" if dc.min_order_amount else "")
+                for dc in valid_codes[:5]
+            )
+            discount_note = f"AVAILABLE DISCOUNT CODES (share when helpful):\n{code_lines}"
+        else:
+            discount_note = "No active discount codes at this time."
 
         cat_list = ', '.join(c.name for c in categories) if categories else 'Various'
         prod_lines = []
@@ -262,7 +279,8 @@ KEY PAGES:
 - About: /about
 - Contact: /contact
 
-DISCOUNT CODES: You may mention that first-time newsletter subscribers receive WELCOME10 for 10% off. Do not make up other codes.
+DISCOUNT CODES:
+{discount_note}
 
 Always provide specific product names and prices when relevant. If asked about something not in stock, suggest alternatives.
 Keep responses concise — 2-4 sentences unless more detail is genuinely needed. Use a gentle, flowing conversational style."""
