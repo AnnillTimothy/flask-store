@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found — {{ store_name }}{% endblock %}
+{% block meta_description %}The page you're looking for doesn't exist. Return to the {{ store_name }} store.{% endblock %}
+
+{% block content %}
+<div class="page-padded">
+  <div class="container text-center">
+    <div class="mb-4" style="font-family:var(--serif);font-size:8rem;line-height:1;color:var(--sand);opacity:0.25;font-weight:300;">
+      404
+    </div>
+    <h2 class="section-title mb-2">Page Not Found</h2>
+    <p style="color:var(--text-dim);font-size:1rem;max-width:480px;margin:0 auto 2rem;">
+      The page you're looking for seems to have wandered off the path. Let us guide you back.
+    </p>
+
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{{ url_for('main.index') }}" class="btn-cinematic">
+        <i class="bi bi-house"></i>&nbsp;Home
+      </a>
+      <a href="{{ url_for('main.store') }}" class="btn-cinematic-ghost">
+        <i class="bi bi-grid"></i>&nbsp;Browse Store
+      </a>
+      <a href="{{ url_for('main.experiences') }}" class="btn-cinematic-ghost">
+        <i class="bi bi-stars"></i>&nbsp;Experiences
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

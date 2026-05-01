@@ -1,5 +1,27 @@
 {% extends "base.html" %}
 {% block title %}{{ experience.name }} — {{ store_name }}{% endblock %}
+{% block meta_description %}{{ (experience.description or '') | truncate(155, true, '…') or experience.name ~ ' — an immersive experience from ' ~ store_name }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% if experience.display_image %}{% block og_image %}<meta property="og:image" content="{{ request.host_url.rstrip('/') }}{{ experience.display_image }}">{% endblock %}{% endif %}
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": {{ (experience.name ~ ' Experience') | tojson }},
+  "description": {{ (experience.description or '') | truncate(200) | tojson }},
+  "url": "{{ request.url }}",
+  {% if experience.display_image %}"image": "{{ request.host_url.rstrip('/') }}{{ experience.display_image }}",{% endif %}
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "ZAR",
+    "price": "{{ '%.2f'|format(experience.display_price|float) }}",
+    "availability": "https://schema.org/InStock",
+    "seller": { "@type": "Organization", "name": {{ store_name | tojson }} }
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <!-- ============================================================

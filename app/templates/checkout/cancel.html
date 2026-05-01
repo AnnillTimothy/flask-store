@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Payment Cancelled — {{ store_name }}{% endblock %}
+{% block meta_description %}Your payment was cancelled. No charges were made. Return to our store and continue shopping.{% endblock %}
+
+{% block content %}
+<div class="page-padded">
+  <div class="container text-center">
+    <div class="mb-4">
+      <i class="bi bi-x-circle-fill" style="font-size:4rem;color:#f87171;"></i>
+    </div>
+    <h2 class="section-title mb-2">Payment Cancelled</h2>
+    <p style="color:var(--text-dim);font-size:1rem;">
+      Your payment was cancelled and <strong>no charges</strong> were made to your account.
+      Your cart has been cleared. Please feel free to shop again whenever you're ready.
+    </p>
+
+    <div class="glass-card mx-auto mt-4 p-4" style="max-width:480px;border-radius:12px;">
+      <p style="color:var(--text-dim);margin-bottom:0.5rem;">Need help? Our team is here for you.</p>
+      {% if company and company.contact_email %}
+      <a href="mailto:{{ company.contact_email }}" style="color:var(--sand);">
+        <i class="bi bi-envelope me-1"></i>{{ company.contact_email }}
+      </a>
+      {% else %}
+      <p style="color:var(--text-ghost);font-size:0.9rem;">Contact us via the Contact page.</p>
+      {% endif %}
+    </div>
+
+    <div class="mt-4 d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{{ url_for('main.store') }}" class="btn-cinematic">
+        <i class="bi bi-grid"></i>&nbsp;Back to Store
+      </a>
+      <a href="{{ url_for('main.index') }}" class="btn-cinematic-ghost">
+        <i class="bi bi-house"></i>&nbsp;Home
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

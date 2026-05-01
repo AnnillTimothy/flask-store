@@ -4,6 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}{{ store_name }}{% endblock %}</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="{% block meta_description %}{{ tagline }} — {{ store_name }}: premium products, curated bundles and immersive experiences delivered across South Africa.{% endblock %}">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{% block canonical %}{{ request.url }}{% endblock %}">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:site_name" content="{{ store_name }}">
+  <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ self.meta_description() }}{% endblock %}">
+  <meta property="og:url" content="{{ request.url }}">
+  {% block og_image %}<meta property="og:image" content="{{ request.host_url }}static/images/og-default.jpg">{% endblock %}
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ self.og_title() }}">
+  <meta name="twitter:description" content="{{ self.og_description() }}">
+  {% block twitter_image %}<meta name="twitter:image" content="{{ request.host_url }}static/images/og-default.jpg">{% endblock %}
+  {% if company and company.twitter_url %}
+  {% set _handle = company.twitter_url.rstrip('/').split('/')[-1] %}
+  <meta name="twitter:site" content="@{{ _handle.lstrip('@') }}">
+  {% endif %}
+
+  <!-- Structured Data (JSON-LD) -->
+  {% block structured_data %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "OnlineStore",
+    "name": "{{ store_name }}",
+    "description": "{{ tagline }}",
+    "url": "{{ request.host_url }}",
+    {% if company and company.contact_email %}"email": "{{ company.contact_email }}",{% endif %}
+    {% if company and company.contact_phone %}"telephone": "{{ company.contact_phone }}",{% endif %}
+    "sameAs": [
+      {% if company and company.instagram_url %}"{{ company.instagram_url }}"{% endif %}
+      {% if company and company.twitter_url %}{% if company.instagram_url %},{% endif %}"{{ company.twitter_url }}"{% endif %}
+      {% if company and company.facebook_url %}{% if company.instagram_url or company.twitter_url %},{% endif %}"{{ company.facebook_url }}"{% endif %}
+    ]
+  }
+  </script>
+  {% endblock %}
+
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
@@ -176,6 +220,12 @@
           <a href="{{ company.instagram_url }}" target="_blank" rel="noopener"
              style="color:var(--text-ghost);font-size:1.1rem;" aria-label="Instagram">
             <i class="bi bi-instagram"></i>
+          </a>
+          {% endif %}
+          {% if company and company.twitter_url %}
+          <a href="{{ company.twitter_url }}" target="_blank" rel="noopener"
+             style="color:var(--text-ghost);font-size:1.1rem;" aria-label="X (Twitter)">
+            <i class="bi bi-twitter-x"></i>
           </a>
           {% endif %}
           {% if company and company.facebook_url %}

@@ -14,11 +14,11 @@
     <!-- Category filter pills -->
     {% if categories %}
     <div class="text-center mb-5">
-      <a href="{{ url_for('main.products') }}"
+      <a href="{{ url_for('main.store') }}"
          class="btn {% if not active_category %}btn-bodhi-sm{% else %}btn-bodhi-outline{% endif %} me-1 mb-1"
          style="font-size:0.7rem;">All</a>
       {% for cat in categories %}
-      <a href="{{ url_for('main.products', category=cat.slug) }}"
+      <a href="{{ url_for('main.store', category=cat.slug) }}"
          class="btn {% if active_category and active_category.id == cat.id %}btn-bodhi-sm{% else %}btn-bodhi-outline{% endif %} me-1 mb-1"
          style="font-size:0.7rem;">{{ cat.name }}</a>
       {% endfor %}
@@ -71,7 +71,7 @@
     <div class="text-center py-5">
       <i class="bi bi-inbox" style="font-size:3rem;color:var(--text-ghost);"></i>
       <p class="mt-3 text-muted">No products found in this category.</p>
-      <a href="{{ url_for('main.products') }}" class="btn-cinematic-ghost">View All Products</a>
+      <a href="{{ url_for('main.store') }}" class="btn-cinematic-ghost">View All Products</a>
     </div>
     {% endif %}
   </div>

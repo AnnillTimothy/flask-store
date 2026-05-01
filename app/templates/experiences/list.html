@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Experiences — {{ store_name }}{% endblock %}
+{% block meta_description %}Discover immersive experiences from {{ store_name }}. Curated sensory journeys delivered across South Africa.{% endblock %}
+{% block canonical %}{{ request.host_url.rstrip('/') }}{{ url_for('main.experiences') }}{% endblock %}
 
 {% block content %}
 <section class="section-featured page-padded">
