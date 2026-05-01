@@ -8,8 +8,8 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "{{ experience.name }} Experience",
-  "description": "{{ (experience.description or '') | replace('"', '\\"') | truncate(200) }}",
+  "name": {{ (experience.name ~ ' Experience') | tojson }},
+  "description": {{ (experience.description or '') | truncate(200) | tojson }},
   "url": "{{ request.url }}",
   {% if experience.display_image %}"image": "{{ request.host_url.rstrip('/') }}{{ experience.display_image }}",{% endif %}
   "offers": {
@@ -17,7 +17,7 @@
     "priceCurrency": "ZAR",
     "price": "{{ '%.2f'|format(experience.display_price|float) }}",
     "availability": "https://schema.org/InStock",
-    "seller": { "@type": "Organization", "name": "{{ store_name }}" }
+    "seller": { "@type": "Organization", "name": {{ store_name | tojson }} }
   }
 }
 </script>

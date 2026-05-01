@@ -24,7 +24,8 @@
   <meta name="twitter:description" content="{{ self.og_description() }}">
   {% block twitter_image %}<meta name="twitter:image" content="{{ request.host_url }}static/images/og-default.jpg">{% endblock %}
   {% if company and company.twitter_url %}
-  <meta name="twitter:site" content="{{ company.twitter_url.rstrip('/').split('/')[-1] if '/' in company.twitter_url else company.twitter_url }}">
+  {% set _handle = company.twitter_url.rstrip('/').split('/')[-1] %}
+  <meta name="twitter:site" content="@{{ _handle.lstrip('@') }}">
   {% endif %}
 
   <!-- Structured Data (JSON-LD) -->

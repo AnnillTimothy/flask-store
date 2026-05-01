@@ -8,8 +8,8 @@
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "{{ product.name }}",
-  "description": "{{ (product.description or '') | replace('"', '\\"') | truncate(200) }}",
+  "name": {{ product.name | tojson }},
+  "description": {{ (product.description or '') | truncate(200) | tojson }},
   "url": "{{ request.url }}",
   {% if product.display_image %}"image": "{{ request.host_url.rstrip('/') }}{{ product.display_image }}",{% endif %}
   "offers": {
@@ -17,7 +17,7 @@
     "priceCurrency": "ZAR",
     "price": "{{ '%.2f'|format(product.display_price|float) }}",
     "availability": "{% if product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
-    "seller": { "@type": "Organization", "name": "{{ store_name }}" }
+    "seller": { "@type": "Organization", "name": {{ store_name | tojson }} }
   }
 }
 </script>
