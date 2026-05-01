@@ -210,5 +210,4 @@ def payment_cancel():
         if order and order.status == 'pending':
             order.status = 'cancelled'
             db.session.commit()
-    flash('Payment was cancelled. Your order has been cancelled.', 'warning')
-    return redirect(url_for('main.index'))
+    return render_template('checkout/cancel.html')

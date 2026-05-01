@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Server Error — {{ store_name }}{% endblock %}
+{% block meta_description %}Something went wrong on our end. Our team has been notified. Please try again shortly.{% endblock %}
+
+{% block content %}
+<div class="page-padded">
+  <div class="container text-center">
+    <div class="mb-4" style="font-family:var(--serif);font-size:8rem;line-height:1;color:var(--sand);opacity:0.25;font-weight:300;">
+      500
+    </div>
+    <h2 class="section-title mb-2">Something Went Wrong</h2>
+    <p style="color:var(--text-dim);font-size:1rem;max-width:480px;margin:0 auto 2rem;">
+      We're experiencing a technical issue on our end. Our team has been notified.
+      Please try again in a moment.
+    </p>
+
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{{ url_for('main.index') }}" class="btn-cinematic">
+        <i class="bi bi-house"></i>&nbsp;Home
+      </a>
+      <a href="{{ url_for('main.store') }}" class="btn-cinematic-ghost">
+        <i class="bi bi-grid"></i>&nbsp;Browse Store
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

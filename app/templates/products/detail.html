@@ -1,5 +1,27 @@
 {% extends "base.html" %}
 {% block title %}{{ product.name }} — {{ store_name }}{% endblock %}
+{% block meta_description %}{{ (product.description or '') | truncate(155, true, '…') or product.name ~ ' — available at ' ~ store_name }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% if product.display_image %}{% block og_image %}<meta property="og:image" content="{{ request.host_url.rstrip('/') }}{{ product.display_image }}">{% endblock %}{% endif %}
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "description": "{{ (product.description or '') | replace('"', '\\"') | truncate(200) }}",
+  "url": "{{ request.url }}",
+  {% if product.display_image %}"image": "{{ request.host_url.rstrip('/') }}{{ product.display_image }}",{% endif %}
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "ZAR",
+    "price": "{{ '%.2f'|format(product.display_price|float) }}",
+    "availability": "{% if product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+    "seller": { "@type": "Organization", "name": "{{ store_name }}" }
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="page-padded">
@@ -7,10 +29,10 @@
     <nav aria-label="breadcrumb" class="mb-4">
       <ol class="breadcrumb" style="font-size:0.78rem;">
         <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" style="color:var(--text-dim);text-decoration:none;">Home</a></li>
-        <li class="breadcrumb-item"><a href="{{ url_for('main.products') }}" style="color:var(--text-dim);text-decoration:none;">Products</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('main.store') }}" style="color:var(--text-dim);text-decoration:none;">Products</a></li>
         {% if product.category %}
         <li class="breadcrumb-item">
-          <a href="{{ url_for('main.products', category=product.category.slug) }}" style="color:var(--text-dim);text-decoration:none;">
+          <a href="{{ url_for('main.store', category=product.category.slug) }}" style="color:var(--text-dim);text-decoration:none;">
             {{ product.category.name }}
           </a>
         </li>
@@ -98,7 +120,7 @@
         {% endif %}
 
         <hr style="border-color:var(--glass-border);margin:2rem 0;">
-        <a href="{{ url_for('main.products') }}" class="btn-cinematic-ghost">
+        <a href="{{ url_for('main.store') }}" class="btn-cinematic-ghost">
           <i class="bi bi-arrow-left"></i>&nbsp;Continue Shopping
         </a>
       </div>

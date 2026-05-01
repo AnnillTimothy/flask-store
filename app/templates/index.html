@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ store_name }} — {{ tagline }}{% endblock %}
+{% block meta_description %}{{ store_name }}: {{ tagline }}. Discover premium products, curated bundles and immersive experiences delivered across South Africa.{% endblock %}
+{% block canonical %}{{ request.host_url.rstrip('/') }}/{% endblock %}
 {% block body_class %}page-immersive{% endblock %}
 
 {% block content %}

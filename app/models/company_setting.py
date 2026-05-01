@@ -19,6 +19,7 @@ class CompanySetting(db.Model):
     contact_address = db.Column(db.Text, nullable=True)
     instagram_url = db.Column(db.String(500), nullable=True)
     facebook_url = db.Column(db.String(500), nullable=True)
+    twitter_url = db.Column(db.String(500), nullable=True)
 
     # ── Shipping cost (overrides config if set) ───────────────────
     shipping_cost = db.Column(db.Numeric(10, 2), nullable=True)

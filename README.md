@@ -1,35 +1,51 @@
-# Flask Store
+# Flask Store — The Bodhi Tree
 
-A production-ready Flask ecommerce application with product management, bundles, cart, checkout via PayFast, and a full admin panel.
+A production-ready Flask e-commerce application with product management, bundles, experiences, discount codes, AI chat, cart, PayFast checkout, email notifications, and a full admin panel.
 
 ## Features
 
-- 🛒 Product catalogue with category filtering
-- 📦 Product bundles with savings display
-- 🛍️ Shopping cart (supports guests via session and logged-in users)
-- 💳 PayFast payment integration (South African gateway)
-- 👤 User authentication (register / login / logout)
-- 🔧 Flask-Admin panel with:
-  - Product, bundle, category, supplier management
-  - Order and shipping management
+- 🛒 **Product catalogue** with category filtering, featured products, and sale prices
+- 📦 **Bundles** with inline item editing and savings display
+- ✨ **Experiences** — immersive, full-screen experience pages with video/audio backgrounds
+- 🎁 **Discount codes** — percentage or fixed, with expiry, usage limits, and minimum order amounts
+- 🛍️ **Shopping cart** — supports guests (session) and logged-in users
+- 💳 **PayFast payment integration** (South African gateway) with ITN notify, success, and cancel flows
+- 👤 **User authentication** — register / login / logout / profile with order history
+- 📧 **Flask-Mail** — newsletter subscribe with welcome email, admin notification on new subscribers
+- 🤖 **Mistral AI** — Bodhi AI guide orb powered by Mistral, with full store context (products, prices, experiences, discount codes)
+- 🔍 **SEO** — meta description, Open Graph, Twitter Card, JSON-LD structured data (OnlineStore, Product) on all key pages
+- 🏢 **Company Settings** — single-row admin config for store name, tagline, social links (Instagram, X/Twitter, Facebook), contact info, landing video/audio, shipping cost, about/privacy/terms text
+- 🔧 **Flask-Admin panel** with:
+  - Product, bundle, bundle items, category, supplier management
+  - Experience management with video/image/audio uploads
+  - Order management with status workflow (11 statuses)
+  - Discount code management
+  - Shipping management and report
+  - Expense tracking
   - Revenue report
   - Supplier payout report
-  - Shipping report
-  - Expense tracking
+  - Company settings (branding, social URLs, uploads)
+- 🚨 **Custom error pages** — 404 and 500 with on-brand design
+- 🎂 **Age verification gate** (18+) with localStorage persistence
+- 🍪 **Cookie consent banner**
+- 💌 **Email popup** with newsletter signup and 10% discount welcome email
 
 ## Tech Stack
 
-| Layer       | Technology                      |
-|-------------|----------------------------------|
-| Framework   | Flask 2.3                        |
-| ORM         | SQLAlchemy / Flask-SQLAlchemy    |
-| Auth        | Flask-Login                      |
-| Migrations  | Flask-Migrate (Alembic)          |
-| Admin       | Flask-Admin 1.6                  |
-| Forms       | Flask-WTF / WTForms              |
-| Frontend    | Bootstrap 5 (CDN)                |
-| Payments    | PayFast                          |
-| DB (dev)    | SQLite (configurable via env)    |
+| Layer       | Technology                          |
+|-------------|--------------------------------------|
+| Framework   | Flask 3.x                            |
+| ORM         | SQLAlchemy / Flask-SQLAlchemy        |
+| Auth        | Flask-Login                          |
+| Migrations  | Flask-Migrate (Alembic)              |
+| Admin       | Flask-Admin 1.6                      |
+| Forms       | Flask-WTF / WTForms                  |
+| Email       | Flask-Mail                           |
+| AI          | Mistral AI API (`mistral-small-latest`) |
+| Frontend    | Bootstrap 5 (CDN), GSAP 3            |
+| Payments    | PayFast                              |
+| DB (dev)    | SQLite (configurable via env)        |
+| Production  | Gunicorn + PostgreSQL/MySQL          |
 
 ## Quick Start
 
@@ -45,18 +61,16 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# Edit .env and set SECRET_KEY etc.
+# Edit .env — set SECRET_KEY, MAIL credentials, MISTRAL_API_KEY, and PayFast details
 ```
 
 ### 3. Initialise the database
 
 ```bash
-flask db init
-flask db migrate -m "initial migration"
 flask db upgrade
 ```
 
-### 4. Seed demo data
+### 4. Seed demo data (optional)
 
 ```bash
 python seed_data.py
@@ -70,21 +84,32 @@ python run.py
 
 Open [http://localhost:5000](http://localhost:5000) in your browser.
 
-Admin panel: [http://localhost:5000/admin](http://localhost:5000/admin)
-Login: `admin@store.com` / `admin123`
+Admin panel: [http://localhost:5000/admin](http://localhost:5000/admin)  
+Default seed login: `admin@store.com` / `admin123`
 
 ---
 
 ## Environment Variables
 
-| Variable              | Description                              | Default                  |
-|-----------------------|------------------------------------------|--------------------------|
-| `SECRET_KEY`          | Flask secret key                         | `dev-secret-key-…`       |
-| `DATABASE_URL`        | SQLAlchemy DB URI                        | `sqlite:///store.db`     |
-| `PAYFAST_MERCHANT_ID` | Your PayFast merchant ID                 | `10000100` (sandbox)     |
-| `PAYFAST_MERCHANT_KEY`| Your PayFast merchant key                | `46f0cd694581a` (sandbox)|
-| `PAYFAST_PASSPHRASE`  | PayFast passphrase (optional)            | *(empty)*                |
-| `PAYFAST_SANDBOX`     | `True` for sandbox, `False` for live     | `True`                   |
+| Variable               | Description                                        | Default                    |
+|------------------------|----------------------------------------------------|----------------------------|
+| `SECRET_KEY`           | Flask secret key                                   | `dev-secret-key-…`         |
+| `DATABASE_URL`         | SQLAlchemy DB URI                                  | `sqlite:///store.db`       |
+| `PAYFAST_MERCHANT_ID`  | Your PayFast merchant ID                           | `10000100` (sandbox)       |
+| `PAYFAST_MERCHANT_KEY` | Your PayFast merchant key                          | `46f0cd694581a` (sandbox)  |
+| `PAYFAST_PASSPHRASE`   | PayFast passphrase (optional)                      | *(empty)*                  |
+| `PAYFAST_SANDBOX`      | `True` for sandbox, `False` for live              | `True`                     |
+| `MAIL_SERVER`          | SMTP server hostname                               | `smtp.gmail.com`           |
+| `MAIL_PORT`            | SMTP port                                          | `587`                      |
+| `MAIL_USE_TLS`         | Enable TLS                                         | `True`                     |
+| `MAIL_USERNAME`        | SMTP username (your email address)                 | *(empty)*                  |
+| `MAIL_PASSWORD`        | SMTP password / app password                       | *(empty)*                  |
+| `MAIL_DEFAULT_SENDER`  | From address for outgoing emails                   | *(empty)*                  |
+| `MAIL_ADMIN`           | Admin email to receive new subscriber notifications| *(empty)*                  |
+| `MISTRAL_API_KEY`      | Mistral AI API key for the Bodhi AI guide          | *(empty — AI disabled)*    |
+
+> **Note:** If `MAIL_USERNAME` is not set, email sending is silently skipped (best-effort).  
+> If `MISTRAL_API_KEY` is not set, the AI orb shows a configuration message.
 
 ---
 
@@ -98,8 +123,38 @@ Login: `admin@store.com` / `admin123`
 
 ### Sandbox Testing
 
-PayFast provides a sandbox environment at `https://sandbox.payfast.co.za/`.  
+PayFast provides a sandbox at `https://sandbox.payfast.co.za/`.  
 Default sandbox credentials are pre-filled in `.env.example`.
+
+---
+
+## Mistral AI Setup
+
+1. Create a free account at [console.mistral.ai](https://console.mistral.ai/).
+2. Generate an API key and copy it.
+3. Set `MISTRAL_API_KEY=<your-key>` in `.env`.
+4. The Bodhi AI orb will automatically pull live product, experience, and discount data from the database.
+
+---
+
+## Flask-Mail Setup (Gmail example)
+
+1. Enable 2-Factor Authentication on your Gmail account.
+2. Generate an **App Password** under Google Account → Security.
+3. Set `MAIL_USERNAME`, `MAIL_PASSWORD`, and `MAIL_DEFAULT_SENDER` in `.env`.
+4. Emails are sent on newsletter subscribe (welcome + admin notification). Failures are logged silently so they don't break the flow.
+
+---
+
+## Company Social Media & Branding
+
+Configure social media links and other settings in the Admin panel under **Settings → Company**:
+
+- **Instagram URL** — linked from footer Instagram icon
+- **X (Twitter) URL** — linked from footer X icon
+- **Facebook URL** — linked from footer Facebook icon
+- **Logo, landing video, landing audio** — uploadable media
+- **Store hero title/sub, wisdom quotes** — editorial content
 
 ---
 
@@ -107,14 +162,26 @@ Default sandbox credentials are pre-filled in `.env.example`.
 
 ```
 app/
-├── __init__.py          # App factory
+├── __init__.py          # App factory + error handlers (404, 500)
 ├── config.py            # Configuration
-├── extensions.py        # db, login_manager, migrate, admin, csrf
+├── extensions.py        # db, login_manager, migrate, admin, csrf, mail
+├── context_processors.py# Injects branding into every template
 ├── models/              # SQLAlchemy models
+│   ├── company_setting.py  # Single-row config (social URLs, branding, media)
+│   ├── discount_code.py    # Discount codes (percent/fixed, expiry, usage)
+│   ├── experience.py       # Immersive experience pages
+│   └── ...
 ├── routes/              # Blueprint route handlers
+│   ├── main.py          # Store, experiences, profile, AI chat
+│   ├── checkout.py      # Checkout, PayFast, success, cancel
+│   └── ...
 ├── admin/               # Flask-Admin views & reports
-├── services/            # Business logic (cart, orders, PayFast)
-├── templates/           # Jinja2 HTML templates
+├── services/            # Business logic (cart, orders, PayFast, uploads)
+├── templates/
+│   ├── base.html        # SEO meta, OG, Twitter Card, JSON-LD, footer social icons
+│   ├── errors/          # 404.html, 500.html
+│   ├── checkout/        # checkout.html, success.html, cancel.html
+│   └── ...
 └── static/              # CSS, JS, uploaded images
 ```
 
@@ -128,7 +195,7 @@ app/
 4. Serve with **Gunicorn** behind **Nginx**:
 
 ```bash
-gunicorn -w 4 -b 0.0.0.0:8000 "run:app"
+gunicorn "wsgi:application" --workers 4 --bind 0.0.0.0:8000
 ```
 
 ---
