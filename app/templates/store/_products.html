@@ -29,7 +29,7 @@
         </div>
       </a>
       {% if product.stock > 0 %}
-      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form">
+      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form bodhi-add-to-cart">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="product_id" value="{{ product.id }}">
         <input type="hidden" name="item_type" value="product">
@@ -76,7 +76,7 @@
         </div>
       </a>
       {% if product.stock > 0 %}
-      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form">
+      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form bodhi-add-to-cart">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="product_id" value="{{ product.id }}">
         <input type="hidden" name="item_type" value="product">
@@ -124,7 +124,7 @@
         </div>
       </a>
       {% if product.stock > 0 %}
-      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form">
+      <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form bodhi-add-to-cart">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="product_id" value="{{ product.id }}">
         <input type="hidden" name="item_type" value="product">

@@ -27,37 +27,43 @@
       <span class="store-featured-eyebrow" style="color:#ef9f45;">Limited Time</span>
       <h2 class="store-featured-title">{{ seasonal_section_title }}</h2>
     </div>
-    <div class="exp-grid">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
       {% for exp in seasonal_experiences %}
-      <article class="exp-card glass-card store-reveal" style="transition-delay:{{ loop.index0 * 0.1 }}s;">
-        <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}" class="exp-card-media">
-          {% if exp.display_image %}
-          <img src="{{ exp.display_image }}" alt="{{ exp.name }}" loading="lazy">
-          {% elif exp.video_filename %}
-          <video src="{{ exp.display_video }}" muted autoplay loop playsinline></video>
-          {% else %}
-          <div class="exp-card-placeholder"><i class="bi bi-stars"></i></div>
-          {% endif %}
-          <div class="exp-card-overlay"></div>
-        </a>
-        <div class="exp-card-body">
-          <h3 class="exp-card-title">{{ exp.name }}</h3>
-          {% if exp.tagline %}<p class="exp-card-tagline">{{ exp.tagline }}</p>{% endif %}
-          <div class="d-flex align-items-center justify-content-between mt-2">
-            <span class="exp-card-price">
-              {% if exp.is_on_sale %}
-              <span style="text-decoration:line-through;color:var(--text-ghost);font-size:0.85em;">R{{ '%.2f'|format(exp.price) }}</span>
-              R{{ '%.2f'|format(exp.sale_price) }}
-              {% else %}
-              R{{ '%.2f'|format(exp.price) }}
-              {% endif %}
-            </span>
-            <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}" class="btn-cinematic" style="padding:0.4rem 1rem;font-size:0.8rem;">
-              Explore
-            </a>
+      <div class="col store-reveal" style="transition-delay:{{ loop.index0 * 0.1 }}s;">
+        <div class="glass-card h-100">
+          <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}">
+            {% if exp.display_image %}
+            <img src="{{ exp.display_image }}" class="glass-card-img" alt="{{ exp.name }}">
+            {% else %}
+            <div class="glass-card-img d-flex align-items-center justify-content-center"
+                 style="background:var(--lift);color:var(--text-ghost);font-size:2.5rem;height:200px;">
+              <i class="bi bi-stars"></i>
+            </div>
+            {% endif %}
+          </a>
+          <div class="glass-card-body">
+            {% if exp.is_on_sale %}
+            <span style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#ef4444;display:block;margin-bottom:0.3rem;">Sale</span>
+            {% endif %}
+            <h5 class="glass-card-title">
+              <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}"
+                 class="text-decoration-none" style="color:inherit;">{{ exp.name }}</a>
+            </h5>
+            <p class="glass-card-text">{{ exp.tagline or '' }}</p>
+            <div class="d-flex justify-content-between align-items-center mt-auto">
+              <span class="glass-price">
+                {% if exp.is_on_sale %}
+                <span style="text-decoration:line-through;color:var(--text-ghost);font-size:0.8em;margin-right:0.3em;">R{{ '%.2f'|format(exp.price) }}</span>
+                R{{ '%.2f'|format(exp.sale_price) }}
+                {% else %}
+                R{{ '%.2f'|format(exp.price) }}
+                {% endif %}
+              </span>
+              <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}" class="btn-bodhi-sm">Explore</a>
+            </div>
           </div>
         </div>
-      </article>
+      </div>
       {% endfor %}
     </div>
   </div>
