@@ -909,13 +909,13 @@ body.page-immersive .bodhi-footer { display: none; }
   min-width: 220px;
   max-width: 320px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  display: none;
-  transform: translateY(16px);
+  pointer-events: none;
   opacity: 0;
+  transform: translateY(16px);
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 #cart-toast.show {
-  display: block;
+  pointer-events: auto;
   opacity: 1;
   transform: translateY(0);
 }

@@ -364,15 +364,10 @@
       icon.className = ok ? 'bi bi-bag-check-fill' : 'bi bi-exclamation-triangle-fill';
       toast.style.borderLeftColor = ok ? 'var(--sand)' : '#ef4444';
     }
-    toast.style.display = 'block';
-    // Force reflow then add show class
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => { toast.classList.add('show'); });
-    });
+    toast.classList.add('show');
     clearTimeout(toast._hideTimer);
     toast._hideTimer = setTimeout(() => {
       toast.classList.remove('show');
-      setTimeout(() => { toast.style.display = 'none'; }, 280);
     }, 2600);
   }
 

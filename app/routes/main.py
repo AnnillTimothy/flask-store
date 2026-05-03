@@ -49,7 +49,7 @@ def store():
     seasonal_experiences = []
     if cs.seasonal_section_enabled:
         seasonal_experiences = Experience.query.filter_by(is_seasonal=True).order_by(
-            Experience.created_at.asc()
+            Experience.created_at.desc()
         ).all()
 
     is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest'
