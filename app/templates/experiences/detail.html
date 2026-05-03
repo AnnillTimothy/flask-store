@@ -64,7 +64,7 @@
     <div class="bundle-hero-price">R{{ '%.2f'|format(experience.price) }}</div>
 
     <form action="{{ url_for('cart.add_to_cart') }}" method="post"
-          class="d-flex align-items-center gap-3 flex-wrap">
+          class="d-flex align-items-center gap-3 flex-wrap bodhi-add-to-cart">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="experience_id" value="{{ experience.id }}">
       <input type="hidden" name="item_type" value="experience">

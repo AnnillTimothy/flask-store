@@ -40,6 +40,11 @@ class CompanySetting(db.Model):
     store_wisdom_2 = db.Column(db.String(500), nullable=True)
     store_wisdom_3 = db.Column(db.String(500), nullable=True)
 
+    # ── Seasonal / specials section on store page ─────────────────
+    seasonal_section_enabled = db.Column(db.Boolean, default=False, nullable=False)
+    seasonal_section_title = db.Column(db.String(300), nullable=True,
+                                       default='Limited-Time Specials')
+
     updated_at = db.Column(
         db.DateTime,
         default=lambda: datetime.now(timezone.utc),

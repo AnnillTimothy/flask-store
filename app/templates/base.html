@@ -157,18 +157,18 @@
 </button>
 
 <!-- ── Flash messages ────────────────────────────────────────── -->
-<div class="flash-container container mt-3">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-</div>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-container" id="flash-container">
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show bodhi-alert" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
 
 <!-- ── Main ──────────────────────────────────────────────────── -->
 <main>
@@ -217,19 +217,22 @@
         {% endif %}
         <div class="mt-2" style="display:flex;gap:0.75rem;justify-content:flex-end;">
           {% if company and company.instagram_url %}
-          <a href="{{ company.instagram_url }}" target="_blank" rel="noopener"
+          {% set ig_url = company.instagram_url if '://' in company.instagram_url else 'https://' + company.instagram_url %}
+          <a href="{{ ig_url }}" target="_blank" rel="noopener"
              style="color:var(--text-ghost);font-size:1.1rem;" aria-label="Instagram">
             <i class="bi bi-instagram"></i>
           </a>
           {% endif %}
           {% if company and company.twitter_url %}
-          <a href="{{ company.twitter_url }}" target="_blank" rel="noopener"
+          {% set tw_url = company.twitter_url if '://' in company.twitter_url else 'https://' + company.twitter_url %}
+          <a href="{{ tw_url }}" target="_blank" rel="noopener"
              style="color:var(--text-ghost);font-size:1.1rem;" aria-label="X (Twitter)">
             <i class="bi bi-twitter-x"></i>
           </a>
           {% endif %}
           {% if company and company.facebook_url %}
-          <a href="{{ company.facebook_url }}" target="_blank" rel="noopener"
+          {% set fb_url = company.facebook_url if '://' in company.facebook_url else 'https://' + company.facebook_url %}
+          <a href="{{ fb_url }}" target="_blank" rel="noopener"
              style="color:var(--text-ghost);font-size:1.1rem;" aria-label="Facebook">
             <i class="bi bi-facebook"></i>
           </a>
@@ -339,6 +342,73 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Observer.min.js"></script>
 <!-- Custom JS -->
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<!-- Cart Toast -->
+<div id="cart-toast" role="status" aria-live="polite">
+  <span class="toast-icon"><i class="bi bi-bag-check-fill"></i></span>
+  <span id="cart-toast-msg">Added to cart</span>
+</div>
+
+<!-- AJAX Add to Cart -->
+<script>
+(function () {
+  'use strict';
+
+  function showToast(msg, ok) {
+    const toast = document.getElementById('cart-toast');
+    const msgEl = document.getElementById('cart-toast-msg');
+    if (!toast || !msgEl) return;
+    msgEl.textContent = msg;
+    const icon = toast.querySelector('.toast-icon i');
+    if (icon) {
+      icon.className = ok ? 'bi bi-bag-check-fill' : 'bi bi-exclamation-triangle-fill';
+      toast.style.borderLeftColor = ok ? 'var(--sand)' : '#ef4444';
+    }
+    toast.style.display = 'block';
+    // Force reflow then add show class
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { toast.classList.add('show'); });
+    });
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => { toast.style.display = 'none'; }, 280);
+    }, 2600);
+  }
+
+  function updateCartBadge(count) {
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? '' : 'none';
+    }
+  }
+
+  document.addEventListener('submit', function (e) {
+    const form = e.target;
+    if (!form.matches('.bodhi-add-to-cart')) return;
+    e.preventDefault();
+
+    const data = new FormData(form);
+    data.set('ajax', '1');
+
+    fetch('{{ url_for("cart.add_to_cart") }}', {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: data,
+    })
+    .then(r => r.json())
+    .then(resp => {
+      showToast(resp.message, resp.ok);
+      updateCartBadge(resp.cart_count);
+    })
+    .catch(() => {
+      showToast('Could not add to cart. Please try again.', false);
+    });
+  });
+})();
+</script>
+
 {% block extra_js %}{% endblock %}
 </body>
 </html>

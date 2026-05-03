@@ -765,13 +765,24 @@ function initAiOrb() {
   function appendMsg(text, role) {
     const div = document.createElement('div');
     div.className = 'ai-chat-msg ai-chat-msg--' + (role === 'user' ? 'user' : 'bot');
-    // Safely escape text then convert newlines to <br>
-    const escaped = text
+    // Escape HTML then convert markdown links and newlines
+    let escaped = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/\n/g, '<br>');
+      .replace(/"/g, '&quot;');
+    // Convert markdown [text](url) to clickable links (bot messages only)
+    if (role !== 'user') {
+      escaped = escaped.replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        function (_, linkText, url) {
+          // Only allow relative or https links
+          const safe = url.startsWith('/') || url.startsWith('https://') ? url : '#';
+          return '<a href="' + safe + '" style="color:var(--sand);text-decoration:underline;" target="' + (url.startsWith('/') ? '_self' : '_blank') + '">' + linkText + '</a>';
+        }
+      );
+    }
+    escaped = escaped.replace(/\n/g, '<br>');
     const p = document.createElement('p');
     p.innerHTML = escaped;
     div.appendChild(p);

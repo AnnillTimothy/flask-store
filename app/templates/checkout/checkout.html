@@ -51,14 +51,44 @@
               {% endfor %}
             </div>
 
-            <div class="mb-4">
-              <label class="form-label">Shipping Address</label>
-              {{ form.shipping_address(class="form-control" + (" is-invalid" if form.shipping_address.errors else ""),
-                                      rows=4,
-                                      placeholder="Street address, City, Province, Postal code") }}
-              {% for error in form.shipping_address.errors %}
+            <div class="mb-3">
+              <label class="form-label">Address Line 1</label>
+              {{ form.address_line1(class="form-control" + (" is-invalid" if form.address_line1.errors else ""),
+                                    placeholder="Street address") }}
+              {% for error in form.address_line1.errors %}
               <div class="invalid-feedback">{{ error }}</div>
               {% endfor %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Address Line 2 <span class="text-muted small">(optional)</span></label>
+              {{ form.address_line2(class="form-control", placeholder="Apartment, unit, complex, etc.") }}
+            </div>
+
+            <div class="row g-3 mb-4">
+              <div class="col-sm-5">
+                <label class="form-label">Town / City</label>
+                {{ form.town(class="form-control" + (" is-invalid" if form.town.errors else ""),
+                             placeholder="Cape Town") }}
+                {% for error in form.town.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-sm-4">
+                <label class="form-label">Province</label>
+                {{ form.province(class="form-select" + (" is-invalid" if form.province.errors else "")) }}
+                {% for error in form.province.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-sm-3">
+                <label class="form-label">Postal Code</label>
+                {{ form.postal_code(class="form-control" + (" is-invalid" if form.postal_code.errors else ""),
+                                    placeholder="0000") }}
+                {% for error in form.postal_code.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
             </div>
 
             <!-- Discount Code -->

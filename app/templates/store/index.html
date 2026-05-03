@@ -19,6 +19,51 @@
   <div class="store-hero-line"></div>
 </section>
 
+<!-- ── Seasonal / Limited-Time Specials ─────────────────────── -->
+{% if seasonal_section_enabled and seasonal_experiences %}
+<section class="store-seasonal-section">
+  <div class="container">
+    <div class="store-seasonal-header store-reveal">
+      <span class="store-featured-eyebrow" style="color:#ef9f45;">Limited Time</span>
+      <h2 class="store-featured-title">{{ seasonal_section_title }}</h2>
+    </div>
+    <div class="exp-grid">
+      {% for exp in seasonal_experiences %}
+      <article class="exp-card glass-card store-reveal" style="transition-delay:{{ loop.index0 * 0.1 }}s;">
+        <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}" class="exp-card-media">
+          {% if exp.display_image %}
+          <img src="{{ exp.display_image }}" alt="{{ exp.name }}" loading="lazy">
+          {% elif exp.video_filename %}
+          <video src="{{ exp.display_video }}" muted autoplay loop playsinline></video>
+          {% else %}
+          <div class="exp-card-placeholder"><i class="bi bi-stars"></i></div>
+          {% endif %}
+          <div class="exp-card-overlay"></div>
+        </a>
+        <div class="exp-card-body">
+          <h3 class="exp-card-title">{{ exp.name }}</h3>
+          {% if exp.tagline %}<p class="exp-card-tagline">{{ exp.tagline }}</p>{% endif %}
+          <div class="d-flex align-items-center justify-content-between mt-2">
+            <span class="exp-card-price">
+              {% if exp.is_on_sale %}
+              <span style="text-decoration:line-through;color:var(--text-ghost);font-size:0.85em;">R{{ '%.2f'|format(exp.price) }}</span>
+              R{{ '%.2f'|format(exp.sale_price) }}
+              {% else %}
+              R{{ '%.2f'|format(exp.price) }}
+              {% endif %}
+            </span>
+            <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}" class="btn-cinematic" style="padding:0.4rem 1rem;font-size:0.8rem;">
+              Explore
+            </a>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- ── Featured Items ────────────────────────────────────────── -->
 {% if featured and not active_category %}
 <section class="store-featured-section" id="store-featured">
@@ -51,7 +96,7 @@
           </div>
         </a>
         {% if product.stock > 0 %}
-        <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form">
+        <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="store-add-form bodhi-add-to-cart">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="product_id" value="{{ product.id }}">
           <input type="hidden" name="item_type" value="product">
