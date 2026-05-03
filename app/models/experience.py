@@ -38,13 +38,21 @@ class Experience(db.Model):
     def display_image(self):
         if self.image_filename:
             return f'/static/uploads/experiences/{self.image_filename}'
-        return 'https://placehold.co/400x300?text=Experience'
+        return None
 
     @property
     def display_video(self):
         if self.video_filename:
             return f'/static/uploads/experiences/{self.video_filename}'
         return None
+
+    @property
+    def display_video_mime(self):
+        """Return the correct MIME type for the uploaded video file."""
+        if not self.video_filename:
+            return 'video/mp4'
+        ext = self.video_filename.rsplit('.', 1)[-1].lower()
+        return {'webm': 'video/webm', 'mov': 'video/quicktime'}.get(ext, 'video/mp4')
 
     @property
     def display_audio(self):

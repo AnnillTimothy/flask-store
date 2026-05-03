@@ -56,7 +56,7 @@
     {% if exp.display_video %}
     <video autoplay muted loop playsinline preload="auto"
            {% if exp.display_image %}poster="{{ exp.display_image }}"{% endif %}>
-      <source src="{{ exp.display_video }}" type="video/mp4">
+      <source src="{{ exp.display_video }}" type="{{ exp.display_video_mime }}">
     </video>
     {% elif exp.display_image %}
     <img src="{{ exp.display_image }}" alt="{{ exp.name }}"

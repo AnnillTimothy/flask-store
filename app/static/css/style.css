@@ -256,6 +256,14 @@ body:not(.page-immersive) .bodhi-nav,
   height: 100%;
   object-fit: cover;
 }
+/* Image fallback inside scene — must share the same stacking layer as video */
+.scene-video img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 /* Gradient fallback when no video */
 .scene-video::before {
   content: '';
