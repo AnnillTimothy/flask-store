@@ -21,6 +21,8 @@ def add_to_cart():
     item_type = request.form.get('item_type', 'product')
     quantity = int(request.form.get('quantity', 1))
     next_url = request.form.get('next') or request.referrer or url_for('main.index')
+    is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+               or request.form.get('ajax') == '1')
 
     if item_type == 'bundle':
         bundle_id = request.form.get('bundle_id', type=int)
@@ -31,6 +33,11 @@ def add_to_cart():
     else:
         product_id = request.form.get('product_id', type=int)
         ok, msg = cart_service.add_product(product_id, quantity)
+
+    if is_ajax:
+        cart = cart_service.get_or_create_cart()
+        count = cart_service.get_cart_count(cart)
+        return jsonify({'ok': ok, 'message': msg, 'cart_count': count})
 
     if ok:
         flash(msg, 'success')

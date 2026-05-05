@@ -17,7 +17,11 @@
       <div class="col product-reveal">
         <div class="glass-card h-100">
           <a href="{{ url_for('main.experience_detail', slug=exp.slug) }}">
+            {% if exp.display_image %}
             <img src="{{ exp.display_image }}" class="glass-card-img" alt="{{ exp.name }}">
+            {% else %}
+            <div class="glass-card-img" style="background:var(--scene-fallback,radial-gradient(ellipse at 50% 60%,#111 0%,#040404 80%));"></div>
+            {% endif %}
           </a>
           <div class="glass-card-body">
             <h5 class="glass-card-title">

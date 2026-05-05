@@ -156,7 +156,22 @@ class CheckoutForm(FlaskForm):
     customer_name = StringField('Full Name', validators=[DataRequired(), Length(max=200)])
     customer_email = StringField('Email Address', validators=[DataRequired(), Email()])
     customer_phone = StringField('Phone Number', validators=[DataRequired(), Length(max=30)])
-    shipping_address = TextAreaField('Shipping Address', validators=[DataRequired()])
+    address_line1 = StringField('Address Line 1', validators=[DataRequired(), Length(max=200)])
+    address_line2 = StringField('Address Line 2', validators=[Optional(), Length(max=200)])
+    town = StringField('Town / City', validators=[DataRequired(), Length(max=100)])
+    province = SelectField('Province', validators=[DataRequired()], choices=[
+        ('', '— Select Province —'),
+        ('Gauteng', 'Gauteng'),
+        ('Western Cape', 'Western Cape'),
+        ('KwaZulu-Natal', 'KwaZulu-Natal'),
+        ('Eastern Cape', 'Eastern Cape'),
+        ('Limpopo', 'Limpopo'),
+        ('Mpumalanga', 'Mpumalanga'),
+        ('North West', 'North West'),
+        ('Free State', 'Free State'),
+        ('Northern Cape', 'Northern Cape'),
+    ])
+    postal_code = StringField('Postal Code', validators=[DataRequired(), Length(max=20)])
     discount_code = StringField('Discount Code', validators=[Optional(), Length(max=50)])
     submit = SubmitField('Proceed to Payment')
 
@@ -168,7 +183,22 @@ class CheckoutForm(FlaskForm):
 class ProfileUpdateForm(FlaskForm):
     username = StringField('Display Name', validators=[DataRequired(), Length(min=2, max=80)])
     phone = StringField('Phone Number', validators=[Optional(), Length(max=30)])
-    shipping_address = TextAreaField('Default Shipping Address', validators=[Optional()])
+    address_line1 = StringField('Address Line 1', validators=[Optional(), Length(max=200)])
+    address_line2 = StringField('Address Line 2', validators=[Optional(), Length(max=200)])
+    town = StringField('Town / City', validators=[Optional(), Length(max=100)])
+    province = SelectField('Province', validators=[Optional()], choices=[
+        ('', '— Select Province —'),
+        ('Gauteng', 'Gauteng'),
+        ('Western Cape', 'Western Cape'),
+        ('KwaZulu-Natal', 'KwaZulu-Natal'),
+        ('Eastern Cape', 'Eastern Cape'),
+        ('Limpopo', 'Limpopo'),
+        ('Mpumalanga', 'Mpumalanga'),
+        ('North West', 'North West'),
+        ('Free State', 'Free State'),
+        ('Northern Cape', 'Northern Cape'),
+    ])
+    postal_code = StringField('Postal Code', validators=[Optional(), Length(max=20)])
     submit = SubmitField('Save Changes')
 
 

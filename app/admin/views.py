@@ -1,12 +1,14 @@
 import os
+import re
 from datetime import datetime, date
 from flask import redirect, url_for, request, flash, current_app
 from flask_admin import AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.model.form import InlineFormAdmin
-from flask_admin.form.upload import FileUploadField
 from flask_login import current_user
 from wtforms import SelectField, TextAreaField
+from wtforms.validators import Optional
+from flask_wtf.file import FileField as WTFFileField, FileAllowed
 from markupsafe import Markup
 from app.extensions import db, admin
 from app.models.user import User
@@ -22,6 +24,16 @@ from app.models.company_setting import CompanySetting
 from app.models.discount_code import DiscountCode
 from app.services.order_service import calculate_supplier_payouts, get_revenue_summary
 from app.services.upload_service import delete_uploaded_file
+
+
+# ---------------------------------------------------------------------------
+# Helper
+# ---------------------------------------------------------------------------
+
+def _has_file(field):
+    """Return True if a form file field contains a real uploaded file."""
+    data = getattr(field, 'data', None)
+    return bool(data and hasattr(data, 'filename') and data.filename)
 
 
 # ---------------------------------------------------------------------------
@@ -61,7 +73,6 @@ class SecureAdminIndexView(AdminRequiredMixin, AdminIndexView):
             'suppliers': Supplier.query.count(),
         }
         summary = get_revenue_summary()
-        # Recent orders needing attention
         outstanding = Order.query.filter(
             Order.status.in_(['pending', 'paid', 'processing',
                               'waiting_supplier', 'in_progress', 'packed'])
@@ -87,7 +98,7 @@ class UserAdmin(AdminRequiredMixin, ModelView):
     column_searchable_list = ('username', 'email', 'phone')
     column_filters = ('is_admin',)
     can_create = False
-    can_delete = False
+    can_delete = True
     form_excluded_columns = ('password_hash', 'orders', 'cart')
 
 
@@ -104,13 +115,16 @@ class SupplierAdmin(SecureModelView):
 
 
 # ---------------------------------------------------------------------------
-# Category Admin
+# Category Admin — name only, slug auto-generated
 # ---------------------------------------------------------------------------
 
 class CategoryAdmin(SecureModelView):
-    column_list = ('id', 'name', 'slug', 'description')
-    column_searchable_list = ('name', 'slug')
-    form_excluded_columns = ('products',)
+    column_list = ('id', 'name')
+    column_searchable_list = ('name',)
+    form_columns = ('name',)
+
+    def on_model_change(self, form, model, is_created):
+        model.slug = re.sub(r'[^a-z0-9]+', '-', (form.name.data or '').lower()).strip('-')
 
 
 # ---------------------------------------------------------------------------
@@ -124,13 +138,12 @@ class ProductAdmin(SecureModelView):
     column_filters = ('category_id', 'supplier_id', 'brand', 'is_featured')
     column_editable_list = ('is_featured', 'sale_price', 'stock')
     form_excluded_columns = ('bundle_items', 'cart_items', 'order_items',
-                             'created_at', 'updated_at')
+                             'created_at', 'updated_at', 'image_filename', 'image_url', 'slug')
 
     form_extra_fields = {
-        'image_upload': FileUploadField(
-            'Image Upload',
-            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'products'),
-            allowed_extensions=['png', 'jpg', 'jpeg', 'gif', 'webp'],
+        'image_upload': WTFFileField(
+            'Product Image',
+            validators=[FileAllowed(['png', 'jpg', 'jpeg', 'gif', 'webp'], 'Images only!')],
         ),
     }
 
@@ -138,7 +151,16 @@ class ProductAdmin(SecureModelView):
         delete_uploaded_file(model.image_filename, 'products')
 
     def on_model_change(self, form, model, is_created):
-        if hasattr(form, 'image_upload') and form.image_upload.data:
+        if not model.slug:
+            base = re.sub(r'[^a-z0-9]+', '-', (model.name or '').lower()).strip('-')
+            slug, counter = base, 1
+            while Product.query.filter(
+                Product.slug == slug, Product.id != (model.id or -1)
+            ).first():
+                slug = f'{base}-{counter}'
+                counter += 1
+            model.slug = slug
+        if _has_file(form.image_upload):
             from app.services.upload_service import save_uploaded_file
             if model.image_filename:
                 delete_uploaded_file(model.image_filename, 'products')
@@ -148,54 +170,51 @@ class ProductAdmin(SecureModelView):
 
 
 # ---------------------------------------------------------------------------
-# Bundle Admin  (with inline BundleItem editing)
+# Bundle Items inline (used inside ExperienceAdmin)
 # ---------------------------------------------------------------------------
 
 class BundleItemInline(InlineFormAdmin):
     form_columns = ('id', 'product', 'quantity')
-    form_label = 'Bundle Items'
-
-
-class BundleAdmin(SecureModelView):
-    column_list = ('id', 'name', 'is_featured', 'sale_price', 'price', 'tagline', 'created_at')
-    column_searchable_list = ('name', 'slug')
-    column_editable_list = ('is_featured', 'sale_price')
-    form_excluded_columns = ('cart_items', 'order_items', 'created_at', 'experience')
-    inline_models = (BundleItemInline(BundleItem),)
-
-
-class BundleItemAdmin(SecureModelView):
-    column_list = ('id', 'bundle', 'product', 'quantity')
-    column_searchable_list = []
-    form_columns = ('bundle', 'product', 'quantity')
+    form_label = 'Products in this Experience'
 
 
 # ---------------------------------------------------------------------------
-# Experience Admin (with file upload for video and image)
+# Experience Admin — inline products, auto-manages linked bundle
 # ---------------------------------------------------------------------------
 
 class ExperienceAdmin(SecureModelView):
-    column_list = ('id', 'name', 'is_featured', 'sale_price', 'price', 'tagline',
-                   'bundle', 'created_at')
+    column_list = ('id', 'name', 'is_featured', 'is_seasonal', 'sale_price', 'price',
+                   'tagline', 'edit_products', 'created_at')
     column_searchable_list = ('name', 'slug')
-    column_editable_list = ('is_featured', 'sale_price')
-    form_excluded_columns = ('cart_items', 'order_items', 'created_at')
+    column_editable_list = ('is_featured', 'is_seasonal', 'sale_price')
+    form_excluded_columns = ('cart_items', 'order_items', 'created_at',
+                             'video_filename', 'audio_filename', 'image_filename',
+                             'slug', 'bundle_id', 'bundle')
+
+    def _edit_products_formatter(view, context, model, name):
+        if model.bundle_id:
+            url = f'/admin/bundleitem/?search=&flt1_0={model.bundle_id}'
+            return Markup(
+                f'<a href="{url}" class="btn btn-xs btn-outline-secondary" '
+                f'style="font-size:0.72rem;padding:2px 8px;">Edit Products</a>'
+            )
+        return Markup('<span style="color:#888;font-size:0.75rem;">Save first</span>')
+
+    column_formatters = {'edit_products': _edit_products_formatter}
+    column_labels = {'edit_products': 'Products'}
 
     form_extra_fields = {
-        'video_upload': FileUploadField(
-            'Video Upload',
-            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'experiences'),
-            allowed_extensions=['mp4', 'webm', 'mov'],
+        'video_upload': WTFFileField(
+            'Background Video',
+            validators=[FileAllowed(['mp4', 'webm', 'mov'], 'Video files only!')],
         ),
-        'image_upload': FileUploadField(
-            'Image Upload',
-            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'experiences'),
-            allowed_extensions=['png', 'jpg', 'jpeg', 'gif', 'webp'],
+        'image_upload': WTFFileField(
+            'Cover Image',
+            validators=[FileAllowed(['png', 'jpg', 'jpeg', 'gif', 'webp'], 'Images only!')],
         ),
-        'audio_upload': FileUploadField(
-            'Background Music Upload',
-            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'experiences'),
-            allowed_extensions=['mp3', 'ogg', 'wav', 'm4a'],
+        'audio_upload': WTFFileField(
+            'Background Music',
+            validators=[FileAllowed(['mp3', 'ogg', 'wav', 'm4a'], 'Audio files only!')],
         ),
     }
 
@@ -203,29 +222,60 @@ class ExperienceAdmin(SecureModelView):
         delete_uploaded_file(model.video_filename, 'experiences')
         delete_uploaded_file(model.image_filename, 'experiences')
         delete_uploaded_file(model.audio_filename, 'experiences')
+        if model.bundle:
+            db.session.delete(model.bundle)
 
     def on_model_change(self, form, model, is_created):
-        from app.services.upload_service import save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS, ALLOWED_AUDIO_EXTENSIONS
-        if hasattr(form, 'video_upload') and form.video_upload.data:
+        from app.services.upload_service import (
+            save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS, ALLOWED_AUDIO_EXTENSIONS,
+        )
+        # Auto-slug
+        if not model.slug:
+            base = re.sub(r'[^a-z0-9]+', '-', (model.name or '').lower()).strip('-')
+            slug, counter = base, 1
+            while Experience.query.filter(
+                Experience.slug == slug, Experience.id != (model.id or -1)
+            ).first():
+                slug = f'{base}-{counter}'
+                counter += 1
+            model.slug = slug
+
+        # Ensure a bundle always exists so items can be attached
+        if not model.bundle_id:
+            bundle = Bundle(
+                name=model.name or 'Experience Bundle',
+                slug=f'bundle-{model.slug or "new"}',
+                price=model.price or 0,
+            )
+            db.session.add(bundle)
+            db.session.flush()
+            model.bundle_id = bundle.id
+        else:
+            b = Bundle.query.get(model.bundle_id)
+            if b:
+                b.price = model.price
+                b.name = model.name
+
+        if _has_file(form.video_upload):
             if model.video_filename:
                 delete_uploaded_file(model.video_filename, 'experiences')
-            filename = save_uploaded_file(form.video_upload.data, 'experiences',
-                                         ALLOWED_VIDEO_EXTENSIONS)
-            if filename:
-                model.video_filename = filename
-        if hasattr(form, 'image_upload') and form.image_upload.data:
+            fn = save_uploaded_file(form.video_upload.data, 'experiences',
+                                    ALLOWED_VIDEO_EXTENSIONS)
+            if fn:
+                model.video_filename = fn
+        if _has_file(form.image_upload):
             if model.image_filename:
                 delete_uploaded_file(model.image_filename, 'experiences')
-            filename = save_uploaded_file(form.image_upload.data, 'experiences')
-            if filename:
-                model.image_filename = filename
-        if hasattr(form, 'audio_upload') and form.audio_upload.data:
+            fn = save_uploaded_file(form.image_upload.data, 'experiences')
+            if fn:
+                model.image_filename = fn
+        if _has_file(form.audio_upload):
             if model.audio_filename:
                 delete_uploaded_file(model.audio_filename, 'experiences')
-            filename = save_uploaded_file(form.audio_upload.data, 'experiences',
-                                         ALLOWED_AUDIO_EXTENSIONS)
-            if filename:
-                model.audio_filename = filename
+            fn = save_uploaded_file(form.audio_upload.data, 'experiences',
+                                    ALLOWED_AUDIO_EXTENSIONS)
+            if fn:
+                model.audio_filename = fn
 
 
 # ---------------------------------------------------------------------------
@@ -236,42 +286,42 @@ class CompanySettingAdmin(AdminRequiredMixin, ModelView):
     can_create = False
     can_delete = False
     column_list = ('store_name', 'tagline', 'contact_email', 'contact_phone',
-                   'instagram_url', 'twitter_url', 'updated_at')
-    form_excluded_columns = ('updated_at',)
+                   'instagram_url', 'twitter_url', 'seasonal_section_enabled', 'updated_at')
+    form_excluded_columns = ('updated_at', 'logo_filename',
+                             'landing_video_filename', 'landing_audio_filename')
 
     form_extra_fields = {
-        'logo_upload': FileUploadField(
+        'logo_upload': WTFFileField(
             'Logo Upload',
-            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'company'),
-            allowed_extensions=['png', 'jpg', 'jpeg', 'svg', 'webp'],
+            validators=[FileAllowed(['png', 'jpg', 'jpeg', 'svg', 'webp'], 'Images only!')],
         ),
-        'landing_video_upload': FileUploadField(
-            'Landing BG Video Upload',
-            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'company'),
-            allowed_extensions=['mp4', 'webm', 'mov'],
+        'landing_video_upload': WTFFileField(
+            'Landing BG Video',
+            validators=[FileAllowed(['mp4', 'webm', 'mov'], 'Video files only!')],
         ),
-        'landing_audio_upload': FileUploadField(
-            'Landing BG Audio Upload',
-            base_path=lambda: os.path.join(current_app.config['UPLOAD_FOLDER'], 'company'),
-            allowed_extensions=['mp3', 'ogg', 'wav', 'm4a'],
+        'landing_audio_upload': WTFFileField(
+            'Landing BG Audio',
+            validators=[FileAllowed(['mp3', 'ogg', 'wav', 'm4a'], 'Audio files only!')],
         ),
     }
 
     def on_model_change(self, form, model, is_created):
-        from app.services.upload_service import save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS, ALLOWED_AUDIO_EXTENSIONS
-        if hasattr(form, 'logo_upload') and form.logo_upload.data:
+        from app.services.upload_service import (
+            save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS, ALLOWED_AUDIO_EXTENSIONS,
+        )
+        if _has_file(form.logo_upload):
             delete_uploaded_file(model.logo_filename, 'company')
             fn = save_uploaded_file(form.logo_upload.data, 'company',
                                     {'png', 'jpg', 'jpeg', 'svg', 'webp'})
             if fn:
                 model.logo_filename = fn
-        if hasattr(form, 'landing_video_upload') and form.landing_video_upload.data:
+        if _has_file(form.landing_video_upload):
             delete_uploaded_file(model.landing_video_filename, 'company')
             fn = save_uploaded_file(form.landing_video_upload.data, 'company',
                                     ALLOWED_VIDEO_EXTENSIONS)
             if fn:
                 model.landing_video_filename = fn
-        if hasattr(form, 'landing_audio_upload') and form.landing_audio_upload.data:
+        if _has_file(form.landing_audio_upload):
             delete_uploaded_file(model.landing_audio_filename, 'company')
             fn = save_uploaded_file(form.landing_audio_upload.data, 'company',
                                     ALLOWED_AUDIO_EXTENSIONS)
@@ -295,7 +345,7 @@ class OrderAdmin(AdminRequiredMixin, ModelView):
     column_filters = ('status', 'created_at')
     column_default_sort = ('created_at', True)
     can_create = False
-    can_delete = False
+    can_delete = True
     form_excluded_columns = ('items', 'shipping_record')
     form_choices = {
         'status': [(s, s.replace('_', ' ').capitalize()) for s in Order.STATUS_CHOICES]
@@ -419,6 +469,17 @@ class ShippingReportView(AdminRequiredMixin, BaseView):
 
 
 # ---------------------------------------------------------------------------
+# Bundle Item Admin  (used as "Experience Products" in the menu)
+# ---------------------------------------------------------------------------
+
+class BundleItemAdmin(SecureModelView):
+    column_list = ('id', 'bundle', 'product', 'quantity')
+    column_searchable_list = ('bundle_id',)
+    column_filters = ('bundle_id',)
+    form_columns = ('bundle', 'product', 'quantity')
+
+
+# ---------------------------------------------------------------------------
 # Setup function
 # ---------------------------------------------------------------------------
 
@@ -431,10 +492,10 @@ def setup_admin(app):
     admin.add_view(SupplierAdmin(Supplier, db.session, name='Suppliers', category='Catalogue'))
     admin.add_view(CategoryAdmin(Category, db.session, name='Categories', category='Catalogue'))
     admin.add_view(ProductAdmin(Product, db.session, name='Products', category='Catalogue'))
-    admin.add_view(BundleAdmin(Bundle, db.session, name='Bundles', category='Catalogue'))
-    admin.add_view(BundleItemAdmin(BundleItem, db.session, name='Bundle Items',
-                                   category='Catalogue'))
     admin.add_view(ExperienceAdmin(Experience, db.session, name='Experiences',
+                                   category='Catalogue'))
+    # BundleItem is accessible via the "Edit Products" link in Experiences list
+    admin.add_view(BundleItemAdmin(BundleItem, db.session, name='Experience Products',
                                    category='Catalogue'))
     admin.add_view(OrderAdmin(Order, db.session, name='Orders', category='Sales'))
     admin.add_view(ShippingAdmin(ShippingRecord, db.session, name='Shipping', category='Sales'))
@@ -447,4 +508,3 @@ def setup_admin(app):
                                       category='Finance'))
     admin.add_view(ShippingReportView(name='Shipping Report', endpoint='shipping_report',
                                       category='Reports'))
-

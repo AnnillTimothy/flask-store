@@ -256,6 +256,14 @@ body:not(.page-immersive) .bodhi-nav,
   height: 100%;
   object-fit: cover;
 }
+/* Image fallback inside scene — must share the same stacking layer as video */
+.scene-video img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 /* Gradient fallback when no video */
 .scene-video::before {
   content: '';
@@ -871,10 +879,57 @@ body.page-immersive .scene-progress { opacity: 1; pointer-events: all; }
 .footer-link:hover { color: var(--sand) !important; }
 body.page-immersive .bodhi-footer { display: none; }
 
-/* ─── Flash messages ────────────────────────────────────────── */
+/* ─── Flash messages (fixed overlay below nav, no layout gap) ─ */
 .flash-container {
-  position: relative;
-  z-index: 200;
+  position: fixed;
+  top: var(--nav-h);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(600px, calc(100vw - 2rem));
+  z-index: 9500;
+  padding: 0.75rem 0 0;
+  pointer-events: none;
+}
+.flash-container .bodhi-alert {
+  pointer-events: all;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ─── Cart toast notification ───────────────────────────────── */
+#cart-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9600;
+  background: rgba(13,13,13,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-left: 3px solid var(--sand);
+  border-radius: 10px;
+  padding: 0.9rem 1.2rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  min-width: 220px;
+  max-width: 320px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+#cart-toast.show {
+  pointer-events: auto;
+  opacity: 1;
+  transform: translateY(0);
+}
+#cart-toast .toast-icon {
+  color: var(--sand);
+  margin-right: 0.5rem;
 }
 
 /* ─── Auth pages ─────────────────────────────────────────────── */
@@ -2146,3 +2201,28 @@ body.admin-panel {
 @media (max-width: 480px) {
   .store-featured-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
 }
+
+/* ── Seasonal specials section (store page) ─────────────────── */
+.store-seasonal-section {
+  padding: 4rem 0 3rem;
+  background: linear-gradient(180deg, rgba(239,159,69,0.06) 0%, transparent 100%);
+  border-top: 1px solid rgba(239,159,69,0.18);
+  border-bottom: 1px solid var(--glass-border);
+}
+.store-seasonal-header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+/* ── Order history (profile page) ──────────────────────────── */
+.order-summary-inner { transition: background 0.2s ease; }
+.order-summary-inner:hover { background: rgba(200,180,154,0.06) !important; }
+details.order-row[open] .order-summary-inner {
+  border-color: rgba(200,180,154,0.25) !important;
+}
+.order-chevron { transition: transform 0.25s ease; display: inline-block; }
+.order-detail { animation: fadeSlideIn 0.2s ease forwards; }
+@keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── hover-sand helper ──────────────────────────────────────── */
+.hover-sand:hover { color: var(--sand) !important; }

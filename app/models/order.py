@@ -12,7 +12,12 @@ class Order(db.Model):
     customer_name = db.Column(db.String(200), nullable=True)
     customer_email = db.Column(db.String(200), nullable=True)
     customer_phone = db.Column(db.String(30), nullable=True)
-    shipping_address = db.Column(db.Text, nullable=True)
+    shipping_address = db.Column(db.Text, nullable=True)  # legacy – kept for back-compat
+    address_line1 = db.Column(db.String(200), nullable=True)
+    address_line2 = db.Column(db.String(200), nullable=True)
+    town = db.Column(db.String(100), nullable=True)
+    province = db.Column(db.String(100), nullable=True)
+    postal_code = db.Column(db.String(20), nullable=True)
     discount_code = db.Column(db.String(50), nullable=True)
     discount_amount = db.Column(db.Numeric(10, 2), default=0, nullable=False)
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)

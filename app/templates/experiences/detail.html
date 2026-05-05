@@ -30,10 +30,10 @@
 <section class="bundle-hero">
   <div class="bundle-hero-bg">
     {% if experience.display_video %}
-    <video autoplay muted loop playsinline preload="none"
+    <video autoplay muted loop playsinline preload="auto"
            {% if experience.display_image %}poster="{{ experience.display_image }}"{% endif %}
            style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
-      <source src="{{ experience.display_video }}" type="video/mp4">
+      <source src="{{ experience.display_video }}" type="{{ experience.display_video_mime }}">
     </video>
     {% endif %}
     {% if experience.display_image %}
@@ -64,7 +64,7 @@
     <div class="bundle-hero-price">R{{ '%.2f'|format(experience.price) }}</div>
 
     <form action="{{ url_for('cart.add_to_cart') }}" method="post"
-          class="d-flex align-items-center gap-3 flex-wrap">
+          class="d-flex align-items-center gap-3 flex-wrap bodhi-add-to-cart">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="experience_id" value="{{ experience.id }}">
       <input type="hidden" name="item_type" value="experience">
@@ -139,7 +139,11 @@
       <div class="col">
         <a href="{{ url_for('main.experience_detail', slug=oe.slug) }}" class="text-decoration-none">
           <div class="related-card">
+            {% if oe.display_image %}
             <img src="{{ oe.display_image }}" alt="{{ oe.name }}">
+            {% else %}
+            <div style="width:100%;height:100%;background:radial-gradient(ellipse at 50% 60%,#111 0%,#040404 80%);"></div>
+            {% endif %}
             <div class="related-card-overlay">
               <div class="related-card-title">{{ oe.name }}</div>
               <div class="related-card-price">R{{ '%.2f'|format(oe.price) }}</div>

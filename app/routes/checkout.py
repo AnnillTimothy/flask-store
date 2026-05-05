@@ -39,8 +39,16 @@ def checkout():
             form.customer_email.data = current_user.email
         if not form.customer_phone.data and current_user.phone:
             form.customer_phone.data = current_user.phone
-        if not form.shipping_address.data and current_user.shipping_address:
-            form.shipping_address.data = current_user.shipping_address
+        if not form.address_line1.data and current_user.address_line1:
+            form.address_line1.data = current_user.address_line1
+        if not form.address_line2.data and current_user.address_line2:
+            form.address_line2.data = current_user.address_line2
+        if not form.town.data and current_user.town:
+            form.town.data = current_user.town
+        if not form.province.data and current_user.province:
+            form.province.data = current_user.province
+        if not form.postal_code.data and current_user.postal_code:
+            form.postal_code.data = current_user.postal_code
 
     subtotal = cart_service.get_cart_total(cart)
     shipping = _get_shipping_cost()
@@ -94,6 +102,13 @@ def pay():
                                subtotal=subtotal, shipping=shipping,
                                total=total, discount=0.0)
 
+    # Build shipping address string from structured fields
+    address_parts = [form.address_line1.data]
+    if form.address_line2.data:
+        address_parts.append(form.address_line2.data)
+    address_parts += [form.town.data, form.province.data, form.postal_code.data]
+    shipping_address_str = ', '.join(p for p in address_parts if p)
+
     # Handle discount code
     discount_amount = 0.0
     dc_code = None
@@ -115,12 +130,17 @@ def pay():
     session['checkout_name'] = form.customer_name.data
     session['checkout_email'] = form.customer_email.data
     session['checkout_phone'] = form.customer_phone.data
-    session['checkout_address'] = form.shipping_address.data
+    session['checkout_address'] = shipping_address_str
 
     # Save address to user profile if logged in
     if current_user.is_authenticated:
         current_user.phone = form.customer_phone.data
-        current_user.shipping_address = form.shipping_address.data
+        current_user.address_line1 = form.address_line1.data
+        current_user.address_line2 = form.address_line2.data
+        current_user.town = form.town.data
+        current_user.province = form.province.data
+        current_user.postal_code = form.postal_code.data
+        current_user.shipping_address = shipping_address_str
         db.session.add(current_user)
 
     order, error = order_service.create_order_from_cart(
@@ -128,7 +148,7 @@ def pay():
         customer_name=form.customer_name.data,
         customer_email=form.customer_email.data,
         customer_phone=form.customer_phone.data,
-        shipping_address=form.shipping_address.data,
+        shipping_address=shipping_address_str,
         shipping_cost=shipping,
         discount_code=dc_code,
         discount_amount=discount_amount,
@@ -136,6 +156,15 @@ def pay():
     if error:
         flash(error, 'danger')
         return redirect(url_for('checkout.checkout'))
+
+    # Store structured address on the order too
+    if order:
+        order.address_line1 = form.address_line1.data
+        order.address_line2 = form.address_line2.data
+        order.town = form.town.data
+        order.province = form.province.data
+        order.postal_code = form.postal_code.data
+        db.session.commit()
 
     session['pending_order_id'] = order.id
 

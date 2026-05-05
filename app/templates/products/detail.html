@@ -100,7 +100,7 @@
         </div>
 
         {% if product.stock > 0 %}
-        <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="d-flex gap-3 align-items-end flex-wrap">
+        <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="d-flex gap-3 align-items-end flex-wrap bodhi-add-to-cart">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="product_id" value="{{ product.id }}">
           <input type="hidden" name="item_type" value="product">
@@ -126,5 +126,57 @@
       </div>
     </div>
   </div>
+
+  <!-- ── Related / You May Also Like ──────────────────────────── -->
+  {% if related %}
+  <div class="container mt-5 pt-4" style="border-top:1px solid var(--glass-border);">
+    <h3 class="section-title mb-4" style="font-size:1.6rem;">You May Also Like</h3>
+    <div class="row g-3">
+      {% for p in related %}
+      <div class="col-sm-6 col-lg-3">
+        <div class="glass-card h-100 d-flex flex-column" style="border-radius:12px;overflow:hidden;">
+          {% if p.display_image %}
+          <a href="{{ url_for('main.product_detail', slug=p.slug) }}" style="display:block;aspect-ratio:1/1;overflow:hidden;">
+            <img src="{{ p.display_image }}" alt="{{ p.name }}" loading="lazy"
+                 style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s ease;">
+          </a>
+          {% else %}
+          <a href="{{ url_for('main.product_detail', slug=p.slug) }}"
+             style="display:flex;align-items:center;justify-content:center;aspect-ratio:1/1;background:var(--lift);color:var(--text-ghost);font-size:2.5rem;">
+            <i class="bi bi-box-seam"></i>
+          </a>
+          {% endif %}
+          <div class="p-3 d-flex flex-column flex-grow-1">
+            {% if p.is_on_sale %}
+            <span style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#ef4444;margin-bottom:0.3rem;">Sale</span>
+            {% endif %}
+            <a href="{{ url_for('main.product_detail', slug=p.slug) }}"
+               class="hover-sand" style="color:var(--text);text-decoration:none;font-weight:500;font-size:0.9rem;flex-grow:1;">
+              {{ p.name }}
+            </a>
+            <div class="mt-2 d-flex justify-content-between align-items-center">
+              <span style="color:var(--sand);font-family:var(--serif);font-weight:600;">
+                R{{ '%.2f'|format(p.display_price) }}
+              </span>
+              {% if p.stock > 0 %}
+              <form action="{{ url_for('cart.add_to_cart') }}" method="post" class="bodhi-add-to-cart">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="product_id" value="{{ p.id }}">
+                <input type="hidden" name="item_type" value="product">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn-cinematic" style="padding:0.35rem 0.9rem;font-size:0.78rem;">
+                  <i class="bi bi-bag-plus"></i>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

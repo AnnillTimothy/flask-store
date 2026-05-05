@@ -16,6 +16,7 @@ class Experience(db.Model):
     image_filename = db.Column(db.String(500), nullable=True)
     bundle_id = db.Column(db.Integer, db.ForeignKey('bundles.id'), nullable=False)
     is_featured = db.Column(db.Boolean, default=False, nullable=False)
+    is_seasonal = db.Column(db.Boolean, default=False, nullable=False)
     sale_price = db.Column(db.Numeric(10, 2), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -37,13 +38,21 @@ class Experience(db.Model):
     def display_image(self):
         if self.image_filename:
             return f'/static/uploads/experiences/{self.image_filename}'
-        return 'https://placehold.co/400x300?text=Experience'
+        return None
 
     @property
     def display_video(self):
         if self.video_filename:
             return f'/static/uploads/experiences/{self.video_filename}'
         return None
+
+    @property
+    def display_video_mime(self):
+        """Return the correct MIME type for the uploaded video file."""
+        if not self.video_filename:
+            return 'video/mp4'
+        ext = self.video_filename.rsplit('.', 1)[-1].lower()
+        return {'webm': 'video/webm', 'mov': 'video/quicktime'}.get(ext, 'video/mp4')
 
     @property
     def display_audio(self):

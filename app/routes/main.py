@@ -43,6 +43,15 @@ def store():
             # Fallback: newest 4 products
             featured = Product.query.order_by(Product.created_at.desc()).limit(4).all()
 
+    # Seasonal specials section
+    from app.models.company_setting import CompanySetting
+    cs = CompanySetting.get()
+    seasonal_experiences = []
+    if cs.seasonal_section_enabled:
+        seasonal_experiences = Experience.query.filter_by(is_seasonal=True).order_by(
+            Experience.created_at.desc()
+        ).all()
+
     is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest'
                or request.args.get('ajax') == '1')
     if is_ajax:
@@ -54,7 +63,10 @@ def store():
                            products=all_products,
                            featured=featured,
                            categories=categories,
-                           active_category=active_category)
+                           active_category=active_category,
+                           seasonal_experiences=seasonal_experiences,
+                           seasonal_section_enabled=cs.seasonal_section_enabled,
+                           seasonal_section_title=cs.seasonal_section_title or 'Limited-Time Specials')
 
 
 @main_bp.route('/products')
@@ -68,7 +80,24 @@ def products():
 @main_bp.route('/products/<slug>')
 def product_detail(slug):
     product = Product.query.filter_by(slug=slug).first_or_404()
-    return render_template('products/detail.html', product=product)
+    # Related: same category first, then featured fallback
+    related = []
+    if product.category_id:
+        related = Product.query.filter(
+            Product.category_id == product.category_id,
+            Product.id != product.id,
+            Product.stock > 0,
+        ).order_by(Product.is_featured.desc(), Product.name).limit(4).all()
+    if len(related) < 4:
+        featured_ids = {p.id for p in related}
+        featured_ids.add(product.id)
+        extra = Product.query.filter(
+            Product.is_featured == True,
+            ~Product.id.in_(featured_ids),
+            Product.stock > 0,
+        ).order_by(Product.name).limit(4 - len(related)).all()
+        related += extra
+    return render_template('products/detail.html', product=product, related=related)
 
 
 # Keep numeric ID route for backwards compatibility
@@ -172,7 +201,11 @@ def profile():
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.phone = form.phone.data
-        current_user.shipping_address = form.shipping_address.data
+        current_user.address_line1 = form.address_line1.data
+        current_user.address_line2 = form.address_line2.data
+        current_user.town = form.town.data
+        current_user.province = form.province.data
+        current_user.postal_code = form.postal_code.data
         db.session.commit()
         flash('Profile updated.', 'success')
         return redirect(url_for('main.profile'))
@@ -239,54 +272,36 @@ def ai_chat():
         cat_list = ', '.join(c.name for c in categories) if categories else 'Various'
         prod_lines = []
         for p in products[:30]:  # cap context length
-            sale = f' (ON SALE: R{p.sale_price:.2f})' if p.is_on_sale else ''
-            prod_lines.append(
-                f"- {p.name} | R{p.price:.2f}{sale} | "
-                f"Category: {p.category.name if p.category else 'Uncategorised'} | "
-                f"Stock: {p.stock} | {(p.description or '')[:120]}"
-            )
+            price_str = f'R{p.sale_price:.2f} (sale)' if p.is_on_sale else f'R{p.price:.2f}'
+            prod_lines.append(f"- {p.name} | {price_str} | /products/{p.slug}")
         exp_lines = []
         for e in experiences:
-            sale = f' (ON SALE: R{e.sale_price:.2f})' if e.is_on_sale else ''
-            exp_lines.append(
-                f"- {e.name} Experience | R{e.price:.2f}{sale} | "
-                f"{(e.description or '')[:120]} | URL: /experiences/{e.slug}"
-            )
+            price_str = f'R{e.sale_price:.2f} (sale)' if e.is_on_sale else f'R{e.price:.2f}'
+            exp_lines.append(f"- {e.name} | {price_str} | /experiences/{e.slug}")
 
-        system_prompt = f"""You are Bodhi, the AI guide for {store_name} — a premium, experience-driven e-commerce store.
-You help customers discover products, answer questions about pricing and availability, suggest experiences, and guide them through the website.
+        system_prompt = f"""You are Bodhi, the warm and soulful AI guide for {store_name}.
+Help customers find products and experiences. Be concise, friendly, and slightly mystical.
 
-Your personality: warm, soulful, knowledgeable, slightly mystical but grounded. You speak with care and intention.
-You focus on helping the customer find what resonates with them emotionally and sensually. You gently encourage purchases but are never pushy.
+IMPORTANT RULES:
+1. Keep replies to 1-3 sentences maximum unless the customer asks for detail.
+2. When recommending items, mention the name, price and a clickable link — nothing more.
+   Format links as Markdown: [Product Name](/path) — the UI will render them as clickable.
+3. Never dump raw lists of all products. Recommend 1-3 relevant items at most.
+4. Do not reveal stock numbers, database IDs, categories, or internal fields.
 
-STORE INFORMATION:
-- Store Name: {store_name}
-- Tagline: {cs.tagline or 'Enter the journey'}
-- Categories: {cat_list}
-- Shipping: flat-rate R{float(cs.shipping_cost or 150):.0f} nationwide South Africa
+STORE: {store_name} | Shipping: flat-rate R{float(cs.shipping_cost or 150):.0f} | South Africa
 
-PRODUCTS AVAILABLE:
+PRODUCTS (name | price | link):
 {chr(10).join(prod_lines) if prod_lines else 'Products loading...'}
 
-EXPERIENCES AVAILABLE:
+EXPERIENCES (name | price | link):
 {chr(10).join(exp_lines) if exp_lines else 'No experiences yet.'}
 
-KEY PAGES:
-- Home: /
-- Store (all products): /store
-- Experiences: /experiences
-- Cart: /cart
-- About: /about
-- Contact: /contact
-
 DISCOUNT CODES:
-{discount_note}
-
-Always provide specific product names and prices when relevant. If asked about something not in stock, suggest alternatives.
-Keep responses concise — 2-4 sentences unless more detail is genuinely needed. Use a gentle, flowing conversational style."""
+{discount_note}"""
 
     except Exception:
-        system_prompt = "You are Bodhi, a helpful shopping assistant. Help customers with their questions."
+        system_prompt = "You are Bodhi, a helpful shopping assistant. Help customers with their questions briefly."
 
     # Build message list
     messages = [{'role': 'system', 'content': system_prompt}]
