@@ -251,13 +251,13 @@ class ExperienceAdmin(SecureModelView):
 
         if action == 'add':
             product_id = request.form.get('product_id', type=int)
-            qty = max(1, request.form.get('quantity', type=int, default=1) or 1)
+            qty = max(1, request.form.get('quantity', type=int, default=1))
             if product_id and exp.bundle_id:
                 existing = BundleItem.query.filter_by(
                     bundle_id=exp.bundle_id, product_id=product_id
                 ).first()
                 if existing:
-                    existing.quantity = existing.quantity + qty
+                    existing.quantity += qty
                 else:
                     db.session.add(
                         BundleItem(bundle_id=exp.bundle_id,
@@ -587,8 +587,9 @@ def setup_admin(app):
     admin.add_view(ProductAdmin(Product, db.session, name='Products', category='Catalogue'))
     admin.add_view(ExperienceAdmin(Experience, db.session, name='Experiences',
                                    category='Catalogue'))
-    # Note: Categories are managed inline inside the Product form (quick-create field).
-    # Note: BundleItems (experience products) are managed inline inside the Experience edit form.
+    # Categories and BundleItems are not registered as standalone admin views.
+    # Categories are created inline via the Product form's quick-add field.
+    # BundleItems (experience products) are managed inline via the Experience edit form.
     admin.add_view(OrderAdmin(Order, db.session, name='Orders', category='Sales'))
     admin.add_view(ShippingAdmin(ShippingRecord, db.session, name='Shipping', category='Sales'))
     admin.add_view(DiscountCodeAdmin(DiscountCode, db.session, name='Discount Codes',
