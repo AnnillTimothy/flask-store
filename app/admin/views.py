@@ -4,7 +4,6 @@ from datetime import datetime, date
 from flask import redirect, url_for, request, flash, current_app
 from flask_admin import AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
-from flask_admin.model.form import InlineFormAdmin
 from flask_login import current_user
 from wtforms import SelectField, TextAreaField, StringField
 from wtforms.validators import Optional as WTFOptional
@@ -123,6 +122,10 @@ class CategoryAdmin(SecureModelView):
     column_searchable_list = ('name',)
     form_columns = ('name',)
 
+    # Hidden from the sidebar nav — categories are created inline in the Product form.
+    def is_visible(self):
+        return False
+
     def on_model_change(self, form, model, is_created):
         model.slug = re.sub(r'[^a-z0-9]+', '-', (form.name.data or '').lower()).strip('-')
 
@@ -196,38 +199,17 @@ class ProductAdmin(SecureModelView):
 
 
 # ---------------------------------------------------------------------------
-# Bundle Items inline (used inside ExperienceAdmin)
-# ---------------------------------------------------------------------------
-
-class BundleItemInline(InlineFormAdmin):
-    form_columns = ('id', 'product', 'quantity')
-    form_label = 'Products in this Experience'
-
-
-# ---------------------------------------------------------------------------
-# Experience Admin — inline products, auto-manages linked bundle
+# Experience Admin — auto-manages linked bundle; products edited inline
 # ---------------------------------------------------------------------------
 
 class ExperienceAdmin(SecureModelView):
     column_list = ('id', 'name', 'is_featured', 'is_seasonal', 'sale_price', 'price',
-                   'tagline', 'edit_products', 'created_at')
+                   'tagline', 'created_at')
     column_searchable_list = ('name', 'slug')
     column_editable_list = ('is_featured', 'is_seasonal', 'sale_price')
     form_excluded_columns = ('cart_items', 'order_items', 'created_at',
                              'video_filename', 'audio_filename', 'image_filename',
                              'slug', 'bundle_id', 'bundle')
-
-    def _edit_products_formatter(view, context, model, name):
-        if model.bundle_id:
-            url = f'/admin/bundleitem/?search=&flt1_0={model.bundle_id}'
-            return Markup(
-                f'<a href="{url}" class="btn btn-xs btn-outline-secondary" '
-                f'style="font-size:0.72rem;padding:2px 8px;">Edit Products</a>'
-            )
-        return Markup('<span style="color:#888;font-size:0.75rem;">Save first</span>')
-
-    column_formatters = {'edit_products': _edit_products_formatter}
-    column_labels = {'edit_products': 'Products'}
 
     form_extra_fields = {
         'video_upload': WTFFileField(
@@ -244,18 +226,67 @@ class ExperienceAdmin(SecureModelView):
         ),
     }
 
+    # Custom edit template adds inline product management below the form.
+    edit_template = 'admin/experience_edit.html'
+
+    def render(self, template, **kwargs):
+        """Inject the full product list so the edit template can render the add-product dropdown."""
+        if template == self.edit_template:
+            kwargs.setdefault('all_products',
+                              Product.query.order_by(Product.name).all())
+        return super().render(template, **kwargs)
+
+    @expose('/manage-product/', methods=['POST'])
+    def manage_product(self):
+        """Add or remove a product from this experience's bundle inline."""
+        if not self.is_accessible():
+            return redirect(url_for('auth.login'))
+
+        experience_id = request.form.get('experience_id', type=int)
+        action = request.form.get('action')
+        exp = Experience.query.get(experience_id) if experience_id else None
+        if not exp:
+            flash('Experience not found.', 'error')
+            return redirect(url_for('.index_view'))
+
+        if action == 'add':
+            product_id = request.form.get('product_id', type=int)
+            qty = max(1, request.form.get('quantity', type=int, default=1) or 1)
+            if product_id and exp.bundle_id:
+                existing = BundleItem.query.filter_by(
+                    bundle_id=exp.bundle_id, product_id=product_id
+                ).first()
+                if existing:
+                    existing.quantity = existing.quantity + qty
+                else:
+                    db.session.add(
+                        BundleItem(bundle_id=exp.bundle_id,
+                                   product_id=product_id, quantity=qty)
+                    )
+                db.session.commit()
+                flash('Product added to experience.', 'success')
+
+        elif action == 'remove':
+            item_id = request.form.get('item_id', type=int)
+            if item_id and exp.bundle_id:
+                item = BundleItem.query.get(item_id)
+                if item and item.bundle_id == exp.bundle_id:
+                    db.session.delete(item)
+                    db.session.commit()
+                    flash('Product removed from experience.', 'success')
+
+        return redirect(url_for('.edit_view', id=experience_id))
+
     def get_save_return_url(self, model, is_created=False):
-        """After CREATING an experience, redirect straight to its product list
-        so the admin can immediately add the products that make up this experience.
-        flt1_0 is Flask-Admin's filter index 0 on bundle_id (the first filter defined)."""
-        if is_created and model.bundle_id:
-            return url_for('bundleitem.index_view',
-                           search='', flt1_0=str(model.bundle_id))
+        """After creating an experience, go straight to its edit page so
+        products can be added immediately via the inline panel."""
+        if is_created:
+            return url_for('.edit_view', id=model.id)
         return super().get_save_return_url(model, is_created)
 
     def on_model_delete(self, model):
-        """Clean up uploaded files only. Bundle deletion is handled in delete_model
-        AFTER the experience row is removed (to avoid nullifying the NOT-NULL bundle_id)."""
+        """Clean up uploaded files. Bundle deletion happens in delete_model
+        AFTER the experience row is removed (bundle_id is NOT NULL)."""
         delete_uploaded_file(model.video_filename, 'experiences')
         delete_uploaded_file(model.image_filename, 'experiences')
         delete_uploaded_file(model.audio_filename, 'experiences')
@@ -275,8 +306,7 @@ class ExperienceAdmin(SecureModelView):
         from app.services.upload_service import (
             save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS, ALLOWED_AUDIO_EXTENSIONS,
         )
-        # Auto-slug (use no_autoflush so the slug-uniqueness query doesn't prematurely flush
-        # the unsaved Experience into the DB)
+        # Auto-slug (no_autoflush prevents flushing a model with slug=NULL)
         if not model.slug:
             base = re.sub(r'[^a-z0-9]+', '-', (model.name or '').lower()).strip('-')
             slug, counter = base, 1
@@ -288,10 +318,8 @@ class ExperienceAdmin(SecureModelView):
                     counter += 1
             model.slug = slug
 
-        # Ensure a bundle always exists so items can be attached.
-        # Assign via the ORM relationship so SQLAlchemy can order the INSERTs
-        # correctly (Bundle first, then Experience) without an explicit flush
-        # that would try to write the Experience before bundle_id is known.
+        # Ensure a bundle always exists so products can be attached.
+        # Using ORM relationship assignment lets SQLAlchemy resolve the FK ordering.
         if not model.bundle_id:
             bundle = Bundle(
                 name=model.name or 'Experience Bundle',
@@ -299,7 +327,7 @@ class ExperienceAdmin(SecureModelView):
                 price=model.price or 0,
             )
             db.session.add(bundle)
-            model.bundle = bundle  # SQLAlchemy resolves the FK on commit
+            model.bundle = bundle
         else:
             b = Bundle.query.get(model.bundle_id)
             if b:
@@ -519,7 +547,7 @@ class ShippingReportView(AdminRequiredMixin, BaseView):
 
 
 # ---------------------------------------------------------------------------
-# Bundle Item Admin  (used as "Experience Products" in the menu)
+# Bundle Item Admin — hidden from nav; managed inline inside ExperienceAdmin
 # ---------------------------------------------------------------------------
 
 class BundleItemAdmin(SecureModelView):
@@ -528,6 +556,10 @@ class BundleItemAdmin(SecureModelView):
     column_filters = ('bundle_id',)
     form_columns = ('bundle', 'product', 'quantity')
     column_labels = {'experience_name': 'Experience'}
+
+    # Not shown in the sidebar — products are managed inside the Experience edit form.
+    def is_visible(self):
+        return False
 
     def _experience_name_formatter(view, context, model, name):
         if model.bundle and model.bundle.experience:
@@ -552,13 +584,11 @@ def setup_admin(app):
     admin.add_view(CompanySettingAdmin(CompanySetting, db.session, name='Company',
                                       category='Settings'))
     admin.add_view(SupplierAdmin(Supplier, db.session, name='Suppliers', category='Catalogue'))
-    admin.add_view(CategoryAdmin(Category, db.session, name='Categories', category='Catalogue'))
     admin.add_view(ProductAdmin(Product, db.session, name='Products', category='Catalogue'))
     admin.add_view(ExperienceAdmin(Experience, db.session, name='Experiences',
                                    category='Catalogue'))
-    # BundleItem is accessible via the "Edit Products" link in Experiences list
-    admin.add_view(BundleItemAdmin(BundleItem, db.session, name='Experience Products',
-                                   category='Catalogue'))
+    # Note: Categories are managed inline inside the Product form (quick-create field).
+    # Note: BundleItems (experience products) are managed inline inside the Experience edit form.
     admin.add_view(OrderAdmin(Order, db.session, name='Orders', category='Sales'))
     admin.add_view(ShippingAdmin(ShippingRecord, db.session, name='Shipping', category='Sales'))
     admin.add_view(DiscountCodeAdmin(DiscountCode, db.session, name='Discount Codes',
