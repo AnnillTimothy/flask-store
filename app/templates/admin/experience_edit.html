@@ -1,0 +1,128 @@
+{% extends 'admin/model/edit.html' %}
+
+{# ──────────────────────────────────────────────────────────────────────────
+   Extends Flask-Admin's standard edit template and appends an inline
+   "Products in this Experience" management section below the form.
+   ────────────────────────────────────────────────────────────────────────── #}
+
+{% block body %}
+{{ super() }}
+
+{# ── Inline Products Panel ── #}
+<div style="margin-top:2.5rem;">
+  <h4 style="font-family:var(--font-head,'Cormorant Garamond',serif);
+             color:var(--gold,#c8a96e);
+             border-bottom:1px solid var(--border,#2e2e2e);
+             padding-bottom:.6rem;margin-bottom:1rem;">
+    <i class="bi bi-box-seam"></i> Products in this Experience
+  </h4>
+
+  {% if model and model.bundle_id %}
+    {% set items = model.bundle.items.all() %}
+
+    {# ── Current products table ── #}
+    {% if items %}
+    <div class="adm-table-wrap" style="margin-bottom:1.25rem;">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Product</th>
+            <th>Unit Price</th>
+            <th style="width:60px;text-align:center;">Qty</th>
+            <th style="width:90px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td style="color:#666;font-size:.8rem;">{{ loop.index }}</td>
+            <td>
+              {% if item.product %}
+                <strong>{{ item.product.name }}</strong>
+                {% if item.product.brand %}
+                  <span style="font-size:.78rem;color:#888;"> · {{ item.product.brand }}</span>
+                {% endif %}
+              {% else %}
+                <em style="color:#888;">Product removed</em>
+              {% endif %}
+            </td>
+            <td>
+              {% if item.product %}
+                R{{ '%.2f'|format(item.product.price) }}
+              {% else %}—{% endif %}
+            </td>
+            <td style="text-align:center;">{{ item.quantity }}</td>
+            <td>
+              <form method="POST"
+                    action="{{ url_for('experience.manage_product') }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('Remove {{ item.product.name if item.product else 'this product' }} from this experience?');">
+                <input type="hidden" name="experience_id" value="{{ model.id }}">
+                <input type="hidden" name="action" value="remove">
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <button type="submit" title="Remove"
+                        style="background:#c0392b;color:#fff;border:none;border-radius:4px;
+                               padding:3px 10px;cursor:pointer;font-size:.8rem;">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color:#888;font-size:.9rem;margin-bottom:1rem;">
+      No products added yet. Use the form below to bundle products into this experience.
+    </p>
+    {% endif %}
+
+    {# ── Add product form ── #}
+    <div style="background:var(--surface-2,#111);border:1px solid var(--border,#2e2e2e);
+                border-radius:8px;padding:1.25rem;max-width:540px;">
+      <h5 style="font-size:.875rem;font-weight:600;margin:0 0 .875rem;color:var(--text-muted,#aaa);">
+        Add a Product
+      </h5>
+      <form method="POST" action="{{ url_for('experience.manage_product') }}">
+        <input type="hidden" name="experience_id" value="{{ model.id }}">
+        <input type="hidden" name="action" value="add">
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:200px;">
+            <label style="font-size:.78rem;display:block;margin-bottom:3px;color:#aaa;">Product</label>
+            <select name="product_id" required
+                    style="width:100%;padding:5px 8px;border-radius:4px;
+                           border:1px solid #444;background:#1a1a1a;color:#eee;font-size:.88rem;">
+              <option value="">— Select product —</option>
+              {% for p in all_products %}
+              <option value="{{ p.id }}">{{ p.name }}{% if p.brand %} · {{ p.brand }}{% endif %} (R{{ '%.2f'|format(p.price) }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="width:70px;">
+            <label style="font-size:.78rem;display:block;margin-bottom:3px;color:#aaa;">Qty</label>
+            <input type="number" name="quantity" value="1" min="1" max="99"
+                   style="width:100%;padding:5px 8px;border-radius:4px;
+                          border:1px solid #444;background:#1a1a1a;color:#eee;font-size:.88rem;">
+          </div>
+          <div>
+            <button type="submit"
+                    style="padding:6px 18px;border-radius:4px;border:none;cursor:pointer;
+                           background:var(--gold,#c8a96e);color:#111;font-weight:600;font-size:.88rem;">
+              <i class="bi bi-plus-lg"></i> Add
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+  {% else %}
+  {# This only shows if somehow model has no bundle_id — should never happen. #}
+  <p style="color:#888;font-size:.9rem;">
+    <i class="bi bi-info-circle"></i>
+    Save this experience first, then products can be added here.
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

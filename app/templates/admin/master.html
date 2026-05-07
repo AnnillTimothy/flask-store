@@ -32,12 +32,14 @@
         {% if item.is_category() %}
           <div class="adm-category">{{ item.name }}</div>
           {% for child in item.get_children() %}
+            {% if child.is_accessible() %}
             <a class="adm-nav-item{% if child.is_active(admin_view) %} active{% endif %}"
                href="{{ child.get_url() }}">{{ child.name }}</a>
+            {% endif %}
           {% endfor %}
         {% else %}
           {# Skip the Home item since we added it above #}
-          {% if item.name != 'Home' %}
+          {% if item.name != 'Home' and item.is_accessible() %}
             <a class="adm-nav-item{% if item.is_active(admin_view) %} active{% endif %}"
                href="{{ item.get_url() }}">{{ item.name }}</a>
           {% endif %}
