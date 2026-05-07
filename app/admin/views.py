@@ -170,7 +170,8 @@ class ProductAdmin(SecureModelView):
                     counter += 1
             model.slug = slug
         # Quick-create category if a new name was typed
-        new_cat = (getattr(form, 'new_category_name', None) and form.new_category_name.data or '').strip()
+        new_cat_field = getattr(form, 'new_category_name', None)
+        new_cat = (new_cat_field.data or '').strip() if new_cat_field else ''
         if new_cat:
             with db.session.no_autoflush:
                 cat = Category.query.filter_by(name=new_cat).first()
@@ -245,7 +246,8 @@ class ExperienceAdmin(SecureModelView):
 
     def get_save_return_url(self, model, is_created=False):
         """After CREATING an experience, redirect straight to its product list
-        so the admin can immediately add the products that make up this experience."""
+        so the admin can immediately add the products that make up this experience.
+        flt1_0 is Flask-Admin's filter index 0 on bundle_id (the first filter defined)."""
         if is_created and model.bundle_id:
             return url_for('bundleitem.index_view',
                            search='', flt1_0=str(model.bundle_id))
@@ -530,8 +532,8 @@ class BundleItemAdmin(SecureModelView):
     def _experience_name_formatter(view, context, model, name):
         if model.bundle and model.bundle.experience:
             exp = model.bundle.experience
-            url = f'/admin/experience/edit/?id={exp.id}'
-            return Markup(f'<a href="{url}">{exp.name}</a>')
+            edit_url = url_for('experience.edit_view', id=exp.id)
+            return Markup(f'<a href="{edit_url}">{exp.name}</a>')
         if model.bundle:
             return model.bundle.name
         return '—'
