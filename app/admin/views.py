@@ -6,8 +6,8 @@ from flask_admin import AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.model.form import InlineFormAdmin
 from flask_login import current_user
-from wtforms import SelectField, TextAreaField
-from wtforms.validators import Optional
+from wtforms import SelectField, TextAreaField, StringField
+from wtforms.validators import Optional as WTFOptional
 from flask_wtf.file import FileField as WTFFileField, FileAllowed
 from markupsafe import Markup
 from app.extensions import db, admin
@@ -145,21 +145,46 @@ class ProductAdmin(SecureModelView):
             'Product Image',
             validators=[FileAllowed(['png', 'jpg', 'jpeg', 'gif', 'webp'], 'Images only!')],
         ),
+        # Quick-create: type a new category name here; leave blank to use the Category dropdown above
+        'new_category_name': StringField(
+            'Quick-Add Category (or select above)',
+            validators=[WTFOptional()],
+            description='Type a new category name to create it on the fly, '
+                        'or leave blank and select an existing one above.',
+        ),
     }
 
     def on_model_delete(self, model):
         delete_uploaded_file(model.image_filename, 'products')
 
     def on_model_change(self, form, model, is_created):
+        # Generate slug without triggering autoflush (model may have slug=None in session)
         if not model.slug:
             base = re.sub(r'[^a-z0-9]+', '-', (model.name or '').lower()).strip('-')
             slug, counter = base, 1
-            while Product.query.filter(
-                Product.slug == slug, Product.id != (model.id or -1)
-            ).first():
-                slug = f'{base}-{counter}'
-                counter += 1
+            with db.session.no_autoflush:
+                while Product.query.filter(
+                    Product.slug == slug, Product.id != (model.id or -1)
+                ).first():
+                    slug = f'{base}-{counter}'
+                    counter += 1
             model.slug = slug
+        # Quick-create category if a new name was typed
+        new_cat = (getattr(form, 'new_category_name', None) and form.new_category_name.data or '').strip()
+        if new_cat:
+            with db.session.no_autoflush:
+                cat = Category.query.filter_by(name=new_cat).first()
+            if not cat:
+                cat_slug = re.sub(r'[^a-z0-9]+', '-', new_cat.lower()).strip('-')
+                base_slug, n = cat_slug, 1
+                with db.session.no_autoflush:
+                    while Category.query.filter_by(slug=cat_slug).first():
+                        cat_slug = f'{base_slug}-{n}'
+                        n += 1
+                cat = Category(name=new_cat, slug=cat_slug)
+                db.session.add(cat)
+                db.session.flush()
+            model.category = cat
         if _has_file(form.image_upload):
             from app.services.upload_service import save_uploaded_file
             if model.image_filename:
@@ -218,29 +243,53 @@ class ExperienceAdmin(SecureModelView):
         ),
     }
 
+    def get_save_return_url(self, model, is_created=False):
+        """After CREATING an experience, redirect straight to its product list
+        so the admin can immediately add the products that make up this experience."""
+        if is_created and model.bundle_id:
+            return url_for('bundleitem.index_view',
+                           search='', flt1_0=str(model.bundle_id))
+        return super().get_save_return_url(model, is_created)
+
     def on_model_delete(self, model):
+        """Clean up uploaded files only. Bundle deletion is handled in delete_model
+        AFTER the experience row is removed (to avoid nullifying the NOT-NULL bundle_id)."""
         delete_uploaded_file(model.video_filename, 'experiences')
         delete_uploaded_file(model.image_filename, 'experiences')
         delete_uploaded_file(model.audio_filename, 'experiences')
-        if model.bundle:
-            db.session.delete(model.bundle)
+
+    def delete_model(self, model):
+        """Delete the experience then clean up its orphaned bundle."""
+        bundle_id = model.bundle_id
+        result = super().delete_model(model)
+        if result and bundle_id:
+            bundle = Bundle.query.get(bundle_id)
+            if bundle:
+                db.session.delete(bundle)
+                db.session.commit()
+        return result
 
     def on_model_change(self, form, model, is_created):
         from app.services.upload_service import (
             save_uploaded_file, ALLOWED_VIDEO_EXTENSIONS, ALLOWED_AUDIO_EXTENSIONS,
         )
-        # Auto-slug
+        # Auto-slug (use no_autoflush so the slug-uniqueness query doesn't prematurely flush
+        # the unsaved Experience into the DB)
         if not model.slug:
             base = re.sub(r'[^a-z0-9]+', '-', (model.name or '').lower()).strip('-')
             slug, counter = base, 1
-            while Experience.query.filter(
-                Experience.slug == slug, Experience.id != (model.id or -1)
-            ).first():
-                slug = f'{base}-{counter}'
-                counter += 1
+            with db.session.no_autoflush:
+                while Experience.query.filter(
+                    Experience.slug == slug, Experience.id != (model.id or -1)
+                ).first():
+                    slug = f'{base}-{counter}'
+                    counter += 1
             model.slug = slug
 
-        # Ensure a bundle always exists so items can be attached
+        # Ensure a bundle always exists so items can be attached.
+        # Assign via the ORM relationship so SQLAlchemy can order the INSERTs
+        # correctly (Bundle first, then Experience) without an explicit flush
+        # that would try to write the Experience before bundle_id is known.
         if not model.bundle_id:
             bundle = Bundle(
                 name=model.name or 'Experience Bundle',
@@ -248,8 +297,7 @@ class ExperienceAdmin(SecureModelView):
                 price=model.price or 0,
             )
             db.session.add(bundle)
-            db.session.flush()
-            model.bundle_id = bundle.id
+            model.bundle = bundle  # SQLAlchemy resolves the FK on commit
         else:
             b = Bundle.query.get(model.bundle_id)
             if b:
@@ -473,10 +521,22 @@ class ShippingReportView(AdminRequiredMixin, BaseView):
 # ---------------------------------------------------------------------------
 
 class BundleItemAdmin(SecureModelView):
-    column_list = ('id', 'bundle', 'product', 'quantity')
+    column_list = ('id', 'experience_name', 'product', 'quantity')
     column_searchable_list = ('bundle_id',)
     column_filters = ('bundle_id',)
     form_columns = ('bundle', 'product', 'quantity')
+    column_labels = {'experience_name': 'Experience'}
+
+    def _experience_name_formatter(view, context, model, name):
+        if model.bundle and model.bundle.experience:
+            exp = model.bundle.experience
+            url = f'/admin/experience/edit/?id={exp.id}'
+            return Markup(f'<a href="{url}">{exp.name}</a>')
+        if model.bundle:
+            return model.bundle.name
+        return '—'
+
+    column_formatters = {'experience_name': _experience_name_formatter}
 
 
 # ---------------------------------------------------------------------------
