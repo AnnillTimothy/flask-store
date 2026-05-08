@@ -209,7 +209,7 @@ class ExperienceAdmin(SecureModelView):
     column_editable_list = ('is_featured', 'is_seasonal', 'sale_price')
     column_labels = {'product_count': 'Products'}
 
-    def _product_count_formatter(view, context, model, name):
+    def product_count_formatter(view, context, model, name):
         if model.bundle_id:
             count = BundleItem.query.filter_by(bundle_id=model.bundle_id).count()
             if count:
@@ -219,7 +219,7 @@ class ExperienceAdmin(SecureModelView):
                 )
         return Markup('<span style="color:#666;">0</span>')
 
-    column_formatters = {'product_count': _product_count_formatter}
+    column_formatters = {'product_count': product_count_formatter}
     form_excluded_columns = ('cart_items', 'order_items', 'created_at',
                              'video_filename', 'audio_filename', 'image_filename',
                              'slug', 'bundle_id', 'bundle')

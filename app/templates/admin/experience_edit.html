@@ -124,6 +124,14 @@
     </div>
 
   </div>
+{% elif model %}
+  {# Fallback — bundle was not auto-created; saving again should fix it. #}
+  <div style="margin-bottom:2rem;padding:1rem;background:#1a0a0a;
+              border:1px solid #5a2020;border-radius:8px;color:#e07070;">
+    <i class="bi bi-exclamation-triangle"></i>
+    No bundle found for this experience. Re-save the experience to auto-create one,
+    then products can be added here.
+  </div>
 {% endif %}
 
 {# ── Experience details form (below the products panel) ── #}
