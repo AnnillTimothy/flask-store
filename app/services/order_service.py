@@ -50,15 +50,9 @@ def create_order_from_cart(cart, customer_name, customer_email,
         )
         db.session.add(order_item)
 
-        # Decrement stock for product items
+        # Decrement stock for product items and for products within experience bundles
         if cart_item.item_type == 'product' and cart_item.product:
             cart_item.product.stock = max(0, cart_item.product.stock - cart_item.quantity)
-        elif cart_item.item_type == 'bundle' and cart_item.bundle:
-            # Reduce stock for each product in the bundle
-            for bundle_item in cart_item.bundle.items:
-                if bundle_item.product:
-                    deduct = bundle_item.quantity * cart_item.quantity
-                    bundle_item.product.stock = max(0, bundle_item.product.stock - deduct)
         elif cart_item.item_type == 'experience' and cart_item.experience:
             # Reduce stock for each product in the experience's bundle
             if cart_item.experience.bundle:

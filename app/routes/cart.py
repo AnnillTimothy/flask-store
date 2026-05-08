@@ -24,10 +24,7 @@ def add_to_cart():
     is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest'
                or request.form.get('ajax') == '1')
 
-    if item_type == 'bundle':
-        bundle_id = request.form.get('bundle_id', type=int)
-        ok, msg = cart_service.add_bundle(bundle_id, quantity)
-    elif item_type == 'experience':
+    if item_type == 'experience':
         experience_id = request.form.get('experience_id', type=int)
         ok, msg = cart_service.add_experience(experience_id, quantity)
     else:

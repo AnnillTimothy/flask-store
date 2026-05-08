@@ -58,7 +58,7 @@ class OrderItem(db.Model):
     experience_id = db.Column(db.Integer, db.ForeignKey('experiences.id'), nullable=True)
     quantity = db.Column(db.Integer, nullable=False)
     price_at_purchase = db.Column(db.Numeric(10, 2), nullable=False)
-    item_type = db.Column(db.String(20), nullable=False)  # 'product', 'bundle', or 'experience'
+    item_type = db.Column(db.String(20), nullable=False)  # 'product' or 'experience'
 
     order = db.relationship('Order', back_populates='items')
     product = db.relationship('Product', back_populates='order_items')

@@ -33,7 +33,7 @@ class CartItem(db.Model):
     bundle_id = db.Column(db.Integer, db.ForeignKey('bundles.id'), nullable=True)
     experience_id = db.Column(db.Integer, db.ForeignKey('experiences.id'), nullable=True)
     quantity = db.Column(db.Integer, default=1, nullable=False)
-    item_type = db.Column(db.String(20), nullable=False)  # 'product', 'bundle', or 'experience'
+    item_type = db.Column(db.String(20), nullable=False)  # 'product' or 'experience'
 
     cart = db.relationship('Cart', back_populates='items')
     product = db.relationship('Product', back_populates='cart_items')

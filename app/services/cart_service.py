@@ -4,7 +4,6 @@ from flask_login import current_user
 from app.extensions import db
 from app.models.cart import Cart, CartItem
 from app.models.product import Product
-from app.models.bundle import Bundle
 from app.models.experience import Experience
 
 
@@ -54,24 +53,6 @@ def add_product(product_id, quantity=1):
         db.session.add(item)
     db.session.commit()
     return True, 'Product added to cart.'
-
-
-def add_bundle(bundle_id, quantity=1):
-    bundle = Bundle.query.get(bundle_id)
-    if not bundle:
-        return False, 'Bundle not found.'
-
-    cart = get_or_create_cart()
-    item = CartItem.query.filter_by(cart_id=cart.id, bundle_id=bundle_id,
-                                    item_type='bundle').first()
-    if item:
-        item.quantity += quantity
-    else:
-        item = CartItem(cart_id=cart.id, bundle_id=bundle_id,
-                        item_type='bundle', quantity=quantity)
-        db.session.add(item)
-    db.session.commit()
-    return True, 'Bundle added to cart.'
 
 
 def add_experience(experience_id, quantity=1):
