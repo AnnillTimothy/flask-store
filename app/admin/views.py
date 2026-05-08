@@ -204,12 +204,26 @@ class ProductAdmin(SecureModelView):
 
 class ExperienceAdmin(SecureModelView):
     column_list = ('id', 'name', 'is_featured', 'is_seasonal', 'sale_price', 'price',
-                   'tagline', 'created_at')
+                   'tagline', 'product_count', 'created_at')
     column_searchable_list = ('name', 'slug')
     column_editable_list = ('is_featured', 'is_seasonal', 'sale_price')
+    column_labels = {'product_count': 'Products'}
     form_excluded_columns = ('cart_items', 'order_items', 'created_at',
                              'video_filename', 'audio_filename', 'image_filename',
                              'slug', 'bundle_id', 'bundle')
+
+    @staticmethod
+    def _product_count_formatter(view, context, model, name):
+        count = model.bundle.items.count() if model.bundle else 0
+        edit_url = url_for('experience.edit_view', id=model.id) + '#exp-products-panel'
+        colour = '#c8a96e' if count > 0 else '#888'
+        label = f'{count} product{"s" if count != 1 else ""}'
+        return Markup(
+            f'<a href="{edit_url}" style="color:{colour};font-weight:600;">'
+            f'{label}</a>'
+        )
+
+    column_formatters = {'product_count': _product_count_formatter}
 
     form_extra_fields = {
         'video_upload': WTFFileField(
