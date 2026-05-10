@@ -1,24 +1,30 @@
 {% extends 'admin/model/edit.html' %}
+{% import 'admin/lib.html' as lib with context %}
+{% from 'admin/lib.html' import extra with context %}
 
 {# ──────────────────────────────────────────────────────────────────────────
-   Extends Flask-Admin's standard edit template and appends an inline
-   "Products in this Experience" management section below the form.
+   Extends Flask-Admin's standard edit template.
+   The "Products in this Experience" bundle management panel is rendered
+   ABOVE the experience details form so it is the first thing visible —
+   users can immediately add/remove products before scrolling to Save.
    ────────────────────────────────────────────────────────────────────────── #}
 
-{% block body %}
-{{ super() }}
+{% block edit_form %}
 
-{# ── Inline Products Panel ── #}
-<div style="margin-top:2.5rem;">
-  <h4 style="font-family:var(--font-head,'Cormorant Garamond',serif);
-             color:var(--gold,#c8a96e);
-             border-bottom:1px solid var(--border,#2e2e2e);
-             padding-bottom:.6rem;margin-bottom:1rem;">
-    <i class="bi bi-box-seam"></i> Products in this Experience
-  </h4>
+{# ── Bundle Products Panel (above the experience details form) ── #}
+{% if model and model.bundle_id %}
+  {% set items = model.bundle.items.all() %}
+  <div style="margin-bottom:2rem;padding:1.25rem;
+              background:var(--surface-2,#111);
+              border:1px solid var(--border,#2e2e2e);
+              border-radius:8px;">
 
-  {% if model and model.bundle_id %}
-    {% set items = model.bundle.items.all() %}
+    <h4 style="font-family:var(--font-head,'Cormorant Garamond',serif);
+               color:var(--gold,#c8a96e);
+               border-bottom:1px solid var(--border,#2e2e2e);
+               padding-bottom:.6rem;margin-bottom:1rem;margin-top:0;">
+      <i class="bi bi-box-seam"></i> Products in this Experience
+    </h4>
 
     {# ── Current products table ── #}
     {% if items %}
@@ -117,12 +123,18 @@
       </form>
     </div>
 
-  {% else %}
-  {# This only shows if somehow model has no bundle_id — should never happen. #}
-  <p style="color:#888;font-size:.9rem;">
-    <i class="bi bi-info-circle"></i>
-    Save this experience first, then products can be added here.
-  </p>
-  {% endif %}
-</div>
+  </div>
+{% elif model %}
+  {# Fallback — bundle was not auto-created; saving again should fix it. #}
+  <div style="margin-bottom:2rem;padding:1rem;background:#1a0a0a;
+              border:1px solid #5a2020;border-radius:8px;color:#e07070;">
+    <i class="bi bi-exclamation-triangle"></i>
+    No bundle found for this experience. Re-save the experience to auto-create one,
+    then products can be added here.
+  </div>
+{% endif %}
+
+{# ── Experience details form (below the products panel) ── #}
+{{ lib.render_form(form, return_url, extra(), form_opts) }}
+
 {% endblock %}
