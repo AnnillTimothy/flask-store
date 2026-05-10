@@ -1,0 +1,28 @@
+{% extends 'admin/model/create.html' %}
+
+{# ──────────────────────────────────────────────────────────────────────────
+   Custom create template for Experiences.
+   Adds an informational banner so the admin knows products are added on the
+   edit page (after the experience is saved and a bundle is auto-created).
+   ────────────────────────────────────────────────────────────────────────── #}
+
+{% block create_form %}
+
+<div style="margin-bottom:1.75rem;padding:1rem 1.25rem;
+            background:#0e1a0e;
+            border:1px solid #2d5a2d;
+            border-radius:8px;
+            color:#7ec87e;
+            font-size:.88rem;line-height:1.5;">
+  <strong style="display:block;margin-bottom:.35rem;">
+    <i class="bi bi-info-circle"></i>
+    Adding products to this experience
+  </strong>
+  Fill in the experience details and click <strong>Save</strong>.
+  You will be taken directly to the edit page where you can bundle
+  products into this experience (e.g. Blue Lotus Tea, Mushroom Coffee, etc.).
+</div>
+
+{{ lib.render_form(form, return_url, extra(), form_opts) }}
+
+{% endblock %}

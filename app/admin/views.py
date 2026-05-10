@@ -158,6 +158,13 @@ class ProductAdmin(SecureModelView):
     }
 
     def on_model_delete(self, model):
+        # Remove this product from all bundles/experiences before deletion.
+        # BundleItem.product_id is NOT NULL, so we must delete the rows rather
+        # than letting SQLAlchemy try to SET product_id = NULL, which would
+        # raise an IntegrityError.
+        BundleItem.query.filter_by(product_id=model.id).delete(
+            synchronize_session='fetch'
+        )
         delete_uploaded_file(model.image_filename, 'products')
 
     def on_model_change(self, form, model, is_created):
@@ -239,7 +246,9 @@ class ExperienceAdmin(SecureModelView):
         ),
     }
 
-    # Custom edit template adds inline product management below the form.
+    # Custom create template shows a note about adding products after saving.
+    # Custom edit template adds inline product management above the form.
+    create_template = 'admin/experience_create.html'
     edit_template = 'admin/experience_edit.html'
 
     def render(self, template, **kwargs):
