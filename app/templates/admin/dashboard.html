@@ -203,8 +203,8 @@
       <div class="adm-revenue-value">R{{ '%.2f'|format(summary.product_revenue) }}</div>
     </div>
     <div class="adm-revenue-item">
-      <div class="adm-revenue-label">Supplier Payouts</div>
-      <div class="adm-revenue-value">R{{ '%.2f'|format(summary.total_supplier_payout) }}</div>
+      <div class="adm-revenue-label">Supplier Cost</div>
+      <div class="adm-revenue-value">R{{ '%.2f'|format(summary.get('total_supplier_cost', summary.get('total_supplier_payout', 0))) }}</div>
     </div>
     <div class="adm-revenue-item">
       <div class="adm-revenue-label">Total Expenses</div>

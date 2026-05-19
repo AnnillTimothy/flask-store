@@ -193,13 +193,31 @@ function initEmailPopup() {
   // Don't show if already seen
   if (localStorage.getItem('bodhi_email_popup') !== null) return;
 
-  // This will be triggered by the experience reel when the user reaches scene 2
-  window._showEmailPopup = function() {
+  function showPopup() {
     if (localStorage.getItem('bodhi_email_popup') !== null) return;
-    // Don't show email popup until age gate is cleared
     if (!localStorage.getItem('bodhi_age_verified')) return;
     popup.style.display = '';
-  };
+  }
+
+  // On immersive pages: triggered by experience reel reaching scene 2
+  window._showEmailPopup = showPopup;
+
+  // On non-immersive pages: trigger after user scrolls 40% of the page
+  const isImmersive = document.body.classList.contains('page-immersive');
+  if (!isImmersive) {
+    let scrollTriggered = false;
+    function onScrollPopup() {
+      if (scrollTriggered) return;
+      const scrolled = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+      if (scrolled > 0.4) {
+        scrollTriggered = true;
+        // Small delay so it doesn't feel abrupt
+        setTimeout(showPopup, 600);
+        window.removeEventListener('scroll', onScrollPopup);
+      }
+    }
+    window.addEventListener('scroll', onScrollPopup, { passive: true });
+  }
 
   if (close) close.addEventListener('click', () => {
     popup.style.display = 'none';
@@ -214,6 +232,19 @@ function initEmailPopup() {
     }
   });
 
+  function submitSubscribe(email, name, successCb) {
+    fetch('/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name }),
+    })
+      .catch(() => {})
+      .finally(() => {
+        localStorage.setItem('bodhi_email_popup', 'subscribed');
+        if (successCb) successCb();
+      });
+  }
+
   if (form) form.addEventListener('submit', (e) => {
     e.preventDefault();
     const emailInput = form.querySelector('input[type="email"], #popup-email-input');
@@ -221,19 +252,39 @@ function initEmailPopup() {
     const email = emailInput ? emailInput.value.trim() : '';
     const name  = nameInput  ? nameInput.value.trim()  : '';
     if (!email) return;
-
-    // Submit to subscribe endpoint
-    fetch('/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name }),
-    })
-      .catch(() => {}) // best-effort
-      .finally(() => {
-        popup.style.display = 'none';
-        localStorage.setItem('bodhi_email_popup', 'subscribed');
-      });
+    submitSubscribe(email, name, () => { popup.style.display = 'none'; });
   });
+
+  // ── Footer subscribe form ──────────────────────────────────
+  const footerForm = document.getElementById('footer-subscribe-form');
+  const footerMsg  = document.getElementById('footer-subscribe-msg');
+  if (footerForm) {
+    footerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emailEl = document.getElementById('footer-subscribe-email');
+      const email = emailEl ? emailEl.value.trim() : '';
+      if (!email) return;
+      fetch('/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (footerMsg) {
+            footerMsg.style.color = data.ok ? 'var(--sand)' : '#ef4444';
+            footerMsg.textContent = data.message || (data.ok ? 'You\'re subscribed!' : 'Something went wrong.');
+          }
+          if (data.ok && emailEl) emailEl.value = '';
+        })
+        .catch(() => {
+          if (footerMsg) {
+            footerMsg.style.color = '#ef4444';
+            footerMsg.textContent = 'Could not subscribe. Please try again.';
+          }
+        });
+    });
+  }
 }
 
 // ─── Cart badge AJAX ──────────────────────────────────────────

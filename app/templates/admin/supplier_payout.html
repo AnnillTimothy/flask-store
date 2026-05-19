@@ -3,7 +3,8 @@
 {% block body %}
 <div class="adm-page">
   <div class="adm-page-header">
-    <h2>Supplier Payout Report</h2>
+    <h2>Supplier Cost Report</h2>
+    <p class="adm-section-sub">Cost-price vs retail-price analysis per supplier for paid/shipped/delivered orders.</p>
   </div>
 
   <div class="adm-filter-form">
@@ -28,31 +29,49 @@
     <thead>
       <tr>
         <th>Supplier</th>
-        <th>Revenue Share %</th>
-        <th>Gross Revenue</th>
-        <th>Payout Amount</th>
+        <th>Customer Paid (Retail)</th>
+        <th>We Pay Supplier (Cost)</th>
+        <th>Our Margin</th>
+        <th>Margin %</th>
       </tr>
     </thead>
     <tbody>
       {% for p in payouts %}
       <tr>
         <td>{{ p.supplier_name }}</td>
-        <td>{{ p.revenue_share_pct }}%</td>
         <td>R{{ '%.2f'|format(p.gross_revenue) }}</td>
-        <td style="color:#86efac;">R{{ '%.2f'|format(p.payout) }}</td>
+        {% if p.has_cost_data %}
+        <td style="color:#fca5a5;">R{{ '%.2f'|format(p.total_cost) }}</td>
+        <td style="color:#86efac;">R{{ '%.2f'|format(p.our_margin) }}</td>
+        <td>
+          {% if p.gross_revenue > 0 %}
+          {{ '%.1f'|format(p.our_margin / p.gross_revenue * 100) }}%
+          {% else %}—{% endif %}
+        </td>
+        {% else %}
+        <td><span style="color:var(--text-ghost);font-size:0.8rem;">No cost-price set on products</span></td>
+        <td>—</td>
+        <td>—</td>
+        {% endif %}
       </tr>
       {% endfor %}
     </tbody>
     <tfoot>
       <tr style="font-weight:600;">
-        <td colspan="2">Total</td>
+        <td>Total</td>
         <td>R{{ '%.2f'|format(payouts|sum(attribute='gross_revenue')) }}</td>
-        <td style="color:#86efac;">R{{ '%.2f'|format(payouts|sum(attribute='payout')) }}</td>
+        <td style="color:#fca5a5;">R{{ '%.2f'|format(payouts|sum(attribute='total_cost')) }}</td>
+        <td style="color:#86efac;">R{{ '%.2f'|format(payouts|sum(attribute='our_margin')) }}</td>
+        <td>—</td>
       </tr>
     </tfoot>
   </table>
+  <p style="color:var(--text-ghost);font-size:0.78rem;margin-top:0.5rem;">
+    Set <strong>Cost Price</strong> on each product in the Catalogue → Products admin to populate the supplier cost column.
+    Only products with a cost price set are counted in the cost and margin columns.
+  </p>
   {% else %}
-  <p style="color:var(--text-ghost);">No payout data for this period.</p>
+  <p style="color:var(--text-ghost);">No sales data for this period.</p>
   {% endif %}
 </div>
 {% endblock %}

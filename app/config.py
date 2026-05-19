@@ -17,6 +17,11 @@ class Config:
     PAYFAST_PASSPHRASE = os.environ.get('PAYFAST_PASSPHRASE', '')
     PAYFAST_SANDBOX = os.environ.get('PAYFAST_SANDBOX', 'True') == 'True'
 
+    # Peach Payments settings
+    PEACH_ENTITY_ID = os.environ.get('PEACH_ENTITY_ID', '')
+    PEACH_AUTH_TOKEN = os.environ.get('PEACH_AUTH_TOKEN', '')
+    PEACH_SANDBOX = os.environ.get('PEACH_SANDBOX', 'True') == 'True'
+
     SHIPPING_COST = 150.0
 
     # Flask-Mail settings

@@ -108,10 +108,28 @@
             </div>
 
             <div class="glass-card p-3 mb-4" style="border-radius:8px;border-color:rgba(200,180,154,0.2);">
-              <p style="color:var(--text-dim);font-size:0.84rem;margin:0;">
+              <p style="color:var(--text-dim);font-size:0.84rem;margin-bottom:0.75rem;">
                 <i class="bi bi-shield-check me-2" style="color:var(--sand);"></i>
-                You will be redirected to PayFast to complete your payment securely.
+                Choose your payment method:
               </p>
+              <div class="payment-method-options" style="display:flex;flex-direction:column;gap:0.6rem;">
+                <label class="payment-method-option" style="display:flex;align-items:center;gap:0.75rem;cursor:pointer;padding:0.75rem 1rem;border-radius:8px;border:1px solid rgba(200,180,154,0.25);background:rgba(255,255,255,0.03);">
+                  <input type="radio" name="payment_method" value="payfast" checked
+                         style="accent-color:var(--sand);width:1.1rem;height:1.1rem;">
+                  <span>
+                    <strong style="color:var(--text);">PayFast</strong>
+                    <span style="color:var(--text-ghost);font-size:0.78rem;margin-left:0.4rem;">— SA's most trusted gateway</span>
+                  </span>
+                </label>
+                <label class="payment-method-option" style="display:flex;align-items:center;gap:0.75rem;cursor:pointer;padding:0.75rem 1rem;border-radius:8px;border:1px solid rgba(200,180,154,0.25);background:rgba(255,255,255,0.03);">
+                  <input type="radio" name="payment_method" value="peach"
+                         style="accent-color:var(--sand);width:1.1rem;height:1.1rem;">
+                  <span>
+                    <strong style="color:var(--text);">Peach Payments</strong>
+                    <span style="color:var(--text-ghost);font-size:0.78rem;margin-left:0.4rem;">— Cards, EFT & more</span>
+                  </span>
+                </label>
+              </div>
             </div>
 
             <button type="submit" class="btn-cinematic w-100" style="justify-content:center;" id="payBtn">
@@ -162,7 +180,7 @@
         <!-- Payment badge -->
         <div class="glass-card mt-3 text-center p-3" style="border-radius:10px;">
           <p style="font-size:0.78rem;color:var(--text-ghost);margin-bottom:0.3rem;">Secure payment via</p>
-          <strong style="color:var(--sand);"><i class="bi bi-shield-check"></i>&nbsp;PayFast</strong>
+          <strong style="color:var(--sand);" id="payment-badge-label"><i class="bi bi-shield-check"></i>&nbsp;PayFast</strong>
           <p style="font-size:0.75rem;color:var(--text-ghost);margin:0.3rem 0 0;">South Africa's trusted payment gateway</p>
         </div>
       </div>
@@ -218,6 +236,19 @@
     const btn = document.getElementById('payBtn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
+  });
+
+  // Update payment badge when selecting a payment method
+  document.querySelectorAll('input[name="payment_method"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      const badge = document.getElementById('payment-badge-label');
+      if (!badge) return;
+      if (this.value === 'peach') {
+        badge.innerHTML = '<i class="bi bi-shield-check"></i>&nbsp;Peach Payments';
+      } else {
+        badge.innerHTML = '<i class="bi bi-shield-check"></i>&nbsp;PayFast';
+      }
+    });
   });
 })();
 </script>
