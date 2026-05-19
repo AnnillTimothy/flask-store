@@ -21,6 +21,8 @@ from app.models.shipping import ShippingRecord
 from app.models.expense import Expense
 from app.models.company_setting import CompanySetting
 from app.models.discount_code import DiscountCode
+from app.models.subscriber import Subscriber
+from app.models.contact_ticket import ContactTicket
 from app.services.order_service import calculate_supplier_payouts, get_revenue_summary
 from app.services.upload_service import delete_uploaded_file
 
@@ -70,14 +72,36 @@ class SecureAdminIndexView(AdminRequiredMixin, AdminIndexView):
             ).count(),
             'low_stock': Product.query.filter(Product.stock < 10).count(),
             'suppliers': Supplier.query.count(),
+            'subscribers': 0,
+            'open_tickets': 0,
         }
+        try:
+            from app.models.subscriber import Subscriber
+            from app.models.contact_ticket import ContactTicket
+            stats['subscribers'] = Subscriber.query.filter_by(is_subscribed=True).count()
+            stats['open_tickets'] = ContactTicket.query.filter(
+                ContactTicket.status.in_(ContactTicket.OPEN_STATUSES)
+            ).count()
+        except Exception:
+            pass
+
         summary = get_revenue_summary()
         outstanding = Order.query.filter(
             Order.status.in_(['pending', 'paid', 'processing',
                               'waiting_supplier', 'in_progress', 'packed'])
         ).order_by(Order.created_at.desc()).limit(10).all()
+
+        open_tickets = []
+        try:
+            from app.models.contact_ticket import ContactTicket
+            open_tickets = ContactTicket.query.filter(
+                ContactTicket.status.in_(ContactTicket.OPEN_STATUSES)
+            ).order_by(ContactTicket.created_at.desc()).limit(5).all()
+        except Exception:
+            pass
+
         return self.render('admin/dashboard.html', stats=stats, summary=summary,
-                           outstanding=outstanding)
+                           outstanding=outstanding, open_tickets=open_tickets)
 
 
 # ---------------------------------------------------------------------------
@@ -596,6 +620,59 @@ class BundleItemAdmin(SecureModelView):
 
 
 # ---------------------------------------------------------------------------
+# Subscriber Admin
+# ---------------------------------------------------------------------------
+
+class SubscriberAdmin(SecureModelView):
+    column_list = ('id', 'name', 'email', 'is_subscribed', 'source', 'created_at')
+    column_searchable_list = ('name', 'email')
+    column_filters = ('is_subscribed', 'source')
+    column_editable_list = ('is_subscribed',)
+    column_default_sort = ('created_at', True)
+    can_create = False
+    form_excluded_columns = ('klaviyo_profile_id', 'created_at', 'updated_at')
+
+    def after_model_change(self, form, model, is_created):
+        from app.services import klaviyo_service
+        klaviyo_service.sync_subscriber(model)
+        db.session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Contact Ticket Admin
+# ---------------------------------------------------------------------------
+
+class ContactTicketAdmin(SecureModelView):
+    column_list = ('ticket_ref', 'name', 'email', 'subject', 'status', 'created_at')
+    column_searchable_list = ('ticket_ref', 'name', 'email', 'subject')
+    column_filters = ('status',)
+    column_default_sort = ('created_at', True)
+    can_create = False
+    form_excluded_columns = ('created_at', 'updated_at')
+    form_choices = {
+        'status': [(s, s.capitalize()) for s in ContactTicket.STATUS_CHOICES]
+    }
+
+    def _status_formatter(view, context, model, name):
+        colours = {
+            'new':      '#ef4444',
+            'active':   '#f59e0b',
+            'working':  '#3b82f6',
+            'closed':   '#22c55e',
+            'archived': '#6b7280',
+        }
+        colour = colours.get(model.status, '#888')
+        return Markup(
+            f'<span style="display:inline-block;padding:0.2rem 0.7rem;border-radius:3px;'
+            f'font-size:0.65rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;'
+            f'background:{colour}22;color:{colour};border:1px solid {colour}44;">'
+            f'{model.status}</span>'
+        )
+
+    column_formatters = {'status': _status_formatter}
+
+
+# ---------------------------------------------------------------------------
 # Setup function
 # ---------------------------------------------------------------------------
 
@@ -603,6 +680,10 @@ def setup_admin(app):
     admin.init_app(app, index_view=SecureAdminIndexView())
 
     admin.add_view(UserAdmin(User, db.session, name='Users', category='Accounts'))
+    admin.add_view(SubscriberAdmin(Subscriber, db.session, name='Subscribers',
+                                   category='Accounts'))
+    admin.add_view(ContactTicketAdmin(ContactTicket, db.session, name='Support Tickets',
+                                      category='Accounts'))
     admin.add_view(CompanySettingAdmin(CompanySetting, db.session, name='Company',
                                       category='Settings'))
     admin.add_view(SupplierAdmin(Supplier, db.session, name='Suppliers', category='Catalogue'))

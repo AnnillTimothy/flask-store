@@ -1046,3 +1046,259 @@ pre {
   .adm-quick-links { grid-template-columns: repeat(2, 1fr); }
   .adm-stat-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ─── Order Cards (dashboard) ───────────────────────────────── */
+.adm-order-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.adm-order-card {
+  background: var(--lift);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: border-color 0.2s;
+}
+.adm-order-card:hover {
+  border-color: rgba(200,180,154,0.22);
+}
+
+/* Header row */
+.adm-order-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.adm-order-card-ref {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+.adm-order-hash {
+  color: var(--text-ghost);
+  font-weight: 300;
+  margin-right: 1px;
+}
+.adm-order-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.adm-order-card-date {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--text-ghost);
+}
+
+/* Customer block */
+.adm-order-card-customer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.adm-order-card-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+.adm-order-card-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  font-size: 0.76rem;
+}
+.adm-order-card-contact a {
+  color: var(--sand) !important;
+  text-decoration: none !important;
+}
+.adm-order-card-contact a:hover { text-decoration: underline !important; }
+
+/* Address */
+.adm-order-card-address {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* Items list */
+.adm-order-card-items {
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.adm-order-card-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+.adm-order-card-item-name {
+  flex: 1;
+  color: var(--text-dim);
+}
+.adm-order-card-item-qty {
+  color: var(--text-ghost);
+  font-size: 0.73rem;
+  white-space: nowrap;
+}
+.adm-order-card-item-price {
+  font-family: var(--serif);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--sand);
+  white-space: nowrap;
+}
+
+/* Totals */
+.adm-order-card-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.adm-order-card-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+.adm-order-card-total-grand {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.92rem;
+  margin-top: 0.2rem;
+}
+.adm-order-card-total-grand span:last-child {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  color: var(--sand);
+}
+
+/* Action area */
+.adm-order-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ─── Support Ticket List (dashboard) ───────────────────────── */
+.adm-ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.adm-ticket-row {
+  background: var(--lift);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: border-color 0.2s;
+}
+.adm-ticket-row:hover { border-color: rgba(200,180,154,0.22); }
+
+.adm-ticket-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.adm-ticket-ref {
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-ghost);
+}
+.adm-ticket-status {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 3px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.adm-ticket-status--new     { background: rgba(239,68,68,0.15); color:#fca5a5; border:1px solid rgba(239,68,68,0.3); }
+.adm-ticket-status--active  { background: rgba(234,179,8,0.15);  color:#fde047; border:1px solid rgba(234,179,8,0.3); }
+.adm-ticket-status--working { background: rgba(59,130,246,0.15); color:#93c5fd; border:1px solid rgba(59,130,246,0.3); }
+.adm-ticket-status--closed  { background: rgba(34,197,94,0.15);  color:#86efac; border:1px solid rgba(34,197,94,0.3); }
+.adm-ticket-status--archived{ background: rgba(107,114,128,0.15);color:#9ca3af; border:1px solid rgba(107,114,128,0.3); }
+
+.adm-ticket-from {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+.adm-ticket-from strong { color: var(--text); }
+.adm-ticket-email {
+  font-size: 0.76rem;
+  color: var(--text-ghost);
+}
+.adm-ticket-subject {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.adm-ticket-preview {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+.adm-ticket-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+.adm-ticket-date {
+  font-size: 0.68rem;
+  color: var(--text-ghost);
+}
+
+/* Status badge on order table */
+.adm-status {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.adm-status--pending         { background:rgba(234,179,8,0.12); color:#fde047; border-color:rgba(234,179,8,0.3); }
+.adm-status--paid            { background:rgba(34,197,94,0.12);  color:#86efac; border-color:rgba(34,197,94,0.3); }
+.adm-status--processing      { background:rgba(59,130,246,0.12); color:#93c5fd; border-color:rgba(59,130,246,0.3); }
+.adm-status--waiting_supplier{ background:rgba(168,85,247,0.12); color:#c4b5fd; border-color:rgba(168,85,247,0.3); }
+.adm-status--in_progress     { background:rgba(59,130,246,0.12); color:#93c5fd; border-color:rgba(59,130,246,0.3); }
+.adm-status--packed          { background:rgba(200,180,154,0.12);color:var(--sand); border-color:var(--sand-dim); }
+.adm-status--shipped         { background:rgba(34,197,94,0.12);  color:#86efac; border-color:rgba(34,197,94,0.3); }
+.adm-status--item_with_courier{ background:rgba(34,197,94,0.12); color:#86efac; border-color:rgba(34,197,94,0.3); }
+.adm-status--delivered       { background:rgba(34,197,94,0.2);   color:#86efac; border-color:rgba(34,197,94,0.4); }
+.adm-status--cancelled       { background:rgba(239,68,68,0.12);  color:#fca5a5; border-color:rgba(239,68,68,0.3); }
+.adm-status--refunded        { background:rgba(239,68,68,0.12);  color:#fca5a5; border-color:rgba(239,68,68,0.3); }
+
+@media (max-width: 600px) {
+  .adm-order-cards { grid-template-columns: 1fr; }
+}
