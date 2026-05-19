@@ -110,7 +110,8 @@ def calculate_supplier_payouts(start_date=None, end_date=None):
 
             retail_revenue = float(item.price_at_purchase) * item.quantity
             cost = (float(product.cost_price) * item.quantity
-                    if product.cost_price is not None else None)
+                    if product.cost_price is not None
+                    else None)
 
             if supplier.id not in payouts:
                 payouts[supplier.id] = {

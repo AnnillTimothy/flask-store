@@ -87,10 +87,12 @@ class SecureAdminIndexView(AdminRequiredMixin, AdminIndexView):
 
         try:
             summary = get_revenue_summary()
-        except Exception:
+        except Exception as exc:
+            import logging as _log
+            _log.getLogger(__name__).warning('get_revenue_summary failed: %s', exc)
             summary = {
                 'gross_revenue': 0, 'shipping_revenue': 0, 'product_revenue': 0,
-                'total_supplier_payout': 0, 'total_expenses': 0, 'net_profit': 0,
+                'total_supplier_cost': 0, 'total_expenses': 0, 'net_profit': 0,
                 'order_count': 0,
             }
         outstanding = Order.query.filter(

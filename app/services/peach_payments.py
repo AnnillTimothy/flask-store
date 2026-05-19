@@ -70,10 +70,11 @@ def create_checkout(order, return_url, cancel_url, notify_url,
     }
 
     if customer_email:
+        name_parts = customer_name.split() if customer_name else []
         payload['customer'] = {
             'email': customer_email,
-            'givenName': (customer_name.split()[0] if customer_name else ''),
-            'surname': (' '.join(customer_name.split()[1:]) if customer_name and len(customer_name.split()) > 1 else ''),
+            'givenName': name_parts[0] if name_parts else '',
+            'surname': ' '.join(name_parts[1:]) if len(name_parts) > 1 else '',
         }
 
     try:

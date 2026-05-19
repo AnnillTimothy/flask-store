@@ -29,11 +29,13 @@ def upgrade():
     # ── Suppliers: drop revenue_share_percentage (replaced by per-product cost_price) ──
     # SQLite batch_alter handles this safely
     with op.batch_alter_table('suppliers', schema=None) as batch_op:
-        # Column may not exist on all deployments — catch gracefully via batch mode
-        try:
+        # Column may not exist on all deployments (e.g. if a previous migration failed)
+        from sqlalchemy import inspect
+        conn = op.get_bind()
+        inspector = inspect(conn)
+        cols = [c['name'] for c in inspector.get_columns('suppliers')]
+        if 'revenue_share_percentage' in cols:
             batch_op.drop_column('revenue_share_percentage')
-        except Exception:
-            pass
 
 
 def downgrade():
