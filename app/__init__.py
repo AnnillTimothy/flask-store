@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from .config import Config
 from .extensions import db, login_manager, migrate, csrf, mail
+import uuid
 
 
 def create_app(config_class=Config):
@@ -48,39 +49,89 @@ def create_app(config_class=Config):
     @app.route('/subscribe', methods=['POST'])
     @csrf.exempt
     def newsletter_subscribe():
-        email = (request.json or {}).get('email', '').strip()
+        data  = request.json or {}
+        email = data.get('email', '').strip()
+        name  = data.get('name', '').strip()
         if not email or '@' not in email:
             return jsonify({'ok': False, 'message': 'Invalid email.'}), 400
-        try:
-            from flask_mail import Message
-            admin_addr = app.config.get('MAIL_ADMIN') or app.config.get('MAIL_DEFAULT_SENDER')
-            if admin_addr and app.config.get('MAIL_USERNAME'):
-                msg = Message(
-                    subject='New Newsletter Subscriber',
-                    recipients=[admin_addr],
-                    body=f'New subscriber: {email}',
-                )
-                mail.send(msg)
-                # Welcome email to subscriber
+
+        from app.models.subscriber import Subscriber
+        from app.services import klaviyo_service
+
+        existing = Subscriber.query.filter_by(email=email).first()
+        if existing:
+            if not existing.is_subscribed:
+                existing.is_subscribed = True
+                if name and not existing.name:
+                    existing.name = name
                 try:
-                    from app.models.company_setting import CompanySetting
-                    with app.app_context():
-                        name = CompanySetting.get().store_name or 'The Bodhi Tree'
+                    db.session.commit()
+                    klaviyo_service.sync_subscriber(existing)
+                    db.session.commit()
                 except Exception:
-                    name = 'The Bodhi Tree'
-                welcome = Message(
-                    subject=f'Welcome to {name}',
-                    recipients=[email],
-                    body=(
-                        f'Thank you for subscribing to {name}! '
-                        'Your 10% discount code is: WELCOME10\n\n'
-                        'We\'ll keep you posted on new arrivals and exclusive experiences.'
-                    ),
-                )
-                mail.send(welcome)
+                    db.session.rollback()
+            return jsonify({'ok': True})
+
+        sub = Subscriber(email=email, name=name or None, is_subscribed=True, source='popup')
+        try:
+            db.session.add(sub)
+            db.session.commit()
+            klaviyo_service.sync_subscriber(sub)
+            db.session.commit()
         except Exception:
-            pass  # Mail is best-effort; don't fail the request
+            db.session.rollback()
+
         return jsonify({'ok': True})
+
+    # ── Contact form submission endpoint ──────────────────────────
+    @app.route('/contact', methods=['POST'])
+    @csrf.exempt
+    def contact_submit():
+        data    = request.json or {}
+        name    = (data.get('name') or '').strip()
+        email   = (data.get('email') or '').strip()
+        subject = (data.get('subject') or '').strip()
+        message = (data.get('message') or '').strip()
+
+        if not name or not email or '@' not in email or not message:
+            return jsonify({'ok': False, 'message': 'Please fill in all required fields.'}), 400
+
+        from app.models.contact_ticket import ContactTicket
+        from app.models.subscriber import Subscriber
+        from app.services import ses_service
+
+        # Generate a short ticket reference
+        ref = 'TKT-' + uuid.uuid4().hex[:8].upper()
+        ticket = ContactTicket(
+            ticket_ref=ref,
+            name=name,
+            email=email,
+            subject=subject or None,
+            message=message,
+            status=ContactTicket.STATUS_NEW,
+        )
+        try:
+            db.session.add(ticket)
+            # Also upsert as a subscriber record
+            existing_sub = Subscriber.query.filter_by(email=email).first()
+            if not existing_sub:
+                sub = Subscriber(email=email, name=name, is_subscribed=False, source='contact_form')
+                db.session.add(sub)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            return jsonify({'ok': False, 'message': 'Could not save your message. Please try again.'}), 500
+
+        # Send notifications (best-effort)
+        try:
+            ses_service.send_contact_ticket_confirmation(ticket)
+            admin_email = app.config.get('MAIL_ADMIN') or app.config.get('MAIL_DEFAULT_SENDER', '')
+            if admin_email:
+                ses_service.send_contact_ticket_notification(ticket, admin_email)
+        except Exception:
+            pass
+
+        return jsonify({'ok': True, 'ref': ref})
 
     # Inject cart count into every template
     from .services import cart_service

@@ -10,10 +10,12 @@ from .shipping import ShippingRecord
 from .expense import Expense
 from .company_setting import CompanySetting
 from .discount_code import DiscountCode
+from .subscriber import Subscriber
+from .contact_ticket import ContactTicket
 
 __all__ = [
     'User', 'Supplier', 'Category', 'Product',
     'Bundle', 'BundleItem', 'Experience', 'Cart', 'CartItem',
     'Order', 'OrderItem', 'ShippingRecord', 'Expense', 'CompanySetting',
-    'DiscountCode',
+    'DiscountCode', 'Subscriber', 'ContactTicket',
 ]
