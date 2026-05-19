@@ -135,18 +135,35 @@
 
 <!-- ── Category Filter ───────────────────────────────────────── -->
 {% if categories %}
-<div class="store-filter-bar" id="store-filter-bar">
-  <div class="store-filter-inner">
-    <a href="{{ url_for('main.store') }}"
-       class="store-filter-pill {% if not active_category %}active{% endif %}">
-      All
-    </a>
-    {% for cat in categories %}
-    <a href="{{ url_for('main.store', category=cat.slug) }}"
-       class="store-filter-pill {% if active_category and active_category.id == cat.id %}active{% endif %}">
-      {{ cat.name }}
-    </a>
-    {% endfor %}
+<div class="store-cat-bar">
+  <div class="store-cat-inner">
+    <span class="store-cat-label">Browse by</span>
+    <div class="store-cat-dropdown-wrap">
+      <button class="store-cat-trigger" id="store-cat-trigger" aria-haspopup="true" aria-expanded="false">
+        <span id="store-cat-active-label">
+          {% if active_category %}{{ active_category.name }}{% else %}All Products{% endif %}
+        </span>
+        <i class="bi bi-chevron-down store-cat-arrow"></i>
+      </button>
+      <div class="store-cat-menu" id="store-cat-menu" role="menu">
+        <a href="{{ url_for('main.store') }}"
+           class="store-cat-opt {% if not active_category %}selected{% endif %}" role="menuitem">
+          <span class="store-cat-opt-dot"></span> All Products
+        </a>
+        {% for cat in categories %}
+        <a href="{{ url_for('main.store', category=cat.slug) }}"
+           class="store-cat-opt {% if active_category and active_category.id == cat.id %}selected{% endif %}"
+           role="menuitem">
+          <span class="store-cat-opt-dot"></span> {{ cat.name }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Product count indicator #}
+    <span class="store-cat-count" id="store-cat-count">
+      {{ products|length }} product{% if products|length != 1 %}s{% endif %}
+    </span>
   </div>
 </div>
 {% endif %}
@@ -160,7 +177,27 @@
 
 {% block extra_js %}
 <script>
-// Marquee GSAP animation
+// ── Category dropdown ─────────────────────────────────────────────────
+(function () {
+  const trigger = document.getElementById('store-cat-trigger');
+  const menu    = document.getElementById('store-cat-menu');
+  if (!trigger || !menu) return;
+
+  trigger.addEventListener('click', function (e) {
+    e.stopPropagation();
+    const open = trigger.getAttribute('aria-expanded') === 'true';
+    trigger.setAttribute('aria-expanded', String(!open));
+    menu.classList.toggle('open', !open);
+  });
+
+  document.addEventListener('click', function () {
+    trigger.setAttribute('aria-expanded', 'false');
+    menu.classList.remove('open');
+  });
+  menu.addEventListener('click', function (e) { e.stopPropagation(); });
+})();
+
+// ── Marquee GSAP animation ────────────────────────────────────────────
 window.addEventListener('load', function () {
   const marquee = document.getElementById('store-marquee');
   if (!marquee || typeof gsap === 'undefined') return;
@@ -177,5 +214,94 @@ window.addEventListener('load', function () {
     }
   });
 });
+
+// ── Product card glow / particle effect on hover ──────────────────────
+(function () {
+  'use strict';
+
+  // Magnetic tilt effect
+  function addTilt(el) {
+    const media = el.querySelector('.store-item-media');
+    if (!media) return;
+    el.addEventListener('mousemove', function (e) {
+      const r = media.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dx = (e.clientX - cx) / (r.width / 2);
+      const dy = (e.clientY - cy) / (r.height / 2);
+      media.style.transform = `perspective(600px) rotateY(${dx * 4}deg) rotateX(${-dy * 4}deg) scale(1.02)`;
+    });
+    el.addEventListener('mouseleave', function () {
+      media.style.transform = '';
+    });
+  }
+
+  // Sparkle burst on add-to-cart
+  function spawnSparkles(btn) {
+    const count = 8;
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    for (let i = 0; i < count; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'store-sparkle';
+      const angle = (360 / count) * i;
+      const dist  = 30 + Math.random() * 24;
+      const tx = Math.cos((angle * Math.PI) / 180) * dist;
+      const ty = Math.sin((angle * Math.PI) / 180) * dist;
+      dot.style.cssText = `left:${cx}px;top:${cy}px;--tx:${tx}px;--ty:${ty}px;`;
+      document.body.appendChild(dot);
+      dot.addEventListener('animationend', function () { dot.remove(); });
+    }
+  }
+
+  // Glow trail on product images
+  function addGlowTrail(el) {
+    const media = el.querySelector('.store-item-media');
+    if (!media) return;
+    const glow = document.createElement('div');
+    glow.className = 'store-item-glow';
+    media.appendChild(glow);
+    media.addEventListener('mousemove', function (e) {
+      const r = media.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      glow.style.setProperty('--gx', x + 'px');
+      glow.style.setProperty('--gy', y + 'px');
+      glow.style.opacity = '1';
+    });
+    media.addEventListener('mouseleave', function () {
+      glow.style.opacity = '0';
+    });
+  }
+
+  // Scroll-reveal via IntersectionObserver
+  function initReveal() {
+    const els = document.querySelectorAll('.product-reveal');
+    if (!els.length) return;
+    const observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    els.forEach(function (el) { observer.observe(el); });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.store-item').forEach(function (el) {
+      addTilt(el);
+      addGlowTrail(el);
+    });
+
+    document.querySelectorAll('.store-add-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { spawnSparkles(btn); });
+    });
+
+    initReveal();
+  });
+})();
 </script>
 {% endblock %}

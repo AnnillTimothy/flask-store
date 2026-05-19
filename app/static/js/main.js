@@ -217,14 +217,16 @@ function initEmailPopup() {
   if (form) form.addEventListener('submit', (e) => {
     e.preventDefault();
     const emailInput = form.querySelector('input[type="email"], #popup-email-input');
+    const nameInput  = document.getElementById('popup-name-input');
     const email = emailInput ? emailInput.value.trim() : '';
+    const name  = nameInput  ? nameInput.value.trim()  : '';
     if (!email) return;
 
     // Submit to subscribe endpoint
     fetch('/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, name }),
     })
       .catch(() => {}) // best-effort
       .finally(() => {
@@ -260,23 +262,60 @@ function initAlerts() {
 
 // ─── Burger / mobile menu ─────────────────────────────────────
 function initBurger() {
-  const burger = document.getElementById('nav-burger');
-  const menu   = document.getElementById('mobile-menu');
+  const burger   = document.getElementById('nav-burger');
+  const menu     = document.getElementById('mobile-menu');
+  const backdrop = document.getElementById('mobile-menu-backdrop');
+  const closeBtn = document.getElementById('mobile-menu-close');
   if (!burger || !menu) return;
 
-  burger.addEventListener('click', () => {
-    const open = menu.classList.toggle('open');
-    burger.classList.toggle('open', open);
-    document.body.style.overflow = open ? 'hidden' : '';
+  function openMenu() {
+    menu.classList.add('open');
+    burger.classList.add('open');
+    burger.setAttribute('aria-expanded', 'true');
+    menu.setAttribute('aria-hidden', 'false');
+    if (backdrop) backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Stagger-animate links in
+    menu.querySelectorAll('.mobile-menu-link').forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(24px)';
+      setTimeout(() => {
+        el.style.transition = 'opacity 0.35s ease, transform 0.35s ease, color 0.2s';
+        el.style.transitionDelay = (i * 0.06) + 's';
+        el.style.opacity = '';
+        el.style.transform = '';
+      }, 50);
+    });
+  }
+
+  function closeMenu() {
+    menu.classList.remove('open');
+    burger.classList.remove('open');
+    burger.setAttribute('aria-expanded', 'false');
+    menu.setAttribute('aria-hidden', 'true');
+    if (backdrop) backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+    // Remove stagger transition delays so next open is clean
+    setTimeout(() => {
+      menu.querySelectorAll('.mobile-menu-link').forEach(el => {
+        el.style.transitionDelay = '';
+      });
+    }, 400);
+  }
+
+  burger.addEventListener('click', openMenu);
+  if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+  if (backdrop) backdrop.addEventListener('click', closeMenu);
+
+  // Close on nav link click
+  menu.querySelectorAll('.mobile-menu-link, .mobile-menu-account-link').forEach(a => {
+    a.addEventListener('click', closeMenu);
   });
 
-  // Close on link click
-  menu.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      menu.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
-    });
+  // Close on Esc
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
   });
 }
 

@@ -124,29 +124,106 @@
     {% endif %}
 
     <!-- Burger -->
-    <button class="nav-burger" id="nav-burger" aria-label="Menu">
-      <span></span><span></span><span></span>
+    <button class="nav-burger" id="nav-burger" aria-label="Open menu" aria-expanded="false">
+      <span class="nav-burger-bar"></span>
+      <span class="nav-burger-bar"></span>
+      <span class="nav-burger-bar"></span>
     </button>
   </div>
 </nav>
 
-<!-- ── Mobile full-screen menu ───────────────────────────────── -->
-<div class="mobile-menu" id="mobile-menu">
-  <a class="mobile-menu-link" href="{{ url_for('main.index') }}">Home</a>
-  <a class="mobile-menu-link" href="{{ url_for('main.store') }}">Store</a>
-  <a class="mobile-menu-link" href="{{ url_for('main.experiences') }}">Experiences</a>
-  <a class="mobile-menu-link" href="{{ url_for('cart.view_cart') }}">Cart</a>
-  {% if current_user.is_authenticated %}
-  <a class="mobile-menu-link" href="{{ url_for('main.profile') }}">My Account</a>
-  <a class="mobile-menu-link" href="{{ url_for('auth.logout') }}">Logout</a>
-  {% else %}
-  <a class="mobile-menu-link" href="{{ url_for('auth.login') }}">Login</a>
-  <a class="mobile-menu-link" href="{{ url_for('auth.register') }}">Register</a>
-  {% endif %}
-  {% if current_user.is_authenticated and current_user.is_admin %}
-  <a class="mobile-menu-link" href="{{ url_for('admin.index') }}">Admin</a>
-  {% endif %}
+<!-- ── Immersive Mobile Menu ─────────────────────────────────── -->
+<div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+  <!-- Backdrop glow orb -->
+  <div class="mobile-menu-orb" aria-hidden="true"></div>
+
+  <!-- Close button -->
+  <button class="mobile-menu-close" id="mobile-menu-close" aria-label="Close menu">
+    <i class="bi bi-x-lg"></i>
+  </button>
+
+  <!-- Brand header -->
+  <div class="mobile-menu-brand">
+    <a href="{{ url_for('main.index') }}" class="mobile-menu-brand-name">{{ store_name }}</a>
+    <span class="mobile-menu-brand-sub">{{ tagline }}</span>
+  </div>
+
+  <!-- Nav links -->
+  <nav class="mobile-menu-nav" aria-label="Mobile navigation">
+    <a class="mobile-menu-link {% if request.endpoint == 'main.index' %}active{% endif %}"
+       href="{{ url_for('main.index') }}">
+      <span class="mobile-menu-link-num">01</span>
+      <span>Home</span>
+      <i class="bi bi-arrow-right mobile-menu-link-arrow"></i>
+    </a>
+    <a class="mobile-menu-link {% if request.endpoint and ('store' in request.endpoint or 'product' in request.endpoint) %}active{% endif %}"
+       href="{{ url_for('main.store') }}">
+      <span class="mobile-menu-link-num">02</span>
+      <span>Store</span>
+      <i class="bi bi-arrow-right mobile-menu-link-arrow"></i>
+    </a>
+    <a class="mobile-menu-link {% if request.endpoint and 'experience' in request.endpoint %}active{% endif %}"
+       href="{{ url_for('main.experiences') }}">
+      <span class="mobile-menu-link-num">03</span>
+      <span>Experiences</span>
+      <i class="bi bi-arrow-right mobile-menu-link-arrow"></i>
+    </a>
+    <a class="mobile-menu-link {% if request.endpoint == 'main.contact' %}active{% endif %}"
+       href="{{ url_for('main.contact') }}">
+      <span class="mobile-menu-link-num">04</span>
+      <span>Contact</span>
+      <i class="bi bi-arrow-right mobile-menu-link-arrow"></i>
+    </a>
+    <a class="mobile-menu-link" href="{{ url_for('cart.view_cart') }}">
+      <span class="mobile-menu-link-num">05</span>
+      <span>Cart{% if cart_count > 0 %} <span class="mobile-menu-cart-count">{{ cart_count }}</span>{% endif %}</span>
+      <i class="bi bi-arrow-right mobile-menu-link-arrow"></i>
+    </a>
+  </nav>
+
+  <!-- Account section -->
+  <div class="mobile-menu-account">
+    {% if current_user.is_authenticated %}
+    <a class="mobile-menu-account-link" href="{{ url_for('main.profile') }}">
+      <i class="bi bi-person-circle"></i> {{ current_user.username }}
+    </a>
+    {% if current_user.is_admin %}
+    <a class="mobile-menu-account-link" href="{{ url_for('admin.index') }}">
+      <i class="bi bi-grid"></i> Admin
+    </a>
+    {% endif %}
+    <a class="mobile-menu-account-link" href="{{ url_for('auth.logout') }}">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+    {% else %}
+    <a class="mobile-menu-account-link" href="{{ url_for('auth.login') }}">
+      <i class="bi bi-person"></i> Login
+    </a>
+    <a class="mobile-menu-account-link" href="{{ url_for('auth.register') }}">
+      <i class="bi bi-person-plus"></i> Register
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Social links -->
+  <div class="mobile-menu-social">
+    {% if company and company.instagram_url %}
+    {% set ig = company.instagram_url if '://' in company.instagram_url else 'https://' + company.instagram_url %}
+    <a href="{{ ig }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+    {% endif %}
+    {% if company and company.twitter_url %}
+    {% set tw = company.twitter_url if '://' in company.twitter_url else 'https://' + company.twitter_url %}
+    <a href="{{ tw }}" target="_blank" rel="noopener" aria-label="X"><i class="bi bi-twitter-x"></i></a>
+    {% endif %}
+    {% if company and company.facebook_url %}
+    {% set fb = company.facebook_url if '://' in company.facebook_url else 'https://' + company.facebook_url %}
+    <a href="{{ fb }}" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+    {% endif %}
+  </div>
 </div>
+
+<!-- Mobile menu backdrop -->
+<div class="mobile-menu-backdrop" id="mobile-menu-backdrop"></div>
 
 <!-- ── Scene progress dots (immersive pages only) ────────────── -->
 <div class="scene-progress" id="scene-progress" aria-hidden="true"></div>
@@ -255,7 +332,8 @@
     <h3 class="popup-title">Get 10% Off</h3>
     <p class="popup-text">Join the {{ store_name }} community. Be the first to know about new experiences, exclusive drops and receive <strong>10% off</strong> your first order.</p>
     <form class="popup-form" id="email-popup-form">
-      <input type="email" class="form-control" id="popup-email-input" placeholder="Enter your email" required>
+      <input type="text" class="form-control mb-2" id="popup-name-input" placeholder="Your first name" autocomplete="given-name">
+      <input type="email" class="form-control" id="popup-email-input" placeholder="Enter your email" required autocomplete="email">
       <button type="submit" class="btn-cinematic w-100" style="justify-content:center;margin-top:0.75rem;">
         Subscribe&nbsp;<i class="bi bi-arrow-right"></i>
       </button>
