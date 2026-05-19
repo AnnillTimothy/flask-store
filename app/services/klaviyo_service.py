@@ -8,6 +8,7 @@ Handles:
 """
 import os
 import logging
+from typing import Optional
 import requests
 
 log = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ def _headers():
     }
 
 
-def upsert_profile(email: str, name: str = None) -> str | None:
+def upsert_profile(email: str, name: str = None) -> 'Optional[str]':
     """
     Create or update a Klaviyo profile.
     Returns the Klaviyo profile ID on success, None on failure / missing config.

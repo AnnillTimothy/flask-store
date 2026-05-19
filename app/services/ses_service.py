@@ -14,6 +14,7 @@ Uses boto3 (AWS SDK).  Requires environment variables:
 """
 import os
 import logging
+from datetime import datetime
 from typing import Optional
 
 log = logging.getLogger(__name__)
@@ -135,7 +136,7 @@ def _wrap(store_name: str, content_html: str) -> str:
       {content_html}
     </div>
     <div class="footer">
-      <p>&copy; 2025 {store_name}. All rights reserved.</p>
+      <p>&copy; {datetime.now().year} {store_name}. All rights reserved.</p>
       <p style="margin-top:0.5rem;"><a href="#">Unsubscribe</a> &nbsp;·&nbsp; <a href="#">Privacy Policy</a></p>
     </div>
   </div>
