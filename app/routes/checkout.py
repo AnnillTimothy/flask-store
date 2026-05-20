@@ -471,7 +471,7 @@ def ozow_notify():
             if result['success']:
                 order.status = 'paid'
                 order.payment_reference = result.get('payment_id', '')
-            elif result.get('status') in ('cancelled', 'abandonded'):
+            elif result.get('status') in ('cancelled', 'abandoned'):
                 order.status = 'cancelled'
             db.session.commit()
 
@@ -507,7 +507,7 @@ def ozow_return():
                 if result['success']:
                     order.status = 'paid'
                     order.payment_reference = result.get('payment_id', '')
-                elif result.get('status') in ('cancelled', 'abandonded'):
+                elif result.get('status') in ('cancelled', 'abandoned'):
                     order.status = 'cancelled'
                 db.session.commit()
 
