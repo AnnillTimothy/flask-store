@@ -9,7 +9,8 @@ class Supplier(db.Model):
     name = db.Column(db.String(120), nullable=False)
     website = db.Column(db.String(255), nullable=True)
     contact_email = db.Column(db.String(120), nullable=True)
-    revenue_share_percentage = db.Column(db.Float, default=70.0, nullable=False)
+    # revenue_share_percentage removed: cost vs retail is tracked per-product via cost_price
+    notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     products = db.relationship('Product', back_populates='supplier', lazy='dynamic')

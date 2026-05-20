@@ -74,8 +74,15 @@ def create_order_from_cart(cart, customer_name, customer_email,
 
 def calculate_supplier_payouts(start_date=None, end_date=None):
     """
-    Return a list of dicts with supplier payout information for paid orders.
-    Each dict: {supplier_id, supplier_name, revenue_share_pct, gross_revenue, payout}
+    Return supplier cost-vs-retail analysis for paid orders.
+
+    For each supplier, totals:
+      - total_cost:    sum of (product.cost_price × qty_sold)  – what we owe the supplier
+      - gross_revenue: sum of (price_at_purchase × qty_sold)   – what the customer paid
+      - our_margin:    gross_revenue - total_cost
+
+    Products without a cost_price set are counted in gross_revenue only
+    (cost and margin are marked N/A for those items).
     """
     from app.models.order import Order, OrderItem
     from app.models.product import Product
@@ -101,17 +108,26 @@ def calculate_supplier_payouts(start_date=None, end_date=None):
             if not supplier:
                 continue
 
-            revenue = float(item.price_at_purchase) * item.quantity
+            retail_revenue = float(item.price_at_purchase) * item.quantity
+            cost = (float(product.cost_price) * item.quantity
+                    if product.cost_price is not None
+                    else None)
+
             if supplier.id not in payouts:
                 payouts[supplier.id] = {
                     'supplier_id': supplier.id,
                     'supplier_name': supplier.name,
-                    'revenue_share_pct': supplier.revenue_share_percentage,
                     'gross_revenue': 0.0,
-                    'payout': 0.0,
+                    'total_cost': 0.0,
+                    'our_margin': 0.0,
+                    'has_cost_data': False,
                 }
-            payouts[supplier.id]['gross_revenue'] += revenue
-            payouts[supplier.id]['payout'] += revenue * (supplier.revenue_share_percentage / 100)
+
+            payouts[supplier.id]['gross_revenue'] += retail_revenue
+            if cost is not None:
+                payouts[supplier.id]['total_cost'] += cost
+                payouts[supplier.id]['our_margin'] += retail_revenue - cost
+                payouts[supplier.id]['has_cost_data'] = True
 
     return list(payouts.values())
 
@@ -139,14 +155,14 @@ def get_revenue_summary(start_date=None, end_date=None):
     total_expenses = exp_query.scalar() or 0.0
 
     payouts = calculate_supplier_payouts(start_date, end_date)
-    total_payout = sum(p['payout'] for p in payouts)
+    total_cost = sum(p['total_cost'] for p in payouts)
 
     return {
         'gross_revenue': gross,
         'shipping_revenue': shipping,
         'product_revenue': gross - shipping,
-        'total_supplier_payout': total_payout,
+        'total_supplier_cost': total_cost,
         'total_expenses': total_expenses,
-        'net_profit': gross - total_payout - total_expenses,
+        'net_profit': gross - total_cost - total_expenses,
         'order_count': len(orders),
     }

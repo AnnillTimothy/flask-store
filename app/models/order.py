@@ -23,6 +23,7 @@ class Order(db.Model):
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     shipping_cost = db.Column(db.Numeric(10, 2), default=150.00, nullable=False)
     status = db.Column(db.String(30), default='pending', nullable=False)
+    payment_method = db.Column(db.String(20), default='payfast', nullable=True)  # 'payfast' or 'peach'
     payment_reference = db.Column(db.String(100), nullable=True)
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

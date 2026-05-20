@@ -45,12 +45,19 @@ def store():
 
     # Seasonal specials section
     from app.models.company_setting import CompanySetting
-    cs = CompanySetting.get()
     seasonal_experiences = []
-    if cs.seasonal_section_enabled:
-        seasonal_experiences = Experience.query.filter_by(is_seasonal=True).order_by(
-            Experience.created_at.desc()
-        ).all()
+    seasonal_section_enabled = False
+    seasonal_section_title = 'Limited-Time Specials'
+    try:
+        cs = CompanySetting.get()
+        seasonal_section_enabled = bool(cs.seasonal_section_enabled)
+        seasonal_section_title = cs.seasonal_section_title or 'Limited-Time Specials'
+        if seasonal_section_enabled:
+            seasonal_experiences = Experience.query.filter_by(is_seasonal=True).order_by(
+                Experience.created_at.desc()
+            ).all()
+    except Exception:
+        pass
 
     is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest'
                or request.args.get('ajax') == '1')
@@ -65,8 +72,8 @@ def store():
                            categories=categories,
                            active_category=active_category,
                            seasonal_experiences=seasonal_experiences,
-                           seasonal_section_enabled=cs.seasonal_section_enabled,
-                           seasonal_section_title=cs.seasonal_section_title or 'Limited-Time Specials')
+                           seasonal_section_enabled=seasonal_section_enabled,
+                           seasonal_section_title=seasonal_section_title)
 
 
 @main_bp.route('/products')

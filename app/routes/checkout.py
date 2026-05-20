@@ -168,10 +168,35 @@ def pay():
 
     session['pending_order_id'] = order.id
 
+    payment_method = request.form.get('payment_method', 'payfast')
+    session['checkout_payment_method'] = payment_method
+
     return_url = url_for('checkout.payment_return', _external=True)
     cancel_url = url_for('checkout.payment_cancel', _external=True)
     notify_url = url_for('checkout.payment_notify', _external=True)
 
+    if payment_method == 'peach':
+        from app.services import peach_payments
+        peach_return = url_for('checkout.peach_result', _external=True)
+        peach_notify = url_for('checkout.peach_notify', _external=True)
+        checkout_url, checkout_id = peach_payments.create_checkout(
+            order,
+            return_url=peach_return,
+            cancel_url=cancel_url,
+            notify_url=peach_notify,
+            customer_email=form.customer_email.data,
+            customer_name=form.customer_name.data,
+        )
+        if not checkout_url:
+            flash('Peach Payments is temporarily unavailable. Please try PayFast or contact us.', 'danger')
+            return redirect(url_for('checkout.checkout'))
+        order.payment_method = 'peach'
+        db.session.commit()
+        return redirect(checkout_url)
+
+    # Default: PayFast
+    order.payment_method = 'payfast'
+    db.session.commit()
     payment_data = payfast.build_payment_data(
         order,
         return_url,
@@ -212,6 +237,64 @@ def payment_notify():
             db.session.commit()
 
     return 'OK', 200
+
+
+@checkout_bp.route('/peach-notify', methods=['POST'])
+@csrf.exempt
+def peach_notify():
+    """Peach Payments webhook (server-to-server notification)."""
+    from app.services import peach_payments
+
+    resource_path = (request.json or {}).get('resourcePath') or request.form.get('resourcePath', '')
+    if not resource_path:
+        return 'Missing resourcePath', 400
+
+    result = peach_payments.verify_payment(resource_path)
+    order_number = result.get('order_number')
+    if order_number:
+        order = Order.query.filter_by(order_number=order_number).first()
+        if order:
+            if result['success']:
+                order.status = 'paid'
+                order.payment_reference = result.get('payment_id', '')
+            else:
+                order.status = 'cancelled'
+            db.session.commit()
+    return 'OK', 200
+
+
+@checkout_bp.route('/peach-result')
+def peach_result():
+    """Peach Payments redirect-back endpoint after hosted checkout."""
+    from app.services import peach_payments
+
+    resource_path = request.args.get('resourcePath', '')
+    order_id = session.pop('pending_order_id', None)
+    customer_name = session.pop('checkout_name', '')
+    customer_email = session.pop('checkout_email', '')
+    session.pop('checkout_phone', None)
+    session.pop('checkout_address', None)
+    session.pop('checkout_payment_method', None)
+
+    order = None
+    if resource_path:
+        result = peach_payments.verify_payment(resource_path)
+        if result.get('order_number'):
+            order = Order.query.filter_by(order_number=result['order_number']).first()
+            if order:
+                if result['success']:
+                    order.status = 'paid'
+                    order.payment_reference = result.get('payment_id', '')
+                else:
+                    order.status = 'cancelled'
+                db.session.commit()
+
+    if not order and order_id:
+        order = Order.query.get(order_id)
+
+    return render_template('checkout/success.html', order=order,
+                           customer_name=customer_name,
+                           customer_email=customer_email)
 
 
 @checkout_bp.route('/return')

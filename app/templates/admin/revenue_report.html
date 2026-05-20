@@ -29,8 +29,8 @@
       <div class="adm-revenue-value">R{{ '%.2f'|format(summary.gross_revenue) }}</div>
     </div>
     <div class="adm-revenue-item">
-      <div class="adm-revenue-label">Supplier Payouts</div>
-      <div class="adm-revenue-value">R{{ '%.2f'|format(summary.total_supplier_payout) }}</div>
+      <div class="adm-revenue-label">Supplier Cost (cost-price × units sold)</div>
+      <div class="adm-revenue-value">R{{ '%.2f'|format(summary.total_supplier_cost) }}</div>
     </div>
     <div class="adm-revenue-item">
       <div class="adm-revenue-label">Expenses</div>
@@ -45,5 +45,8 @@
       <div class="adm-revenue-value profit">R{{ '%.2f'|format(summary.net_profit) }}</div>
     </div>
   </div>
+  <p style="color:var(--text-ghost);font-size:0.78rem;margin-top:1rem;">
+    Net Profit = Gross Revenue − Supplier Cost − Expenses
+  </p>
 </div>
 {% endblock %}

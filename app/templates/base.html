@@ -255,6 +255,23 @@
 <!-- ── Footer ────────────────────────────────────────────────── -->
 <footer class="bodhi-footer">
   <div class="container">
+    <!-- ── Newsletter CTA ─────────────────────────── -->
+    <div class="footer-newsletter" style="text-align:center;padding-bottom:2rem;margin-bottom:2rem;border-bottom:1px solid var(--glass-border);">
+      <p class="footer-heading" style="margin-bottom:0.25rem;">Stay in the loop</p>
+      <p class="text-muted small mb-2">New drops, exclusive offers and curated journeys — straight to your inbox.</p>
+      <form class="footer-subscribe-form" id="footer-subscribe-form"
+            style="display:flex;gap:0.5rem;max-width:420px;margin:0 auto;">
+        <input type="email" class="form-control" id="footer-subscribe-email"
+               placeholder="Your email address" required autocomplete="email"
+               style="background:rgba(255,255,255,0.06);border-color:rgba(200,180,154,0.25);color:var(--text);">
+        <button type="submit" class="btn-cinematic"
+                style="white-space:nowrap;padding:0.55rem 1.25rem;">
+          Subscribe&nbsp;<i class="bi bi-arrow-right"></i>
+        </button>
+      </form>
+      <p id="footer-subscribe-msg" style="font-size:0.78rem;margin-top:0.4rem;min-height:1.1em;"></p>
+    </div>
+
     <div class="row">
       <div class="col-md-3 mb-3 mb-md-0">
         <div class="bodhi-brand mb-2">{{ store_name }}</div>
@@ -279,11 +296,11 @@
       </div>
       <div class="col-md-3 text-md-end">
         <p class="text-muted small mb-1">
-          <i class="bi bi-shield-check me-1"></i>Secure via PayFast
+          <i class="bi bi-shield-check me-1"></i>Secure via PayFast &amp; Peach
         </p>
         <p class="text-muted small mb-0">
           <i class="bi bi-truck me-1"></i>Flat-rate shipping
-          R{{ '%.0f'|format((company.shipping_cost or 150)|float) }}
+          R{{ '%.0f'|format((company.shipping_cost or 150)|float) if company else '150' }}
         </p>
         {% if company and company.contact_email %}
         <p class="text-muted small mt-2 mb-0">

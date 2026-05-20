@@ -18,6 +18,7 @@ class Product(db.Model):
     size = db.Column(db.String(100), nullable=True)
     strength = db.Column(db.String(100), nullable=True)
     price = db.Column(db.Numeric(10, 2), nullable=False)
+    cost_price = db.Column(db.Numeric(10, 2), nullable=True)   # what we pay the supplier
     description = db.Column(db.Text, nullable=True)
     image_url = db.Column(db.String(500), nullable=True)
     image_filename = db.Column(db.String(500), nullable=True)
@@ -44,6 +45,20 @@ class Product(db.Model):
     @property
     def is_on_sale(self):
         return self.sale_price is not None and self.sale_price < self.price
+
+    @property
+    def margin(self):
+        """Gross margin (retail price - cost price), or None if cost_price not set."""
+        if self.cost_price is not None:
+            return float(self.price) - float(self.cost_price)
+        return None
+
+    @property
+    def margin_pct(self):
+        """Margin as a percentage of retail price, or None if cost_price not set."""
+        if self.cost_price is not None and float(self.price) > 0:
+            return (float(self.price) - float(self.cost_price)) / float(self.price) * 100
+        return None
 
     @property
     def display_image(self):

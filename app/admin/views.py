@@ -85,7 +85,16 @@ class SecureAdminIndexView(AdminRequiredMixin, AdminIndexView):
         except Exception:
             pass
 
-        summary = get_revenue_summary()
+        try:
+            summary = get_revenue_summary()
+        except Exception as exc:
+            import logging as _log
+            _log.getLogger(__name__).warning('get_revenue_summary failed: %s', exc)
+            summary = {
+                'gross_revenue': 0, 'shipping_revenue': 0, 'product_revenue': 0,
+                'total_supplier_cost': 0, 'total_expenses': 0, 'net_profit': 0,
+                'order_count': 0,
+            }
         outstanding = Order.query.filter(
             Order.status.in_(['pending', 'paid', 'processing',
                               'waiting_supplier', 'in_progress', 'packed'])
@@ -130,10 +139,8 @@ class UserAdmin(AdminRequiredMixin, ModelView):
 # ---------------------------------------------------------------------------
 
 class SupplierAdmin(SecureModelView):
-    column_list = ('id', 'name', 'website', 'contact_email', 'revenue_share_percentage',
-                   'created_at')
+    column_list = ('id', 'name', 'website', 'contact_email', 'created_at')
     column_searchable_list = ('name', 'contact_email')
-    column_filters = ('revenue_share_percentage',)
     form_excluded_columns = ('products', 'expenses')
 
 
@@ -159,11 +166,12 @@ class CategoryAdmin(SecureModelView):
 # ---------------------------------------------------------------------------
 
 class ProductAdmin(SecureModelView):
-    column_list = ('id', 'name', 'is_featured', 'sale_price', 'price', 'stock',
+    column_list = ('id', 'name', 'is_featured', 'cost_price', 'sale_price', 'price', 'stock',
                    'category', 'supplier', 'brand')
     column_searchable_list = ('name', 'slug', 'type', 'flavor', 'brand')
     column_filters = ('category_id', 'supplier_id', 'brand', 'is_featured')
-    column_editable_list = ('is_featured', 'sale_price', 'stock')
+    column_editable_list = ('is_featured', 'cost_price', 'sale_price', 'stock')
+    column_labels = {'cost_price': 'Cost Price (what we pay)', 'price': 'Retail Price (customer pays)'}
     form_excluded_columns = ('bundle_items', 'cart_items', 'order_items',
                              'created_at', 'updated_at', 'image_filename', 'image_url', 'slug')
 
@@ -669,7 +677,23 @@ class ContactTicketAdmin(SecureModelView):
             f'{model.status}</span>'
         )
 
-    column_formatters = {'status': _status_formatter}
+    def _mailto_formatter(view, context, model, name):
+        subject_enc = (model.subject or 'Your enquiry').replace(' ', '+')
+        ref = model.ticket_ref or ''
+        return Markup(
+            f'<a href="mailto:{model.email}?subject=Re%3A+{subject_enc}+%5B{ref}%5D" '
+            f'style="color:var(--sand);font-size:0.8rem;">'
+            f'<i class="bi bi-reply"></i> Reply</a>'
+        )
+
+    column_formatters = {
+        'status': _status_formatter,
+        'email': lambda v, c, m, n: Markup(
+            f'<span>{m.email}</span>&nbsp;'
+            f'<a href="mailto:{m.email}" style="color:var(--sand);font-size:0.8rem;">'
+            f'<i class="bi bi-envelope"></i></a>'
+        ),
+    }
 
 
 # ---------------------------------------------------------------------------
