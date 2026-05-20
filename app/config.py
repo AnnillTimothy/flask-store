@@ -22,6 +22,15 @@ class Config:
     PEACH_AUTH_TOKEN = os.environ.get('PEACH_AUTH_TOKEN', '')
     PEACH_SANDBOX = os.environ.get('PEACH_SANDBOX', 'True') == 'True'
 
+    # Yoco settings
+    YOCO_SECRET_KEY = os.environ.get('YOCO_SECRET_KEY', '')
+    YOCO_WEBHOOK_SECRET = os.environ.get('YOCO_WEBHOOK_SECRET', '')
+
+    # OZow settings
+    OZOW_SITE_CODE = os.environ.get('OZOW_SITE_CODE', '')
+    OZOW_PRIVATE_KEY = os.environ.get('OZOW_PRIVATE_KEY', '')
+    OZOW_SANDBOX = os.environ.get('OZOW_SANDBOX', 'True') == 'True'
+
     SHIPPING_COST = 150.0
 
     # Flask-Mail settings

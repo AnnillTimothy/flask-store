@@ -194,6 +194,46 @@ def pay():
         db.session.commit()
         return redirect(checkout_url)
 
+    if payment_method == 'yoco':
+        from app.services import yoco as yoco_service
+        yoco_success = url_for('checkout.yoco_return', _external=True)
+        yoco_cancel = url_for('checkout.payment_cancel', _external=True)
+        yoco_failure = url_for('checkout.yoco_return', _external=True)
+        yoco_notify = url_for('checkout.yoco_notify', _external=True)
+        redirect_url, checkout_id = yoco_service.create_checkout(
+            order,
+            success_url=yoco_success,
+            cancel_url=yoco_cancel,
+            failure_url=yoco_failure,
+            notify_url=yoco_notify,
+        )
+        if not redirect_url:
+            flash('Yoco is temporarily unavailable. Please try another payment method or contact us.', 'danger')
+            return redirect(url_for('checkout.checkout'))
+        order.payment_method = 'yoco'
+        db.session.commit()
+        return redirect(redirect_url)
+
+    if payment_method == 'ozow':
+        from app.services import ozow as ozow_service
+        ozow_success = url_for('checkout.ozow_return', _external=True)
+        ozow_cancel = url_for('checkout.payment_cancel', _external=True)
+        ozow_error = url_for('checkout.ozow_return', _external=True)
+        ozow_notify = url_for('checkout.ozow_notify', _external=True)
+        payment_data = ozow_service.build_payment_data(
+            order,
+            success_url=ozow_success,
+            cancel_url=ozow_cancel,
+            error_url=ozow_error,
+            notify_url=ozow_notify,
+        )
+        ozow_url = ozow_service.get_payment_url()
+        order.payment_method = 'ozow'
+        db.session.commit()
+        return render_template('checkout/ozow_redirect.html',
+                               payment_url=ozow_url,
+                               payment_data=payment_data)
+
     # Default: PayFast
     order.payment_method = 'payfast'
     db.session.commit()
@@ -323,3 +363,157 @@ def payment_cancel():
             order.status = 'cancelled'
             db.session.commit()
     return render_template('checkout/cancel.html')
+
+
+# ── Yoco ─────────────────────────────────────────────────────────────────────
+
+@checkout_bp.route('/yoco-notify', methods=['POST'])
+@csrf.exempt
+def yoco_notify():
+    """
+    Yoco server-to-server webhook notification.
+
+    Yoco posts a JSON event with type 'payment.succeeded' or 'payment.failed'.
+    The webhook signing secret (YOCO_WEBHOOK_SECRET) should be configured in
+    the Yoco dashboard and set in .env to enable signature verification.
+    """
+    from app.services import yoco as yoco_service
+
+    raw_body = request.get_data()
+    signature = request.headers.get('X-Yoco-Signature', '')
+
+    if not yoco_service.verify_webhook_signature(raw_body, signature):
+        current_app.logger.warning('Yoco webhook: invalid signature')
+        return 'Invalid signature', 400
+
+    event = request.get_json(silent=True) or {}
+    event_type = event.get('type', '')
+    payload = event.get('payload', {})
+    metadata = payload.get('metadata', {})
+
+    order_id = metadata.get('orderId')
+    payment_id = payload.get('id', '')
+
+    if order_id:
+        order = Order.query.get(int(order_id))
+        if order:
+            if event_type == 'payment.succeeded':
+                order.status = 'paid'
+                order.payment_reference = payment_id
+            elif event_type == 'payment.failed':
+                order.status = 'cancelled'
+            db.session.commit()
+
+    return 'OK', 200
+
+
+@checkout_bp.route('/yoco-return')
+def yoco_return():
+    """
+    Yoco redirect-back endpoint after hosted checkout (success or failure).
+
+    Yoco appends ?checkoutId=xxx to the successUrl / failureUrl.
+    We verify the checkout status via the Yoco API.
+    """
+    from app.services import yoco as yoco_service
+
+    checkout_id = request.args.get('checkoutId', '')
+    order_id = session.pop('pending_order_id', None)
+    customer_name = session.pop('checkout_name', '')
+    customer_email = session.pop('checkout_email', '')
+    session.pop('checkout_phone', None)
+    session.pop('checkout_address', None)
+    session.pop('checkout_payment_method', None)
+
+    order = None
+    if checkout_id:
+        result = yoco_service.retrieve_checkout(checkout_id)
+        # Prefer order lookup via metadata; fall back to session
+        lookup_id = result.get('order_id') or order_id
+        if lookup_id:
+            order = Order.query.get(int(lookup_id))
+            if order:
+                if result['success']:
+                    order.status = 'paid'
+                    order.payment_reference = result.get('payment_id', '')
+                else:
+                    order.status = 'cancelled'
+                db.session.commit()
+
+    if not order and order_id:
+        order = Order.query.get(order_id)
+
+    return render_template('checkout/success.html', order=order,
+                           customer_name=customer_name,
+                           customer_email=customer_email)
+
+
+# ── OZow ─────────────────────────────────────────────────────────────────────
+
+@checkout_bp.route('/ozow-notify', methods=['POST'])
+@csrf.exempt
+def ozow_notify():
+    """
+    OZow server-to-server payment notification.
+
+    OZow POSTs form data (or JSON) containing the payment result.
+    The hash is verified against OZOW_PRIVATE_KEY.
+    """
+    from app.services import ozow as ozow_service
+
+    notification_data = request.form.to_dict() or request.get_json(silent=True) or {}
+    result = ozow_service.verify_notification(notification_data)
+
+    order_number = result.get('order_number')
+    if order_number:
+        order = Order.query.filter_by(order_number=order_number).first()
+        if order:
+            if result['success']:
+                order.status = 'paid'
+                order.payment_reference = result.get('payment_id', '')
+            elif result.get('status') in ('cancelled', 'abandonded'):
+                order.status = 'cancelled'
+            db.session.commit()
+
+    return 'OK', 200
+
+
+@checkout_bp.route('/ozow-return')
+def ozow_return():
+    """
+    OZow redirect-back endpoint after the hosted payment page.
+
+    OZow appends query params (Status, TransactionReference, etc.)
+    to SuccessUrl and ErrorUrl. We verify and update the order.
+    """
+    from app.services import ozow as ozow_service
+
+    # OZow may use GET params on the return URL
+    notification_data = request.args.to_dict()
+    order_id = session.pop('pending_order_id', None)
+    customer_name = session.pop('checkout_name', '')
+    customer_email = session.pop('checkout_email', '')
+    session.pop('checkout_phone', None)
+    session.pop('checkout_address', None)
+    session.pop('checkout_payment_method', None)
+
+    order = None
+    if notification_data.get('TransactionReference'):
+        result = ozow_service.verify_notification(notification_data)
+        order_number = result.get('order_number')
+        if order_number:
+            order = Order.query.filter_by(order_number=order_number).first()
+            if order:
+                if result['success']:
+                    order.status = 'paid'
+                    order.payment_reference = result.get('payment_id', '')
+                elif result.get('status') in ('cancelled', 'abandonded'):
+                    order.status = 'cancelled'
+                db.session.commit()
+
+    if not order and order_id:
+        order = Order.query.get(order_id)
+
+    return render_template('checkout/success.html', order=order,
+                           customer_name=customer_name,
+                           customer_email=customer_email)

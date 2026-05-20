@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting to OZow…</title>
+</head>
+<body onload="document.getElementById('ozow-form').submit()">
+  <p style="font-family:sans-serif;text-align:center;margin-top:4rem">
+    Redirecting to OZow for instant EFT, please wait…
+  </p>
+  <form id="ozow-form" action="{{ payment_url }}" method="post">
+    {% for key, value in payment_data.items() %}
+    <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+  </form>
+</body>
+</html>
