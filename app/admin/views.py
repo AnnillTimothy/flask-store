@@ -37,6 +37,21 @@ def _has_file(field):
     return bool(data and hasattr(data, 'filename') and data.filename)
 
 
+def _delete_btn_formatter(view, context, model, name):
+    """Per-row Delete button for Flask-Admin list views."""
+    delete_url = url_for(f'{view.endpoint}.delete_view', id=model.id)
+    return Markup(
+        f'<form method="post" action="{delete_url}" style="display:inline;margin:0;" '
+        f'onsubmit="return confirm(\'Delete this item? This cannot be undone.\');">'
+        f'<button type="submit" '
+        f'style="background:#dc2626;color:#fff;border:none;border-radius:4px;'
+        f'padding:0.2rem 0.65rem;font-size:0.72rem;cursor:pointer;font-weight:600;'
+        f'letter-spacing:0.04em;line-height:1.6;">'
+        f'&#128465; Delete</button>'
+        f'</form>'
+    )
+
+
 # ---------------------------------------------------------------------------
 # Access control mixin
 # ---------------------------------------------------------------------------
@@ -126,12 +141,14 @@ class SecureModelView(AdminRequiredMixin, ModelView):
 # ---------------------------------------------------------------------------
 
 class UserAdmin(AdminRequiredMixin, ModelView):
-    column_list = ('id', 'username', 'email', 'phone', 'is_admin', 'created_at')
+    column_list = ('id', 'username', 'email', 'phone', 'is_admin', 'created_at', '_delete')
     column_searchable_list = ('username', 'email', 'phone')
     column_filters = ('is_admin',)
     can_create = False
     can_delete = True
     form_excluded_columns = ('password_hash', 'orders', 'cart')
+    column_labels = {'_delete': ''}
+    column_formatters = {'_delete': _delete_btn_formatter}
 
 
 # ---------------------------------------------------------------------------
@@ -139,9 +156,12 @@ class UserAdmin(AdminRequiredMixin, ModelView):
 # ---------------------------------------------------------------------------
 
 class SupplierAdmin(SecureModelView):
-    column_list = ('id', 'name', 'website', 'contact_email', 'created_at')
+    column_list = ('id', 'name', 'website', 'contact_email', 'created_at', '_delete')
     column_searchable_list = ('name', 'contact_email')
+    can_delete = True
     form_excluded_columns = ('products', 'expenses')
+    column_labels = {'_delete': ''}
+    column_formatters = {'_delete': _delete_btn_formatter}
 
 
 # ---------------------------------------------------------------------------
@@ -167,13 +187,16 @@ class CategoryAdmin(SecureModelView):
 
 class ProductAdmin(SecureModelView):
     column_list = ('id', 'name', 'is_featured', 'cost_price', 'sale_price', 'price', 'stock',
-                   'category', 'supplier', 'brand')
+                   'category', 'supplier', 'brand', '_delete')
     column_searchable_list = ('name', 'slug', 'type', 'flavor', 'brand')
     column_filters = ('category_id', 'supplier_id', 'brand', 'is_featured')
     column_editable_list = ('is_featured', 'cost_price', 'sale_price', 'stock')
-    column_labels = {'cost_price': 'Cost Price (what we pay)', 'price': 'Retail Price (customer pays)'}
+    column_labels = {'cost_price': 'Cost Price (what we pay)',
+                     'price': 'Retail Price (customer pays)', '_delete': ''}
+    can_delete = True
     form_excluded_columns = ('bundle_items', 'cart_items', 'order_items',
                              'created_at', 'updated_at', 'image_filename', 'image_url', 'slug')
+    column_formatters = {'_delete': _delete_btn_formatter}
 
     form_extra_fields = {
         'image_upload': WTFFileField(
@@ -243,10 +266,11 @@ class ProductAdmin(SecureModelView):
 
 class ExperienceAdmin(SecureModelView):
     column_list = ('id', 'name', 'product_count', 'is_featured', 'is_seasonal',
-                   'sale_price', 'price', 'tagline', 'created_at')
+                   'sale_price', 'price', 'tagline', 'created_at', '_delete')
     column_searchable_list = ('name', 'slug')
     column_editable_list = ('is_featured', 'is_seasonal', 'sale_price')
-    column_labels = {'product_count': 'Products'}
+    column_labels = {'product_count': 'Products', '_delete': ''}
+    can_delete = True
 
     def product_count_formatter(view, context, model, name):
         if model.bundle_id:
@@ -258,7 +282,8 @@ class ExperienceAdmin(SecureModelView):
                 )
         return Markup('<span style="color:#666;">0</span>')
 
-    column_formatters = {'product_count': product_count_formatter}
+    column_formatters = {'product_count': product_count_formatter,
+                         '_delete': _delete_btn_formatter}
     form_excluded_columns = ('cart_items', 'order_items', 'created_at',
                              'video_filename', 'audio_filename', 'image_filename',
                              'slug', 'bundle_id', 'bundle')
@@ -471,7 +496,7 @@ class CompanySettingAdmin(AdminRequiredMixin, ModelView):
 
 class OrderAdmin(AdminRequiredMixin, ModelView):
     column_list = ('order_number', 'customer_name', 'customer_email', 'customer_phone',
-                   'status', 'total_amount', 'discount_amount', 'created_at')
+                   'status', 'total_amount', 'discount_amount', 'created_at', '_delete')
     column_searchable_list = ('order_number', 'customer_name', 'customer_email',
                               'customer_phone', 'payment_reference')
     column_filters = ('status', 'created_at')
@@ -482,6 +507,7 @@ class OrderAdmin(AdminRequiredMixin, ModelView):
     form_choices = {
         'status': [(s, s.replace('_', ' ').capitalize()) for s in Order.STATUS_CHOICES]
     }
+    column_labels = {'_delete': ''}
 
     def _customer_formatter(view, context, model, name):
         return Markup(
@@ -493,6 +519,7 @@ class OrderAdmin(AdminRequiredMixin, ModelView):
 
     column_formatters = {
         'customer_name': _customer_formatter,
+        '_delete': _delete_btn_formatter,
     }
 
 
@@ -502,14 +529,17 @@ class OrderAdmin(AdminRequiredMixin, ModelView):
 
 class DiscountCodeAdmin(SecureModelView):
     column_list = ('code', 'discount_type', 'discount_value', 'is_active',
-                   'uses_count', 'max_uses', 'expires_at', 'created_at')
+                   'uses_count', 'max_uses', 'expires_at', 'created_at', '_delete')
     column_searchable_list = ('code', 'description')
     column_filters = ('is_active', 'discount_type')
     column_editable_list = ('is_active',)
+    can_delete = True
     form_excluded_columns = ('uses_count', 'created_at')
     form_choices = {
         'discount_type': [('percent', 'Percentage (%)'), ('fixed', 'Fixed Amount (R)')]
     }
+    column_labels = {'_delete': ''}
+    column_formatters = {'_delete': _delete_btn_formatter}
 
 
 # ---------------------------------------------------------------------------
@@ -518,12 +548,15 @@ class DiscountCodeAdmin(SecureModelView):
 
 class ShippingAdmin(SecureModelView):
     column_list = ('id', 'order_id', 'tracking_number', 'carrier', 'status',
-                   'shipped_at', 'delivered_at')
+                   'shipped_at', 'delivered_at', '_delete')
     column_filters = ('status',)
+    can_delete = True
     form_choices = {
         'status': [(s, s.replace('_', ' ').capitalize())
                    for s in ShippingRecord.STATUS_CHOICES]
     }
+    column_labels = {'_delete': ''}
+    column_formatters = {'_delete': _delete_btn_formatter}
 
 
 # ---------------------------------------------------------------------------
@@ -531,12 +564,15 @@ class ShippingAdmin(SecureModelView):
 # ---------------------------------------------------------------------------
 
 class ExpenseAdmin(SecureModelView):
-    column_list = ('id', 'description', 'amount', 'category', 'date', 'supplier')
+    column_list = ('id', 'description', 'amount', 'category', 'date', 'supplier', '_delete')
     column_filters = ('category', 'supplier_id')
     column_searchable_list = ('description',)
+    can_delete = True
     form_choices = {
         'category': [(c, c.capitalize()) for c in Expense.CATEGORY_CHOICES]
     }
+    column_labels = {'_delete': ''}
+    column_formatters = {'_delete': _delete_btn_formatter}
 
 
 # ---------------------------------------------------------------------------
@@ -632,13 +668,16 @@ class BundleItemAdmin(SecureModelView):
 # ---------------------------------------------------------------------------
 
 class SubscriberAdmin(SecureModelView):
-    column_list = ('id', 'name', 'email', 'is_subscribed', 'source', 'created_at')
+    column_list = ('id', 'name', 'email', 'is_subscribed', 'source', 'created_at', '_delete')
     column_searchable_list = ('name', 'email')
     column_filters = ('is_subscribed', 'source')
     column_editable_list = ('is_subscribed',)
     column_default_sort = ('created_at', True)
     can_create = False
+    can_delete = True
     form_excluded_columns = ('klaviyo_profile_id', 'created_at', 'updated_at')
+    column_labels = {'_delete': ''}
+    column_formatters = {'_delete': _delete_btn_formatter}
 
     def after_model_change(self, form, model, is_created):
         from app.services import klaviyo_service
@@ -651,15 +690,17 @@ class SubscriberAdmin(SecureModelView):
 # ---------------------------------------------------------------------------
 
 class ContactTicketAdmin(SecureModelView):
-    column_list = ('ticket_ref', 'name', 'email', 'subject', 'status', 'created_at')
+    column_list = ('ticket_ref', 'name', 'email', 'subject', 'status', 'created_at', '_delete')
     column_searchable_list = ('ticket_ref', 'name', 'email', 'subject')
     column_filters = ('status',)
     column_default_sort = ('created_at', True)
     can_create = False
+    can_delete = True
     form_excluded_columns = ('created_at', 'updated_at')
     form_choices = {
         'status': [(s, s.capitalize()) for s in ContactTicket.STATUS_CHOICES]
     }
+    column_labels = {'_delete': ''}
 
     def _status_formatter(view, context, model, name):
         colours = {
@@ -693,6 +734,7 @@ class ContactTicketAdmin(SecureModelView):
             f'<a href="mailto:{m.email}" style="color:var(--sand);font-size:0.8rem;">'
             f'<i class="bi bi-envelope"></i></a>'
         ),
+        '_delete': _delete_btn_formatter,
     }
 
 

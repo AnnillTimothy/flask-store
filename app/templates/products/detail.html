@@ -56,10 +56,6 @@
         {% endif %}
         <h2 style="font-family:var(--serif);font-size:clamp(2rem,5vw,3.5rem);font-weight:400;color:var(--text);margin-bottom:0.5rem;">{{ product.name }}</h2>
 
-        {% if product.supplier %}
-        <p style="color:var(--text-ghost);font-size:0.82rem;margin-bottom:1rem;">Supplied by {{ product.supplier.name }}</p>
-        {% endif %}
-
         <div style="font-family:var(--serif);font-size:2.4rem;font-weight:600;color:var(--sand);margin-bottom:1.5rem;">
           R{{ '%.2f'|format(product.price) }}
         </div>
