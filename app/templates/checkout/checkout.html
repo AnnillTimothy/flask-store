@@ -129,6 +129,22 @@
                     <span style="color:var(--text-ghost);font-size:0.78rem;margin-left:0.4rem;">— Cards, EFT & more</span>
                   </span>
                 </label>
+                <label class="payment-method-option" style="display:flex;align-items:center;gap:0.75rem;cursor:pointer;padding:0.75rem 1rem;border-radius:8px;border:1px solid rgba(200,180,154,0.25);background:rgba(255,255,255,0.03);">
+                  <input type="radio" name="payment_method" value="yoco"
+                         style="accent-color:var(--sand);width:1.1rem;height:1.1rem;">
+                  <span>
+                    <strong style="color:var(--text);">Yoco</strong>
+                    <span style="color:var(--text-ghost);font-size:0.78rem;margin-left:0.4rem;">— Fast card payments</span>
+                  </span>
+                </label>
+                <label class="payment-method-option" style="display:flex;align-items:center;gap:0.75rem;cursor:pointer;padding:0.75rem 1rem;border-radius:8px;border:1px solid rgba(200,180,154,0.25);background:rgba(255,255,255,0.03);">
+                  <input type="radio" name="payment_method" value="ozow"
+                         style="accent-color:var(--sand);width:1.1rem;height:1.1rem;">
+                  <span>
+                    <strong style="color:var(--text);">Ozow</strong>
+                    <span style="color:var(--text-ghost);font-size:0.78rem;margin-left:0.4rem;">— Instant EFT, no card needed</span>
+                  </span>
+                </label>
               </div>
             </div>
 
@@ -239,15 +255,17 @@
   });
 
   // Update payment badge when selecting a payment method
+  const badgeLabels = {
+    payfast: '<i class="bi bi-shield-check"></i>&nbsp;PayFast',
+    peach:   '<i class="bi bi-shield-check"></i>&nbsp;Peach Payments',
+    yoco:    '<i class="bi bi-shield-check"></i>&nbsp;Yoco',
+    ozow:    '<i class="bi bi-shield-check"></i>&nbsp;Ozow (Instant EFT)',
+  };
   document.querySelectorAll('input[name="payment_method"]').forEach(function (radio) {
     radio.addEventListener('change', function () {
       const badge = document.getElementById('payment-badge-label');
       if (!badge) return;
-      if (this.value === 'peach') {
-        badge.innerHTML = '<i class="bi bi-shield-check"></i>&nbsp;Peach Payments';
-      } else {
-        badge.innerHTML = '<i class="bi bi-shield-check"></i>&nbsp;PayFast';
-      }
+      badge.innerHTML = badgeLabels[this.value] || badgeLabels['payfast'];
     });
   });
 })();
