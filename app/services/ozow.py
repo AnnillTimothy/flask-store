@@ -1,14 +1,14 @@
 """
-OZow — Instant EFT integration.
+Ozow — Instant EFT integration.
 
 Handles payment initiation and notification verification for South African
-instant EFT payments via the OZow hosted payment page.
+instant EFT payments via the Ozow hosted payment page.
 
 Docs: https://ozow.com/integrations/
 
 Required .env variables:
-  OZOW_SITE_CODE    — your site code from the OZow merchant portal
-  OZOW_PRIVATE_KEY  — your private key from the OZow merchant portal
+  OZOW_SITE_CODE    — your site code from the Ozow merchant portal
+  OZOW_PRIVATE_KEY  — your private key from the Ozow merchant portal
   OZOW_SANDBOX      — 'True' for sandbox/test mode, 'False' for live (default: True)
 """
 import hashlib
@@ -35,7 +35,7 @@ def _generate_hash(fields, private_key):
 
 def build_payment_data(order, success_url, cancel_url, error_url, notify_url):
     """
-    Build the dict of POST fields to redirect the user to OZow.
+    Build the dict of POST fields to redirect the user to Ozow.
 
     The caller should render a self-submitting form POSTing these fields
     to get_payment_url().
@@ -59,7 +59,7 @@ def build_payment_data(order, success_url, cancel_url, error_url, notify_url):
         'IsTest': is_test,
     }
 
-    # Hash fields in the exact order OZow specifies
+    # Hash fields in the exact order Ozow specifies
     hash_fields = [
         data['SiteCode'],
         data['CountryCode'],
@@ -84,7 +84,7 @@ def build_payment_data(order, success_url, cancel_url, error_url, notify_url):
 
 def verify_notification(notification_data):
     """
-    Verify an OZow server-to-server payment notification.
+    Verify an Ozow server-to-server payment notification.
 
     notification_data: dict from request.form or request.get_json()
 
@@ -102,7 +102,7 @@ def verify_notification(notification_data):
     received_hash = (notification_data.get('Hash', '') or
                      notification_data.get('HashCheck', '')).lower()
 
-    # Verify notification hash: OZow concatenates these fields in this order
+    # Verify notification hash: Ozow concatenates these fields in this order
     hash_fields = [
         notification_data.get('SiteCode', ''),
         notification_data.get('CountryCode', ''),
@@ -122,7 +122,7 @@ def verify_notification(notification_data):
     expected_hash = _generate_hash(hash_fields, private_key)
 
     if private_key and received_hash and received_hash != expected_hash:
-        log.warning('OZow notification: hash mismatch (received=%s expected=%s)',
+        log.warning('Ozow notification: hash mismatch (received=%s expected=%s)',
                     received_hash[:16], expected_hash[:16])
         # Log but don't reject — hash field names may differ between environments.
         # Monitor logs until a live account is confirmed.

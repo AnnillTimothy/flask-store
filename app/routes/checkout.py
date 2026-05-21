@@ -448,15 +448,15 @@ def yoco_return():
                            customer_email=customer_email)
 
 
-# ── OZow ─────────────────────────────────────────────────────────────────────
+# ── Ozow ─────────────────────────────────────────────────────────────────────
 
 @checkout_bp.route('/ozow-notify', methods=['POST'])
 @csrf.exempt
 def ozow_notify():
     """
-    OZow server-to-server payment notification.
+    Ozow server-to-server payment notification.
 
-    OZow POSTs form data (or JSON) containing the payment result.
+    Ozow POSTs form data (or JSON) containing the payment result.
     The hash is verified against OZOW_PRIVATE_KEY.
     """
     from app.services import ozow as ozow_service
@@ -481,14 +481,14 @@ def ozow_notify():
 @checkout_bp.route('/ozow-return')
 def ozow_return():
     """
-    OZow redirect-back endpoint after the hosted payment page.
+    Ozow redirect-back endpoint after the hosted payment page.
 
-    OZow appends query params (Status, TransactionReference, etc.)
+    Ozow appends query params (Status, TransactionReference, etc.)
     to SuccessUrl and ErrorUrl. We verify and update the order.
     """
     from app.services import ozow as ozow_service
 
-    # OZow may use GET params on the return URL
+    # Ozow may use GET params on the return URL
     notification_data = request.args.to_dict()
     order_id = session.pop('pending_order_id', None)
     customer_name = session.pop('checkout_name', '')
